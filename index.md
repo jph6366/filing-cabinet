@@ -1,6 +1,6 @@
 # Emanote Template
 
-This is a sample repository of Markdown notes, rendered using [Emanote] and hosted on [[GitHub Pages]], while enabling editing in the likes of [Visual Studio Code](https://emanote.srid.ca/start/resources/editors/vscode). For details, see https://github.com/srid/emanote-template.
+This is a sample repository of Markdown notes, rendered using [Emanote] and hosted on [[GitHub Pages]], while enabling editing in the likes of [Visual Studio Code](https://emanote.srid.ca/start/resources/editors/vscode). For details, see https://github.com/jph6366/filing-cabinet/.
 
 Quick tips:
 
@@ -9,4 +9,4 @@ Quick tips:
 
 For information on all features Emanote supports, see [the documentation][Emanote].
 
-[Emanote]: https://emanote.srid.ca/
+[Emanote]: https://jph6366.github.io/
