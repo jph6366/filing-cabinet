@@ -1,0 +1,8 @@
+#+title: My hovercraft is full of eels
+
+* PROJ Adding meanings to phrases
+
+** [[Code Editors, IDEs, Language Server, VSCode, and Doom Emacs]]
+** [[WEB_PROGRAMMING][Browsers, Legacy Web, WebAssembly, JavaScript, HTML, Web Frameworks, Web Graphics and Rendering, ]]
+** [[GODOT_DEVLOPMENT][Game Development, Godot, C#/.NET, Odin, Sokol, WebGL, WebGPU, glTF, and GLSL]]
+** More to be organized...
