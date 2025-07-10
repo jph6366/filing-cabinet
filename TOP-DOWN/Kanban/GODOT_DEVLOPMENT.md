@@ -1,4 +1,4 @@
-# Game Development in Godot
+# Godot
 
 
 ## How C# Works in Godot, for eggheads 🐤🐥🥚🐣

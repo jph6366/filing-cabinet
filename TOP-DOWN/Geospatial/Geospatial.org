@@ -1,0 +1,2526 @@
+#+GIS Programming with Python & Julia:
+
+* GIS Programming, Dr. Qiusheng Wu 
+
+
+** Jupyter Notebooks
+- The name is a reference to the Julia, Python, and R
+  - It has the UI to edit code and text
+    - It has the kernel that executes the code
+      - And the underlying JSON file format with the ".ipynb" extension.
+  - It has the ability to move, execute, delete outside of novelty read-eval-print-loop
+
+- **Project Jupyter** provides two options both in form of a web app
+  - Jupyter Notebook
+  - Jupyter Lab
+    - with fully-featured IDE
+  - So many other options both web-based and client-based
+
+
+** Marimo https://marimo.io/
+- is an open source reactive Python notebook:
+  - run a cell or interact with a UI element, and marimo automatically runs dependent cells
+    - keeping code and outputs consistent and preventing bugs before they happen.
+
+
+
+** Emacs IPython Notebook (EIN) : https://millejoh.github.io/emacs-ipython-notebook/
+- is a jupyter client for all languages in Emacs
+  - Copy/paste cells in and between notebooks.
+  - Console integration: You can easily connect to a kernel via a console application. This enables you to start debugging in the same kernel. It is even possible to connect a console over ssh.
+  - An IPython kernel can be “connected” to a buffer. This enables you to evaluate buffer/region using same kernel as notebook. Notebook goodies such as tooltip help, help browser and code completion are available in these buffers.
+  - Jump to definition (go to the definition by executing M-. over an object).
+  - _Execute code from an org-mode_ source block in a running kernel.
+
+** XJupyter
+- no heavy weight notebook server
+- no ipynb files
+- notebooks are saved like a regular txt file to the '*.jpr' extension
+- XJupyter uses mode overlays to intersperse python mode blocks in a non-python buffer
+- fully fledged undo
+*** Commercial Emacs
+- Gnus is rewritten to be non-blocking
+  - Gnus Network User Services, a message reader supports news and mail, MIME-compliant, etc..
+- Process management is rewritten
+  - GNU emacs process management encompasses creating, controlling, and communicating with subprocesses, network connections, serial port connections, and pipe connections
+    - process object types and representations
+      1. child processes of Emacs (shell commands)
+      2. TCP and UDP network connections
+      3. connections to serial ports
+      4. communication through pipes
+         **All these connection types are represented by the same C structure: /Lisp_Process/ **
+         READ MORE [[http://deepwiki.com/emacsmirror/emacs/4.3-process-management][HERE]]
+- See more features at gh repo  https://github.com/commercial-emacs/commercial-emacs
+
+- also _moving garbage collector_
+  - moving collectors relocate Lisp values in memory
+    - in GNU emacs allocating say a cons cell, will let it remain as its birth address in perpetuity
+      - a cons cell, also known as a dotter pair, is simply a pair of two objects.
+        - the car of a list is the first item
+        - the cdr returns the part of the list that follows the first item
+                #+begin_src lisp
+        (cons "a" 4)
+
+        (car (cons "a" 4))
+        ;;=> "a"
+        (cdr(cons "a" 4))
+        ;;=> 4
+                #+end_src
+  - non-moving collectors can not do generational sequestration
+    - that is keeping the youngest cohort of Lisp values separated from older ones
+      - allows for fast intermediary cycles which only scan the nursery generation
+      - non moving collector must traverse the full set on each cycle since its allocations are interleaved
+
+
+
+** Quickstart
+
+https://learnxinyminutes.com/julia/
+
+https://learnxinyminutes.com/python
+
+
+
+** Overview of variables and data types
+- variables allow you to store and manipulate information
+  - in _Julia_, a variable is a name associated (or bound) to a value
+    - they can be assigned using the `=` operator
+    - PascalCase/camelCase
+  - in _Python_,a variable is a name that is a pointer to a object
+    - they can be assigned using the `=` operator
+    - snake_case
+  - in _R_, variables are named storage locations that hold data values
+    - they can be assigned a value using operators like `<-` or `=`
+      - snake_case
+- data types define the kind of operations you can perform on this information
+  - _Julia_, _Python_, and _R_ are all dynamically typed.
+
+
+** Stylistic Conventions
+*** Style Guide for Python Code
+   - Variable names must start with a letter or an underscore
+     - The remainder of the variable name can consist of letters, numbers, and underscores
+       - variable names are case-sensitive, so num_points and Num_Points are different variables
+         - variables names should be descriptive and meaningful, such `num_points` instead of n
+           - avoid using python keywords and built-in functions as variable names
+        _PEP 8_
+             [[https://peps.python.org/pep-0008/#naming-conventions][_Prescriptive: Naming Conventions_]]
+             1. _Names to avoid_: never use single character variable names with characters `l`, `O`, `I`
+             2. _ASCII compatibility_
+             3. _Package and Module names_:
+                - modules should have short, lowercase names, w/ underscores if readability is improved
+                - packages should have short, lowercase names, and underscores are discouraged
+                - when extension module written in C or C++ has a Python module that provides OOP interface
+                  - the C/C++ module has a leading underscore
+             4. _Class names_: use CapWords convention
+             5. _Type Variable names_: use CapWords convention and short names, also add suffixes to delcare covariant/contravariant behavior
+             6. _Exception names_: CapWords using Error suffix
+             7. _Global Variable names_: lowercase w/ underscores for readability
+                - Modules designed for use `from M import *` should use the __all__ mechanism to prevent exporting globals
+                  - the older convention is prefixing such globals withh an underscore, which can be used to indicate "module non public"
+             8. _Function and Variable names_: lowercase w/ underscores for readability
+             9. _Function and Method Arguments_: always use `self` for the first argument to instance methods, always use `cls` for the first argument to class methods.
+                - if a function argument's name clashes with a reserved keyword, it is best to append a single trailing underscore
+             10. _Method names and Instance Variables_: lowercase with words separated by underscores to increase readability if neccessary
+                 - use one leading underscore only for non-public methods and instance variables
+                   - to avoid name clashes with subclasses, use two leading underscores to invoke Python's name mangling rules
+             11. _Constants_: usually defined on a module level and written in all capital letters with underscores separating words
+
+             12. _Designing for Inheritance_: Always decide whether a class's methods and instance variables (collectively: attributes) should be public or non-public
+                 - public attributes have no leading underscores
+                   - if clashing with a reserved keyword then append a trailing underscore
+                 - for simple public data attributes, it is best to expose just the attribute name
+                   - use properties to hide functional implementation behind simple data attribute access syntax
+                     - avoid using properties for computationally expensive operations
+                 - if your class is to be subclassed and there are attributes that you do not want subclasses to use,
+                   - consider naming them with double leading underscores and no trailing underscores
+
+
+** Python Objects, Values, Types, Functions, Classes, Coroutines,
+
+*** object, garbage collection, truth value, etc.
+- objects are python's abstraction for data
+  - every object has an address in memory, a type, and a value
+    **For CPython, id(x) is the memory address where x is stored**
+- values of some objects can change and these are mutable
+  - some objects are unchangeable and these are immutable
+    - instance, numbers, strings, and tuples are immutable
+    - dictionaries and lists are mutable
+- objects are never explicitly destroyed
+  - when they become unreachable they may be garbage-collected
+    **see the _gc_ module for info on controlling collection of cyclic garbage in CPython**
+- when objects contain references to 'external' resources like open files or windows
+  - garbage collection is not guaranteed to happen
+    - programs are strongly recommended to explicitly close such objects
+      - the _try_ ... _finally_ statement and the _with_ statement provide convenient ways to do this
+- some objects contain references to other objects and these are containers
+  - the references are part of a container's value
+  - the mutability of a container is implied through the identities of the immediately contained objects
+
+  - practically all objects can be compared for equality
+    - and converted to a string using the `repr()` function or `str()` function
+- _Any object can be tested for truth value_, for use in an if or while condition or as operand of Boolean operations
+  - by default an object is considered true
+    - unless its class defines a `__bool__()` method that returns false
+      or
+    - a __len__() method that returns zero, when called with the object
+
+      _built-in objects considered false_ (None, False,
+                                                0, 0.0, 0j, Decimal(0), Fraction(0,1),
+                                                        '', (), [], {}, set(), range(0))
+- python provides a built-in object called _Ellipsis_ to be used as a placeholder
+  - can be used in comparisons or custom logic
+    1. placeholder for 'defined but not yet implemented'
+    2. NumPy shorthand for accessing and slicing high-dimensional arrays
+       - represents all preceding dimensions
+         - no need to specify each index for every dimension
+         - ellipsis can only represent all preceding dimensions once in the slice
+           - using it multiple times will raise an _IndexError_
+    3. type hinting that a function can accept any number or type of parameters
+    4. used as a secondary prompt in python's REPL to indicate that the interpreter is expecting more input
+    5. can be used as a default argument to distinguish between a value not being provided and it being explicitly set to /None/
+
+- types affect almost all aspects of object behavior
+  - below these are standard types that are built into the intepreter
+
+
+*** boolean
+- Boolean represent truth values, /True/ and /False/
+  - _bool()_ converts any value to a boolean
+    - and, or, and != should be preferred over &, |, and ^
+
+- _bool_ is a subclass of _int_
+  - please explicitly convert using int() for integer behavior
+
+#+begin_src python
+x or y # if x is true, then x, else y
+# short-circuit operators
+x and y # if x is falsee, then x, else y
+
+
+not x # if x is false, then True, else False
+not a == b
+# is interpreted as
+not (a == b)
+# but below is syntax error because not has a lower priority than non-Boolean operators
+a == not b
+#+end_src
+
+
+*** comparison
+- there are eight comparison operators
+  - can be chained arbitrarily
+    #+begin_src python
+x < y <= z # is equivalent to
+x < y and y <= z # except that y is evaluated only once
+# but in both cases z is not evaluated at all when x < y is false
+
+operations = [<, <=, >, >=, ==, !=, is, is not]
+    #+end_src
+_Objects of different types, except different numeric types, NEVER compare equal_
+- the == operator is always defined but for some object types is equivalent to _is_.
+  - <, <=, >, >= operators are only defined where they make sense
+- **Non-identical instances of a class normally compare as non-equal unless the class defines the __eq__() method**
+  - other conventional class instance means of comparison operators  __lt__(), __le__(), __gt__(), and __ge__()
+    - behavior of _is_ and _is not_ operators cannot be customized
+      - also can be applied to any two objects and _never raise an exception_.
+    - _in_ and _not in_ are operations with the same syntactic priority
+      - supported by types that are iterable or implement the __contains__() method.
+
+
+*** numerics
+
+- numeric objects are immutable
+_numbers.Number_
+  - created by numeric literals and returned by arithmetic operators and arithmetic built-in functions
+  - integers, floating-point numbers, complex numbers
+_numbers.Integral_
+  - represents elements from the mathematical set of integers (positive and negative)
+  - _int_, _bool
+_numbers.Real_
+  - represents machine-level double precision floating-point numbers
+  - _float_
+_numbers.Complex_
+  - represents complex numbers as a pair of machine-level double precision floating-point numbers
+  - _complex_
+
+
+
+
+
+- three distinct types
+  - _integers_
+    - represents numbers in an unlimted range, subject to avaible (virtual) memory only
+
+  - _floating-point numbers_
+    **implemented using double in C**
+    - use _sys.float_info_ for precision of f-p nums for host machine
+    - standard library includes additional numeric types _fractions.Fraction_, for rationals, and _decimal.Decimal_, for f-p nums w/ user definable precision
+
+  - _complex numbers_
+    **A complex number z, use z.real and z.imag**
+    - numbers that can be expressed in the form
+            $a + bi$
+    - a is the real, b is the imag
+      - i is the imaginary unit, defined as
+        $i = \sqrt{-1}$
+
+- /Numbers/ are created by numeric literals or as the result of built-in functions and operators
+
+- Supports mixed arithmetic
+  - when a binary arithmetic operator has operands of different numeric types
+    - the `narrower` type is `widened` to that of the other
+      - _int()_, _float()_, _complex()_
+
+All numeric types (except complex) support the [[https://docs.python.org/3/library/stdtypes.html#numeric-types-int-float-complex][following operations]]
+
+All _numbers.Real_ types (_int_ and _float_) also include the following operations
+      - _math.trunc(x)_ x truncated to _Integral_
+      - _round(x[,n])_  x rounded to n digits, rounding half to even. if n is omittted, it defaults to 0.
+      - _math.floor(x)_ the greatest _Integral_ <= x
+      - _math.ceil(x)_  the least _Integral_ >= x
+see more numeric operations on _math_ and _cmath_ modules
+
+**Deprecated since version 3.12: The use of the bitwise inversion operator ~ is deprecated and will raise an error in Python 3.16.**
+
+All bitwise operators
+ #+begin_src python
+x | y # bitwise /or/ of x and y
+x ^ y # bitwise /exclusive or/ of x and y
+x & y # bitwise /and/ of x and y
+x << n # x shifted left by n bits
+x >> n # x shifted right by n bits
+~x # the bits of x inverted
+ #+end_src
+ - negative shift counts will cause a _ValueError_ to be raised
+ - left shift by /n/ bits is equivalent to multiplication by `pow(2, n)`
+ - right shift by /n/ bits is equivalent to floor division by `pow(2, n)`
+
+_Additional methods_
+- int.bit_length()
+  - # of bits neccessary to represent an int in binary
+
+- int.bit_count()
+  - # of ones in the binary representation of the abs value of the int
+
+- int.to_bytes(length=1, byteorder='big', *, signed=False)
+  - an array of bytes representing an int
+    - _OverflowError_ raised if int is not representable
+
+- int.from_bytes(bytes, byteorder='big', *, signed=False)
+  - the int represented by given array of bytes
+
+- int.as_integer_ratio()
+  - returns a pair of ints
+    - whose ratio is equal to the original int and has a positive denominator
+
+- int.is_integer()
+  - duck type compatibility
+
+- float.as_integer_ratio()
+  - return pair of ints
+    - whose ratio is exactly equal to the original float
+
+- float.is_integer()
+
+- float.hex()
+  - returns a representation of a floating-point number as hexidecimal string
+
+- float.fromhex()
+
+
+_Hashing of Numeric Types_
+- Python's hash for numeric types is based on a single mathematical function that's defined for any rational number
+  - hence applies to all instances of _int_ and _fractions.Fraction_, and all finite instances of _float_ and _decimal.Decimal_
+    - this function is given by the /reduction modulo/ /P/ for a fixed prime /P/
+      - the value of /P/ is made available to Python as the _modulus_ attribute of _sys.hash_info_
+
+
+_Here’s some example Python code, equivalent to the built-in hash_
+#+begin_src python
+import sys, math
+
+def hash_fraction(m, n):
+    """Compute the hash of a rational number m / n.
+
+    Assumes m and n are integers, with n positive.
+    Equivalent to hash(fractions.Fraction(m, n)).
+
+    """
+    P = sys.hash_info.modulus
+    # Remove common factors of P.  (Unnecessary if m and n already coprime.)
+    while m % P == n % P == 0:
+        m, n = m // P, n // P
+
+    if n % P == 0:
+        hash_value = sys.hash_info.inf
+    else:
+        # Fermat's Little Theorem: pow(n, P-1, P) is 1, so
+        # pow(n, P-2, P) gives the inverse of n modulo P.
+        hash_value = (abs(m) % P) * pow(n, P - 2, P) % P
+    if m < 0:
+        hash_value = -hash_value
+    if hash_value == -1:
+        hash_value = -2
+    return hash_value
+
+def hash_float(x):
+    """Compute the hash of a float x."""
+
+    if math.isnan(x):
+        return object.__hash__(x)
+    elif math.isinf(x):
+        return sys.hash_info.inf if x > 0 else -sys.hash_info.inf
+    else:
+        return hash_fraction(*x.as_integer_ratio())
+
+def hash_complex(z):
+    """Compute the hash of a complex number z."""
+
+    hash_value = hash_float(z.real) + sys.hash_info.imag * hash_float(z.imag)
+    # do a signed reduction modulo 2**sys.hash_info.width
+    M = 2**(sys.hash_info.width - 1)
+    hash_value = (hash_value & (M - 1)) - (hash_value & M)
+    if hash_value == -1:
+        hash_value = -2
+    return hash_value
+#+end_src
+
+
+*** iterables
+- Python supports a concept of iteration over containers
+  - **sequences** always support iteration methods
+  - one method needs to be defined for container objects to provide iterable support:
+    container.__iter__()
+    - returns an _iterator_ object
+  - iterator objects are required to support the two methods (iterator protocol)
+    - iterator.__iter__()
+      - containers and iterators to be used with _for_ and _in_ statements
+    - iterator.__next__()
+      - if no items, raise _StopIteration_ exception
+******* generators
+- allow you to create iterators using the /yield/ keyword
+  - they produce a series of values over time, pausing their execution after each yield
+    -
+- Python's generators provide a convenient way to implement the iterator protocol
+  - if a container's object's __iter__() method is implemented as a generator
+    -it will automatically return an iterator, technically a generator, object
+    _yield expression is used when defining a generator function or an asynchronous generator function_
+    - thus only used in the body of a function definition
+    - using a yield expression in a function's body causes that function to be a generator function
+      - using it in an _async def_ function's body causes that /coroutine/ function to be an asynchronous generator
+        #+begin_src python
+def gen():
+    yield 6366
+
+async def async_gen():
+    yield 6366
+
+# generator expressions
+g = (n for n in range(6, 36))
+next(g)
+next(g)
+next(g)
+# Traceback (most recent call last):
+#   File "<stdin>", line 1, in <module>
+# StopIteration
+        #+end_src
+_A generator object is generated once_ but _its code is not run all at once_
+- only calls to next
+  - code in generator stops once a yield has been reached
+    - the next call to next causes execution to continue from last yield
+
+******* itertools
+This module implements iterator building blocks inspired by APL, Haskell, and SML
+- memory-efficient tools that form /iterator algebra/
+  - construct specialized tools succintly in pure Python
+
+**SML provides a tabulation tool** _tabulate(f)_ which produces a sequence f(0), f(1), ...
+- the same can be achieved with map() and count() to form _map(f, count())_
+
+******** _infinite iterators_
+  - count()
+    make an iterator that returns evenly spaced values beginning with start
+    **use with _zip()_ to add sequence numbers or with _map()_ to generate consecutive data points**
+    #+begin_src python
+def count(start=0, step=1):
+    # count(10) → 10 11 12 13 14 ...
+    # count(2.5, 0.5) → 2.5 3.0 3.5 ...
+    n = start
+    while True:
+        yield n
+        n += step
+    #+end_src
+
+
+  - cycle()
+    make an iterator returning elements from the iterable and saving a copy of each
+        when the iterable is exhausted, return elements from the saved copy.
+                repeats indefinitely
+                #+begin_src python
+def cycle(iterable):
+    # cycle('ABCD') → A B C D A B C D A B C D ...
+
+    saved = []
+    for element in iterable:
+        yield element
+        saved.append(element)
+
+    while saved:
+        for element in saved:
+            yield element
+                #+end_src
+
+
+  - repeat()
+    makes an iterator that returns object over and over again
+        runs indefinitely unless the times argument is specified
+        #+begin_src python
+def repeat(object, times=None):
+    # repeat(10, 3) → 10 10 10
+    if times is None:
+        while True:
+            yield object
+    else:
+        for i in range(times):
+            yield object
+        #+end_src
+
+
+******** _iterators terminating on the shortest input sequence_
+- accumulate()
+  an iterator that retturns accumulated sums or results from other binary functions
+  #+begin_src python
+def accumulate(iterable, function=operator.add, *, initial=None):
+    'Return running totals'
+    # accumulate([1,2,3,4,5]) → 1 3 6 10 15
+    # accumulate([1,2,3,4,5], initial=100) → 100 101 103 106 110 115
+    # accumulate([1,2,3,4,5], operator.mul) → 1 2 6 24 120
+
+    iterator = iter(iterable)
+    total = initial
+    if initial is None:
+        try:
+            total = next(iterator)
+        except StopIteration:
+            return
+
+    yield total
+    for element in iterator:
+        total = function(total, element)
+        yield total
+  #+end_src
+- batched()
+  batch data from the iterable into tuples of length n
+  #+begin_src python
+def batched(iterable, n, *, strict=False):
+    # batched('ABCDEFG', 3) → ABC DEF G
+    if n < 1:
+        raise ValueError('n must be at least one')
+    iterator = iter(iterable)
+    while batch := tuple(islice(iterator, n)):
+        if strict and len(batch) != n:
+            raise ValueError('batched(): incomplete batch')
+        yield batch
+  #+end_src
+
+
+- chain()
+  make an iterator that returns elements from the first iterable until it is exhausted then proceed to the next iterable, until all are exhausted.
+  #+begin_src python
+def chain(*iterables):
+    # chain('ABC', 'DEF') → A B C D E F
+    for iterable in iterables:
+        yield from iterable
+  #+end_src
+
+
+- chain.from_iterable()
+  alternate constructor for _chain()_
+  gets chained inputs from a single iterable arugment that is evaluated lazily
+  #+begin_src python
+def from_iterable(iterables):
+    # chain.from_iterable(['ABC', 'DEF']) → A B C D E F
+    for iterable in iterables:
+        yield from iterable
+  #+end_src
+
+
+- compress()
+  make an iterator that returns elements from data where the corresponding element in selectors is true
+        stops when either the data or selectors iterables have been exhausted.
+        #+begin_src python
+def compress(data, selectors):
+    # compress('ABCDEF', [1,0,1,0,1,1]) → A C E F
+    return (datum for datum, selector in zip(data, selectors) if selector)
+        #+end_src
+
+
+- dropwhile()
+  make an iterator that drops elements from the iterable
+        while the predicate is true and afterwards every elementary
+        #+begin_src python
+def dropwhile(predicate, iterable):
+    # dropwhile(lambda x: x<5, [1,4,6,3,8]) → 6 3 8
+
+    iterator = iter(iterable)
+    for x in iterator:
+        if not predicate(x):
+            yield x
+            break
+
+    for x in iterator:
+        yield x
+        #+end_src
+
+
+- filterfalse()
+  make an iterator that filters elements from the iterable returning only those for which the predicate returns a false value
+        if predicate is None, returns the items that are false
+        #+begin_src python
+def filterfalse(predicate, iterable):
+    # filterfalse(lambda x: x<5, [1,4,6,3,8]) → 6 8
+
+    if predicate is None:
+        predicate = bool
+
+    for x in iterable:
+        if not predicate(x):
+            yield x
+        #+end_src
+
+
+- groupby()
+  makes an iterator that returns consecutive keys and groups from the iterable
+        the key is a function computing a key value for each element
+                key defaults to an identity function and returns the element unchanged
+
+                **the operation of _groupby()_ is similar to _uniq_ filter in Unix **
+                -  it generates a break or new group every time the value of the key function changes
+                  - this is different from SQL's _GROUP BY_ which aggregates common elements regardless of their input order
+                    #+begin_src python
+def groupby(iterable, key=None):
+    # [k for k, g in groupby('AAAABBBCCDAABBB')] → A B C D A B
+    # [list(g) for k, g in groupby('AAAABBBCCD')] → AAAA BBB CC D
+
+    keyfunc = (lambda x: x) if key is None else key
+    iterator = iter(iterable)
+    exhausted = False
+
+    def _grouper(target_key):
+        nonlocal curr_value, curr_key, exhausted
+        yield curr_value
+        for curr_value in iterator:
+            curr_key = keyfunc(curr_value)
+            if curr_key != target_key:
+                return
+            yield curr_value
+        exhausted = True
+
+    try:
+        curr_value = next(iterator)
+    except StopIteration:
+        return
+    curr_key = keyfunc(curr_value)
+
+    while not exhausted:
+        target_key = curr_key
+        curr_group = _grouper(target_key)
+        yield curr_key, curr_group
+        if curr_key == target_key:
+            for _ in curr_group:
+                pass
+                    #+end_src
+
+
+- islice()
+  make an iterator that returns selected elements from the iterable
+  #+begin_src python
+def islice(iterable, *args):
+    # islice('ABCDEFG', 2) → A B
+    # islice('ABCDEFG', 2, 4) → C D
+    # islice('ABCDEFG', 2, None) → C D E F G
+    # islice('ABCDEFG', 0, None, 2) → A C E G
+
+    s = slice(*args)
+    start = 0 if s.start is None else s.start
+    stop = s.stop
+    step = 1 if s.step is None else s.step
+    if start < 0 or (stop is not None and stop < 0) or step <= 0:
+        raise ValueError
+
+    indices = count() if stop is None else range(max(start, stop))
+    next_i = start
+    for i, element in zip(indices, iterable):
+        if i == next_i:
+            yield element
+            next_i += step
+  #+end_src
+
+
+- pairwise()
+  return successive overlapping pairs taken from the input iterable
+  #+begin_src python
+def pairwise(iterable):
+    # pairwise('ABCDEFG') → AB BC CD DE EF FG
+
+    iterator = iter(iterable)
+    a = next(iterator, None)
+
+    for b in iterator:
+        yield a, b
+        a = b
+  #+end_src
+
+
+- starmap()
+  make an iterator that computes the function using arguments obtained from the iterable
+        instead of _map()_ when argument params have already been pre-zipped into tuples
+  #+begin_src python
+def starmap(function, iterable):
+    # starmap(pow, [(2,5), (3,2), (10,3)]) → 32 9 1000
+    for args in iterable:
+        yield function(*args)
+  #+end_src
+
+
+- takewhile()
+  make an iterator that returns elements from the iterable as long as the predicate is true
+#+begin_src python
+def takewhile(predicate, iterable):
+    # takewhile(lambda x: x<5, [1,4,6,3,8]) → 1 4
+    for x in iterable:
+        if not predicate(x):
+            break
+        yield x
+#+end_src
+
+- tee()
+  return n independent iterators from a single iterable
+  #+begin_src python
+def tee(iterable, n=2):
+    if n < 0:
+        raise ValueError
+    if n == 0:
+        return ()
+    iterator = _tee(iterable)
+    result = [iterator]
+    for _ in range(n - 1):
+        result.append(_tee(iterator))
+    return tuple(result)
+
+class _tee:
+
+    def __init__(self, iterable):
+        it = iter(iterable)
+        if isinstance(it, _tee):
+            self.iterator = it.iterator
+            self.link = it.link
+        else:
+            self.iterator = it
+            self.link = [None, None]
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        link = self.link
+        if link[1] is None:
+            link[0] = next(self.iterator)
+            link[1] = [None, None]
+        value, self.link = link
+        return value
+  #+end_src
+
+
+- zip_longest()
+  make an iterator that aggreagate elements from each of the iterables
+  #+begin_src python
+def zip_longest(*iterables, fillvalue=None):
+    # zip_longest('ABCD', 'xy', fillvalue='-') → Ax By C- D-
+
+    iterators = list(map(iter, iterables))
+    num_active = len(iterators)
+    if not num_active:
+        return
+
+    while True:
+        values = []
+        for i, iterator in enumerate(iterators):
+            try:
+                value = next(iterator)
+            except StopIteration:
+                num_active -= 1
+                if not num_active:
+                    return
+                iterators[i] = repeat(fillvalue)
+                value = fillvalue
+            values.append(value)
+        yield tuple(values)
+  #+end_src
+
+
+******** _combinatoric iterators_
+  - product()
+    cartesian product of the input iterables
+#+begin_src python
+def product(*iterables, repeat=1):
+    # product('ABCD', 'xy') → Ax Ay Bx By Cx Cy Dx Dy
+    # product(range(2), repeat=3) → 000 001 010 011 100 101 110 111
+
+    if repeat < 0:
+        raise ValueError('repeat argument cannot be negative')
+    pools = [tuple(pool) for pool in iterables] * repeat
+
+    result = [[]]
+    for pool in pools:
+        result = [x+[y] for x in result for y in pool]
+
+    for prod in result:
+        yield tuple(prod)
+#+end_src
+
+  - permutations()
+    return successive r length permutations of elements from the iterable
+    #+begin_src python
+def permutations(iterable, r=None):
+    # permutations('ABCD', 2) → AB AC AD BA BC BD CA CB CD DA DB DC
+    # permutations(range(3)) → 012 021 102 120 201 210
+
+    pool = tuple(iterable)
+    n = len(pool)
+    r = n if r is None else r
+    if r > n:
+        return
+
+    indices = list(range(n))
+    cycles = list(range(n, n-r, -1))
+    yield tuple(pool[i] for i in indices[:r])
+
+    while n:
+        for i in reversed(range(r)):
+            cycles[i] -= 1
+            if cycles[i] == 0:
+                indices[i:] = indices[i+1:] + indices[i:i+1]
+                cycles[i] = n - i
+            else:
+                j = cycles[i]
+                indices[i], indices[-j] = indices[-j], indices[i]
+                yield tuple(pool[i] for i in indices[:r])
+                break
+        else:
+            return
+    #+end_src
+
+
+  - combinations()
+    return r length subsequences of elements from the input iterable
+    the output is a subsequence of _product()_ keeping only entries that are subsequences of the iterable
+    #+begin_src python
+def combinations(iterable, r):
+    # combinations('ABCD', 2) → AB AC AD BC BD CD
+    # combinations(range(4), 3) → 012 013 023 123
+
+    pool = tuple(iterable)
+    n = len(pool)
+    if r > n:
+        return
+    indices = list(range(r))
+
+    yield tuple(pool[i] for i in indices)
+    while True:
+        for i in reversed(range(r)):
+            if indices[i] != i + n - r:
+                break
+        else:
+            return
+        indices[i] += 1
+        for j in range(i+1, r):
+            indices[j] = indices[j-1] + 1
+        yield tuple(pool[i] for i in indices)
+    #+end_src
+
+
+  - combinations_with_replacement()
+    return r length subsequences of elements from the input iterable
+        allowing individual elements to be repeated more than once
+
+#+begin_src python
+def combinations_with_replacement(iterable, r):
+    # combinations_with_replacement('ABC', 2) → AA AB AC BB BC CC
+
+    pool = tuple(iterable)
+    n = len(pool)
+    if not n and r:
+        return
+    indices = [0] * r
+
+    yield tuple(pool[i] for i in indices)
+    while True:
+        for i in reversed(range(r)):
+            if indices[i] != n - 1:
+                break
+        else:
+            return
+        indices[i:] = [indices[i] + 1] * (r - i)
+        yield tuple(pool[i] for i in indices)
+#+end_src
+
+
+
+
+
+*** sequences
+
+****** common sequences
+- sequences represent finite ordered sets indexed by non-negative numbers
+  - the length of a sequence is /n/
+    - the index set contains the numbers 0,1, ..., n-1
+      - the item /i/ of sequence /s/ is selected by /s[i]/
+        - sequences also support slicing /s[i:j]/ selects all items with index /k/ such that /i<=k<j/
+
+- there are three basic sequence types lists, tuples, and ranges, also binary and text sequence types
+  - sequence types of the same type also support comparisons
+- Values of /n/ less than 0 are treated as 0
+  - which yields an empty sequence of the same type as sequence /s/
+    - items in sequence /s/ are not copied; they are referenced multiple times
+    #+begin_src python
+lists = [[]] * 3
+# [[], [], []]
+lists[0].append(3)
+# [[3], [3], [3]]
+    #+end_src
+- [[]] is a one-element list containing an empty list
+  - so all three elements of [[]] * 3 are references to this single empty list
+#+begin_src python
+lists = [[] for i in range(3)]
+lists[0].append(3)
+lists[1].append(5)
+lists[2].append(7)
+[[3], [5], [7]]
+#+end_src
+- if the index (i) of a sequence is negative, len(s) + i is substituted
+- the slice of sequence /s/ from /i/ to /j/ is defined as the sequence of items with index /k/
+  - such that i <= k < j, if /i/ or /j/ is greater than len(s), use len(s)
+  - if /i/ is omitted or /None/, uses 0
+    - if /j/ is omitted or/None/, use len(s)
+      - if /i/ is greater than or equal to /j/, the slice is empty
+- the slice of sequence /s/ from /i/ to /j/ with step /k/ is defined as the sequence of items with index x = i + n*k
+  - such that 0 <= n < (j-i)/k
+    - if k is /None/, it is treated like 1
+
+- concatenating immutable sequences results in a new object
+  - building up a sequence by repeated concatenation will have a quadratic runtime cost in the total sequence length
+    - for _str_ objects, use _str.join()_ at the end or write to an _io.StringIO_ instance and retrieve its value when complete
+    - for _bytes_ objects, you can similarly use _bytes.join()_ or _io.BytesIO_ or you do in-place concatenation with a _bytearray_ object
+      - _bytearray_ objects are immutable and have efficient overallocation mechanism
+    - for _tuple_ objects, extend a _list_ instead
+- _IndexError_ is raised if i is outside the sequence range
+
+
+****** immutable sequences
+- This code block lists the sequence operations sorted in ascending priority.
+  In the table, s and t are sequences of the same type, n, i, j and k are integers and x is an arbitrary object that meets any type and value restrictions imposed by s.
+#+begin_src python
+x in s # True if an item of s is equal to x, else False
+
+x not in s # False if an item of s is equal to x, else True
+
+s + t # the concatenation of s and t
+
+s * n # equivalent to adding s to itself n times
+
+s[i] # ith item of s origin 0
+
+s[i:j] # slice of s from i to j
+
+s[i:j:k] # slice of s from i to j with step k
+
+len(s) # length of s
+min(s) # smallest item of s
+max(s) # largest item of s
+
+s.index(x[, i[, j]]) # index of the first occurrence of x in s (at or after index i and before index j)
+s.count(x) # total number of occurences of x in s
+#+end_src
+- generally supports the built-in _hash()_
+  - allows immutable sequences, maybe _tuple_ instances, to be used as _dict_ keys and stored in _set_ or _frozenset_ instances
+- hashing an immutable sequence containing unhashable values will result in _TypeError_
+
+
+******* tuples
+- tuples are immutable sequences to store collections of heterogeneous data
+  - or for cases where an immutable sequence of homogeneous data is needed
+    - construct using a pair of parentheses, or a trailing comma for a singleton tuple, or separating items with commas, or type constructor
+      #+begin_src python
+()
+a,
+(a,)
+a, b, c
+(a, b, c)
+tuple()
+tuple(iterable)
+      #+end_src
+- it is actually the comma which makes a tuple, not the parentheses because they are optional
+  -  avoid syntactic ambiguity with parentheses
+    #+begin_src python
+f(a, b, c) # func call with 3 args
+f((a, b, c)) # func call with a 3-tuple arg
+    #+end_src
+
+- for heterogeneous collections of data where access by name is clearer than access by index,
+  - _collections.namedtuple()_ may be an appropriate choice over a simple tuple object
+
+
+******* ranges
+- a range type represents an immutable sequence of numbers
+ /class range(stop)/
+ /class range(start, stop[, step])/
+- range constructor args must be integers
+  - step defaults to 1
+  - start defaults to 0
+- ranges containing absolute values larger than _sys.maxsize_ are permitted but some features may raise _OverflowError_
+  #+begin_src python
+list(range(1))
+# [0]
+list(range(1, 11))
+# [1,2,3,4,5,6,7,8,9,10]
+list(range(0, 30, 5))
+# [0,5,10,15,20,25]
+list(range(5, -1, -1))
+# [5,4,3,2,1,0]
+  #+end_src
+
+**the advantage of range type over a regular list or tuple is that a range object will always take the same amount of memory**
+- it only stores the start, stop, and step values
+- they provide features such as containment tests, element index lookup, slicing, and support for negative indices
+- if two range objects represent the same sequence of values are considered equal
+  - even if they have different start, stop, and step attributes
+
+
+******* strings
+- strings are immutable sequences of Unicode code points
+  - string literals are written as single quotes, double quotes, and triple quoted
+    - triple quotes span multiple lines
+    - single expression string literals will implicitly convert whitespace to a single string literal
+  - strings may be created from other objects using the _str_ constructor
+- string formatting support a large degree of flexibility and customization
+  - but also supports /C/ /printf/ style formatting that handles a narrower range of types but is often faster
+
+_string methods_
+- str.capitalize()
+  - return a copy of the string with its first character capitalized and the rest lowercased
+- str.casefold()
+  - return a casefolded copy of the string
+    - casefolding is similar to lowercasing but more aggressive because it is intended to remove all case distinctions in a string
+- str.center(width[, fillchar])
+  - return centered in a string of length /width/
+    - padding is done using the /fillchar/
+- str.count(sub[, start[, end]])
+  - return the number of non-overlapping occurences of substring /sub/ in the range /[start, end]/
+    - if /sub/ is empty, returns the number of empty strings between characters
+      - which is the length of the string plus one
+- str.encode(encoding='utf-8', errors='strict')
+  - return the string encoded to _bytes_
+- str.endswith(suffix[, start[, end]])
+  - returns True if the string ends with the specified suffix, otherwise return False
+    - suffix can also be a tuple of suffixes to look for
+- str.expandtabs(tabsize=8)
+  - return a copy of the string where all tab characters are replaced by one or more spaces
+    - depending on the current column and given tab size
+- str.find(sub[, start[, end]])
+  - return the lowest index in the string where substring /sub/ is found within the slice /s[start:end]/
+    - return -1 if /sub/ not found
+- str.format(*args, **kwargs)
+  - perform a string formatting operation
+    - the string on which this method is called can contain literal text or replacement fields delimited by braces {}
+      - each replacement field contains either the numeric index of a positional argument, or the name of a keyword argument
+        - returns a copy of the string where each replacement field is replaced with the string value of corresponding argument
+          #+begin_src python
+"The sum of 1 + 2 is {0}".format(1+2)
+# 'The sum of 1 + 2 is 3'
+          #+end_src
+- str.format_map(mapping, /)
+  - /mapping/ is used directly and not copied to a _dict_
+    #+begin_src python
+class Default(dict):
+    def __missing__(self, key):
+        return key
+
+'{name} was born in {country}'.format_map(Default(name='Guido'))
+# 'Guido was born in country'
+    #+end_src
+
+- str.index(sub[, start[, end]])
+  - like _find()_ but raises _ValueError_ when the substring is not found
+- str.isalnum()
+  - returns True if all characters in the string are alphanumeric and there is at least one character, False otherwise
+- str.isalpha()
+  - returns True if all characters in the string are alphabetic and there is at least one character, False otherwise
+- str.isascii()
+  - returns True if all characters in the string is empty or all characters in the string are ASCII, False otherwise
+- str.isdecimal()
+  - returns True if all characters in the string are decimal characters and there is at least one character, False otherwise
+- str.isdigit()
+  - returns True if all characters in the string are digits and there is at least one character, False otherwise
+- str.isidentifier()
+  - returns True if the string is a valid identifier according to the language definition
+- str.islower()
+  - returns True if all cased characters in the string are lowercase and there is at least one cased character, False otherwise
+- str.isnumeric()
+  - returns True if all the characters in the string are numeric characters, and there is at least one character, False otherwie
+- str.isprintable()
+  - returns True if all characters in the string are printable, False if it contains at least one non-printable character
+- str.isspace()
+  - returns True if there are only whitespace characters in the string and there is at least one character, False otherwise
+- str.istitle()
+  - returns True if the string is titlecased string
+- str.isupper()
+  - returns True if all cased characters are uppercase
+- str.join(iterable)
+  - return a string which is the concatenation of the strings in /iterable/
+    - _TypeError_ is raised if there are any non-string values in /iterable/
+- str.ljust(width[, fillchar])
+  - return the string left justified in a string of length /width/
+    - padding is done using the specified /fillchar/
+- str.lower()
+  - return a copy of the string with all the cased characters converted to lowercase
+- str.lstrip([chars])
+  - return a copy of the string with leading characters removed
+    - /chars/ argument is a string specifying the set of characters to be removed
+- /static/ str.maketrans(x[, y[, z]])
+  - this static method returns a translation table usable for _str.translate()_
+- str.partition(sep)
+  - split the string at the first occurence of /sep/
+    - and return a 3-tuple containing the part before the separator, the separator itself, and the part after the separator
+- str.removeprefix(prefx, /)
+  - if the string starts with the /prefix/ string, return string[len(prefix):]
+    - otherwise return a copy of the original string
+- str.replace(old, new, count=1)
+  - return a copy of the string with all occurences of substring /old/ replaced by /new/
+    - if count is given, only the first count occurences are replaced
+      - if count is not specified or -1 then all occurences are replaced.
+- str.rfind(sub[, start[, end]])
+  - return the highest index in the string where /sub/ is found
+    - such that /sub/ is contained within s[start:end]
+- str.rindex(sub[, start[, end]])
+  - like _rfind()_ but raises _ValueError_ when the substring /sub/ is not found
+- str.rjust(width[, fillchar])
+  - return the string right justified in a string of length /width/
+    - padding is done using the /fillchar/
+- str.rpartition(sep)
+  - split the string at the last occurence of /sep/
+    - and return a 3-tuple containing the part before separator, the separator itself, and the part after the separator
+- str.rstrip([chars])
+  - return a copy of the string with the trailing characters removed
+    - /chars/ argument is a string specifying the set of characters to be removed
+- str.split(sep=None, maxsplit=-1)
+  - return a list of the words in the string, using the /sep/ as the delimiter string
+    - at most /maxsplit/ splits are done
+- str.splitlines(keepends=False)
+  - return a list of the lines in the string, breaking at line boundaries
+    - line breaks are not included in the resulting list unless /keepends/ is given and true
+- str.startswith(prefix[, start[, end]])
+  - returns True if string starts with the prefix, otherwise return False
+- str.strip([chars])
+  - return a copy of the string with the leading and trailing characters removed
+- str.swapcase()
+  - return a copy of the string with uppercase characters converted vice versa case (upper or lower)
+- str.title()
+  - returns a titlecased version of the string where words start with an uppercase character and the remaining characters are lowercase
+- str.translate(table)
+  - returns a copy of the string in which each character has been mapped through the given translation table
+    - table is typically a mapping or sequence
+- str.upper()
+  - return a copy of the string with all the cased characters converted to uppercase
+- str.zfill(width)
+  - return a copy of the string left filled with ASCII '0' digits to make a string of length /width/
+    - a leading sign prefix ('+'/'-') is handling by inserting the padding after the sign character rather than before
+
+**An f-string, formatted string literal, is a string literal that is prefixed with f or F**
+ - allows embedding arbitrary Python expressions within replacment fields, which are delimited by curly brackets ({})
+   - these are evaluated at runtime, and converted into regular _str_ objects
+     #+begin_src python
+who = 'nobody'
+nationality = 'Spanish'
+f'{who.title()} expects the {nationality} Inquisition!'
+# 'Nobody expects the Spanish Inquisition!'
+
+     #+end_src
+ - any non-string expression is converted using _str()_ by default
+   - to use an explicit conversion, use the ! operator followed by any of the valid formats
+     - !a _ascii()_
+     - !r _repr()_
+     - !s _str()_
+#+begin_export python
+from fractions import Fraction
+f'{Fraction(1, 3)!s}'
+# '1/3'
+f'{Fraction(1, 3)!r}'
+# 'Fraction(1, 3)'
+question = '¿Dónde está el Presidente?'
+print(f'{question!a}')
+# '\xbfD\xf3nde est\xe1 el Presidente?'
+
+#+end_export
+
+**printf-style String Formatting, similar to the sprintf() function in the C language**
+- the /%/ operator (modulo) is built-in String objects, known as string formatting or interpolation operator
+#+begin_src python
+print('%s has %d quote types.' % ('Python', 2))
+# Python has 2 quote types.
+#+end_src
+
+
+****** mutable sequences
+- In the table s is an instance of a mutable sequence type,
+  - t is any iterable object and x is an arbitrary object that meets any type and value restrictions imposed by s
+#+begin_src python
+s[i] = x # item i of s is replaced by x
+
+del s[i] # removes item i of s
+
+s[i:j] = t # slice of s from i to j is replaced by the contents of the iterable t
+
+del s[i:j] # same as s[i:j] = []
+
+s[i:j:k] = t # the elements of s[i:j:k] from the list
+
+del s[i:j:k] # removes the elements of s[i:j:k] from the list
+
+s.append(x) # appends x to the end of the sequence
+s.clear() # removes all the items from s
+s.copy() # creates a shallow copy of s
+s.extend(t) # or
+s += t  # extends s with the contents of t
+s *= n # updates s with its contents repeated n times
+s.insert(i, x) # inserts x into s at the index given by i
+s.pop() # or
+s.pop(i) # retrieves the item at i and also removes it from s
+s.remove(x) # removes the first item frmo s where s[i] is equal to x
+s.reverse() # reverses the items of s in-place
+#+end_src
+
+
+******* lists
+- lists are mutable sequences to store homogeneous items
+  - construct using square brackets or type constructor
+    #+begin_src python
+[]
+[a], [a, b, c]
+[x for x in iterable]
+list()
+list(iterable)
+    #+end_src
+- if iterable is already a list, a copy is made and returned, similar to iterable[:]
+
+_additional list methods_
+- _sort(*, key=None, reverse=False)_
+  - sorts list in place using < comparisons between items
+- there is also _sorted()_ that builds a new sorted list from an iterable
+
+
+****** binary sequences
+- built-in types for manipulating binary data, _bytes_ and _bytearray_
+  - supported by _memoryview_
+    - which uses the buffer protocol to access the memory of other binary objects without needing to make a copy'
+      - Python provides facilities to access an underlying memory array or buffer
+        - provided at the C and Python level
+          - the buffer protocol has a producer side, a type can export a "buffer interface" which allows objects of that type to expose information about their underlying buffer
+          - the buffer protocol's consumer side, several means are available to obtain a pointer to the raw underlying data of an object
+          - buffer structures can be used as a zero-copy slicing mechanism and expose binary data
+            - the memory could be a large, constant array in a C extension, it could be a raw block of memory for manipulation before passing to an OS library, or could be used to pass around structured data in its native, in-memory format
+          - buffers are not _PyObject_ pointers but simple C structures
+- the _array_ module supports efficient storage of basic data types like 32-bit integers and IEEE754 double precision floating values
+
+******* bytes
+- bytes objects are immutable sequences of single bytes
+  - offers several methods for ASCII compatible data
+
+    **class bytes([source[, encoding[, errors]]])**
+    - write bytes literals like string literals, except with a /b/ prefix
+      #+begin_src python
+b'still allows embedded "double" quotes'
+
+b"still allows embedded 'single' quotes"
+
+b'''3 single quotes''', b"""3 double quotes"""
+
+bytes(10)
+bytes(range(20))
+bytes(obj)
+      #+end_src
+- any binary values over 127 must be entered into bytes literals using the appropriate escape sequence
+**2 hexadecimal digits correspond to a single byte**
+- bytes type has a class method to read from hexadecimal
+  /classmethod/ _fromhex(string)_
+- a reverse conversion function to transform a bytes object into its hexadecimal representation
+  _hex([sep[, bytes_per_sep]])_
+- use can always convert a bytes object into a list of integers using
+  _list(b)_
+
+******* bytearray
+bytearray objects are a mutable counterpart to _bytes_ objects
+
+        **class bytearray([source[, encoding[, errors]]])**
+        - always created by calling the constructor
+#+begin_src python
+bytearray()
+bytearray(range(20))
+bytearray(b'hello world!')
+#+end_src
+**2 hexadecimal digits correspond to a single byte**
+- bytearray type has a class method to read from hexadecimal
+  /classmethod/ _fromhex(string)_
+- a reverse conversion function to transform a bytes object into its hexadecimal representation
+  _hex([sep[, bytes_per_sep]])_
+- use can always convert a bytes object into a list of integers using
+  _list(b)_
+
+******* bytes and bytearray operations
+- *.count(sub[, start[, end]])
+  - returns the number of non-overlapping occurences of subsequence /sub/ in the range /[start, end]/
+- *.removeprefix(prefix, /)
+  - if the binary data starts with the /prefix/ string, return /bytes[len(prefix):]/
+    - otherwise return a copy of the original binary data
+- ....
+  [[https://docs.python.org/3/library/stdtypes.html#bytes-and-bytearray-operations][the rest of the operations, pretty much the same as string methods]]
+
+******* memoryview
+- memoryview objects allow Python code to access the internal data of an object
+  - that supports the buffer protocol without copying
+
+    **class memoryview(object)**
+    - creates a _memoryview_ that references a object that supports the buffer protocol, like _bytes_ and _bytearray_
+      - has the notion of ane element
+        - the atomic memory unit handled by the originating object
+
+    - the _itemsize_ attribute will give you the number of bytes in a single element
+    - memoryview also supports slicing and indexing to expose its data
+      #+begin_src python
+v = memoryview(b'abcefg')
+v[1]
+
+v[-1]
+
+v[1:4]
+
+bytes(v[1:4])
+      #+end_src
+- non-byte format
+  #+begin_src python
+import array
+a = array.array('l', [-11111111, 22222222, -33333333, 44444444])
+m = memoryview(a)
+m[0]
+
+m[-1]
+
+m[::2].tolist()
+  #+end_src
+- memoryview supports one-dimensional slice assignment, resizing it not allowed
+  #+begin_src python
+data = bytearray(b'abcefg')
+v = memoryview(data)
+v.readonly
+# False
+v[0] = ord(b'z')
+data
+# bytearray(b'zbcefg')
+v[1:4] = b'123'
+data
+# bytearray(b'z123fg')
+v[2:3] = b'spam'
+v[2:6] = b'spam'
+data
+# bytearray(b'z1spam')
+  #+end_src
+
+- **methods available to _memoryview_**
+  __eq__(exporter)
+  - a memoryview and a _PEP 3118_ exporter are equal if their shapes are equivalent
+    - and if all correspoding values are equal when the operands' respective format codes are interpreted using _struct_ syntax
+_tobytes(order='C')_
+- return the data in the buffer as a bytestring
+  - equivalent to calling the _bytes_ constructor on the memoryview
+_hex([sep[, bytes_per_sep]])_
+- return a string object containing two hexadecimal digits for each byte in the buffer
+_tolist()_
+- return the data in the buffer as a list of elements
+_toreadonly()_
+- return a readonly version of the memoryview object
+_release()_
+- return the underlying buffer exposed by the memoryview object
+_cast(format[, shape])_
+- cast a memoryview to a new format or shape
+  - shape defaults to /[byte_length//new_itemsize]/
+    - which means the result view will be one-dimensional
+  - return value is a new memoryview but the buffer itself is not copied
+- **readonly attributes available to memoryview**
+  - _obj_
+    - the underlying object of the memoryview
+  - _nbytes_
+    - this the amount of space in bytes that the array would use in a contiguous representation
+  - _readonly_
+    - a bool indicating whether the memory is read only
+  - _format_
+    - a string containing the format, in _struct_ module style, for each element in the view
+  - _itemsize_
+    - the size in bytes of each element in the memoryview
+  - _ndim_
+    - an integer indicating how many dimensions of a multi-dimensional array the memory represents
+  - _shape_
+    - a tuple of integers the length of _ndim_ giving the shape of the memory as an N-dimensional array
+  - _strides_
+    - a tuple of integers the length of _ndim_ giving the size in bytes to access each element for each dimension of the array
+  - _suboffsets_
+    - used internally for PIL-style arrays
+  - _c_contiguous_
+    - a bool indicating whether the memory is C-contiguous
+  - _f_contiguous_
+    - a bool indicating whether the memory is Fortran contiguous
+  - _contiguous_
+    - a bool indicating whether the memory is contiguous
+
+
+*** sets
+- a set object is an unordered collection of distinct hashable objects
+  - an object is hashable if it has a hash value which never changes during its lifetime
+    - needs a __hash__() and __eq__() method
+- being an unordered collection, sets do not record element position or order of insertion
+  - sets do not support indexing, slicing, or other sequence-like behavior
+
+- the _set_ type is mutable
+  - it has no hash value and cannot be used as either a dictionary key or as an element of another set
+- the _frozenset_ type is immutable and hashable
+  - its contents cannot be altered after it is created; therefore can be used as a dictionary key or as element of another set
+- non-empty sets (not frozensets) can be created by placing a comma-separated list of elements within braces and the _set_ constructor
+
+  **class set([iterable])**
+  **class frozenset([iterable])**
+  - return a new set or frozenset object whose elements are taken from iterable
+  - to represent sets of sets, the inner sets must be _frozenset_ objects
+    #+begin_export python
+    {'jack', 'sjoerd'}
+    {c for c in 'abracadabra' if c not in 'abc'}
+    set()
+    set('foobar')
+    #+end_export
+
+    - two sets are equal only if every element is a subset of the other
+      - a set less than another set only if the first set is a subset but not equal of the second set
+      - a set is greater than another set only if the first set is a superset but not equal of the second set
+
+- operations for _set_ that do no apply to _frozenset_
+  #+begin_src python
+    s = set(['a', 'b', 'foo'])
+    len(s)
+    # 3
+    s.isdisjoint('c')
+    # True
+    s.issubset(['a', 'b', 'foo', 'bar'])
+    # True
+    s.issuperset(['a', 'b', 'foo', 'bar'])
+    # False
+    u = s.union(['a', 'b', 'foo', 'bar'])
+    # { 'b', 'foo', 'bar', 'a'}
+    t = s.intersection(u)
+    # {'b', 'foo', 'a'}
+    d = s.difference('a')
+    # {'b', 'foo'}
+    sd1 = s.symmetric_difference(u)
+    # {'bar'}
+    sd2 = s.symmetric_difference('a')
+    # {'b', 'foo'}
+    scopy = s.copy()
+    # {'b', 'foo', 'a'}
+    scopy.update('bar')
+    # {'b', 'r', 'foo', 'a'}
+    scopy.intersection_update({'foo', 'bar'})
+    # {'foo'}
+    scopy.difference_update({'foo'})
+    # set()
+    scopy.symmetric_difference_update({'foo', 'bar'})
+    # {'foo', 'bar'}
+    scopy.add('eels')
+    # {'eels', 'foo', 'bar'}
+    scopy.remove('foobar')
+    # KeyError: 'foobar'
+    scopy.discard('foobar')
+
+    scopy.pop()
+    scopy.pop()
+    scopy.pop()
+    scopy.pop()
+    # KeyError: 'pop from an empty set'
+
+    scopy.clear()
+
+  #+end_src
+
+
+*** mappings
+- a mapping are mutable objects that map hashable values to arbitrary objects.
+  - dictionary is the one standard mapping type
+- a dictionary's keys are not hashable,
+  - that is, values containing lists, dictionaries or other mutable types may not be used as keys
+
+    **class dict(**kwargs)**
+    **class dict(mapping, **kwargs)**
+    **class dict(iterable, **kwargs)**
+    - return a new dictionary
+      - intialized from an optional positional argument and a possibly empty set of keyword arguments
+    - dictionaries are constructed by
+      - use a comma-separated list of /key:value/ pairs within braces
+      - use a dict comprehension
+      - use the type constructor
+          #+begin_src python
+    {'jack': 4098, 'sjoerd': 4127}
+    {4098: 'jack', 4127: 'sjoerd'}
+
+    {}
+    {x: x ** 2 for x in range(10)}
+
+    dict()
+    dict([('foo', 100), ('bar', 200)])
+    dict(foo=100, bar=200)
+          #+end_src
+  - dictionaries compare equal only if they have the same (key, value) pairs regardless of order
+
+_operations that dictionaries support_
+#+begin_src python
+c = dict(zip(['one', 'two', 'three'], [1, 2, 3]))
+# {'one': 1, 'two': 2, 'three': 3}
+list(c)
+# ['one', 'two', 'three']
+len(c)
+# 3
+c['one']
+# 1
+c[1]
+# KeyError: 1
+iter(c)
+# <dict_keyiterator object at 0x738f45d3b9c0>
+c.clear()
+ccopy = c.copy()
+z = c.fromkeys(iter(c))
+# {'one': None, 'two': None, 'three': None}
+z.items()
+# dict_items([('one', None), ('two', None), ('three', None)]
+z.keys()
+# dict_keys(['one', 'two', 'three'])
+z.pop('one')
+# {'two': None, 'three': None}
+z.popitem()
+# ('three', None)
+reversed(z)
+# <dict_reversekeyiterator object at 0x738f45d611c0>
+z.setdefault('one', 0)
+# {'two': None, 'three': None, 'one': 0}
+z.update(c)
+# {'two': 2, 'three': 3, 'one': 1}
+z.values()
+# dict_values([2, 3, 1])
+y = {'four': 4}
+w = z | y
+# {'two': 2, 'three': 3, 'one': 1, 'four': 4}
+y |= c
+# {'four': 4, 'one': 1, 'two': 2, 'three': 3}
+#+end_src
+
+- dictionary view objects are returned by _dict.keys()_, _dict.values()_, _dict.items()_
+  - len(dictview)
+    - return the number of entries in the dict
+  - iter(dictview)
+    - return an iterator over the keys, values or items
+      - represented as tuples of (key, value) in the dictionary
+
+- keys views are set-like since their entries are unique and hashable
+- items views also have set-like operations since the (key, value) pairs are unique and the keys are hashable
+  - if all values in an items view are hashable as well, then the items view can interoperate with other sets
+#+begin_src python
+dishes = {'eggs': 2, 'sausage': 1, 'bacon': 1, 'spam': 500}
+keys = dishes.keys()
+values = dishes.values()
+
+# iteration
+n = 0
+for val in values:
+    n += val
+
+print(n)
+
+
+# keys and values are iterated over in the same order (insertion order)
+list(keys)
+
+list(values)
+
+
+# view objects are dynamic and reflect dict changes
+del dishes['eggs']
+del dishes['sausage']
+list(keys)
+
+
+# set operations
+keys & {'eggs', 'bacon', 'salad'}
+
+keys ^ {'sausage', 'juice'} == {'juice', 'sausage', 'bacon', 'spam'}
+
+keys | ['juice', 'juice', 'juice'] == {'bacon', 'spam', 'juice'}
+
+
+# get back a read-only proxy for the original dictionary
+values.mapping
+
+values.mapping['spam']
+
+#+end_src
+
+
+*** context manager
+- _with_ statement supports the concept of a runtime context defined by a context manager
+  - allows user-defined classes to defined a runtime context
+    - that is entered before the statement body is executed and exited when the statement ends
+      **contextmanager.__enter__()**
+      - enter runtime context and return object related to runtime context
+        - bound to the identifer in the /as/ clause of _with_ statements
+      **contextmanager.__exit__(exc_type, exc_val, exc_tb)**
+      - exit runtime context and return a boolean flag indicating if any exception that occured should be suppressed
+        - the arguments contain the exception type, value, and traceback information
+_see the context.lib module for for examples of several context managers_
+- python's generators and the contextlib.contextmangager decorator provides a convenient way to implement these protocols
+  - a generator functino with that decorator will return a context manager implementing neccessary __enter__() and __exit__() methods
+    - rather than the iterator produced by an undecorated generator function
+
+
+*** type annotation types
+- type annotations are a label associated with a variable, a class attribute or a function parameter or return value, used by convention as a _type hint_
+  - type hint specifies the expected type, not enforced by python but useful to static type checkers
+****** GenericAlias
+- GenericAlias objects are generally created by subscripting a class
+  - the subscription of an instance of a generic container class (list, tuples, dicts, etc.) will generally return a GenericAlias object
+- GenericAlias object acts as a proxy for a generic type, a type that can be parameterized, implementing parameterized generics
+
+  **T[X, Y, ...]**
+  - creates a GenericAlias presenting type /T/ parameterized by types /X/, /Y/, and more depending on the /T/ used
+    #+begin_src python
+def send_post_request(url: str, body: dict[str, int]) -> None:
+    ...
+    #+end_src
+
+- parameterized generics erase type parameters during object creation
+
+_special attributes of GenericAlias objects_
+- genericalias.__origin__
+  - this points at the non-parameterized generic class
+- genericalias.__args__
+  - this is a tuple of generic types passed to the original
+- genericalias.__parameters__
+  - this is a lazily computed tuple of unique type variables in __args__
+- genericalias.__unpacked__
+  -  a boolean that is true if the alias has been unpacked using the * operator
+
+****** Union
+- a union object holds the value of the | /bitwise or/ operation on multiple type objects
+  - intended for type annotations
+
+**X | Y | ...**
+- defines a union object which holds types /X/, /Y/, and so forth
+  /X | Y/ means either X or Y, equivalent to /typing.Union[X, Y]/
+  #+begin_src python
+def square(number: int | float) -> int | float:
+    return number ** 2
+  #+end_src
+
+
+*** modules
+- modules are a basic organizational unit of Python code, and created by the import system
+  - one module gains access to the code in another module by the process of importing it
+    - the basic import statement is executed in two steps
+      1. find a module, loading and initializing it if necessary
+      2. define a name or names in the local namespace for the scope where the _import_ statment occurs
+
+      3. if requested module is retreived successfully
+         1. if module name is followed by /as/, then the name following /as/ is bound directly to the imported module
+         2. if no other name is specified, and the module is being imported is a top level module, the module's name is bound in the local namespace as a reference to the imported module
+         3. if the module being imported is not a top level module, then the nameof the top level package that contains the module is bound in the local namespace as a reference to the top level package. the imported module must be accessed using its full qualifed name rather than directly
+
+- the _from_ form uses a slight more complex process:
+  1. find the module specified in the _from_ clause, loading and initializing if it neccessary
+  2. for each of the identifiers specified in the _import_ clauses:
+     1. check if the imported module has  an attribute by that name:
+     2. if not attempt to import a submodule with that name and then check the imported module again for that attribute
+     3. if the attribute is not found, _ImportError_ is raised
+     4. otherwise, a reference to that value is stored in the local namespace, using the name in the as clause if it is present, otherwise using the attribute name
+#+begin_src python
+import foo                 # foo imported and bound locally
+import foo.bar.baz         # foo, foo.bar, and foo.bar.baz imported, foo bound locally
+import foo.bar.baz as fbb  # foo, foo.bar, and foo.bar.baz imported, foo.bar.baz bound as fbb
+from foo.bar import baz    # foo, foo.bar, and foo.bar.baz imported, foo.bar.baz bound as baz
+from foo import attr       # foo imported and foo.attr bound as attr
+from foo import *     # all public names defined in the foo module are bound in the local namespace
+# will throw SyntaxError if used in a class or function
+#+end_src
+- public names are determined by checking the module's namespace for a variable named __all__
+  - if __all__ is not defined, then all names founds which do not begin with an underscore character('_')
+
+- a module has only attribute access operation: /m.name/
+  - /m/ is a module and /name/ accesses a name defined in /m/'s symbol table
+    - __dict__ attribute contains the symbol table
+      - direct assignment to this dictionary is not possible
+
+        _module built into the interpreter_
+        <module 'sys' (builtin)>
+        _module loaded from a file_
+        <module 'os' from 'usr/local/lib/pythonX.Y/os.pc'>
+- if a named module cannot be found, a _ModuleNotFoundError_ is raised
+
+
+*** classes
+- classes provides a means of bundling data and functionality together.
+  - a new class creates a new type of object
+    - allowing new instances of that type to be made
+    - each class instance can have attributes attached to it for maintaining its state
+      - can also have methods defined by its class for modifying its state
+
+****** object-oriented paradigm
+- compared to Simula, an general-purpose, object-oriented programming language for doing simulations
+  - the concept of record class construct
+    - for pre-defined system classes and subclasses
+      - and declaring a complex type using built-in types or may reference user-defined types
+
+- python provides the class inheritance mechanism that allows multiple base classes
+  - a derived class can override any methods of its base class(es)
+    - and a method can call the method of a base class with the same name
+- classes are created at runtime, as is true for modules
+  - and can be further modified after creation
+
+
+****** scopes and namespaces
+- _a namespace is a mapping from names to objects_
+  - most namespaces are implemented as Python dictionaries
+    - examples are built-in names and built-in exception names, global names in a modules, local names in a function invocation
+    - a set of attributes of an object form a namespace
+      - there is no relation between names in different namespaces
+    - attributes may be read-only or writable
+      - module objects have a secret read-only attribute called __dict__
+        - returns the dict used to implement a module's namespace
+- the namespace containing built-in names is created when the python interpreter starts up, and is never deleted
+  - the built-in names live in the _builtins_ module
+  - the global namespace is created when the module definition is read in
+    - module namespaces last until the interpreter quits
+  - statements executed by the top-level invocation of the interpreter
+    - either read from a script file or interactively, are considered part of a module called __main__, so they have their own namespace
+- the local namespace is created for a function when it is called
+  - when the function returns or raises an exception that is not handled within the function the namespace is deleted
+    - recursive invocation have their own local namespace
+- _a scope is a textual region of a python prgoram where a namespace is directly accessible_
+  - scopes are determined staticly but used dynamically
+    - at any time during execution, there can be nested scopes whose namspaces are directly accessible
+  - if a name is declared global
+    - then all references and assignments go directly to the next-to-last scope cotaining the module's global names
+  - if a name is declared non-local
+    - then it allows encapsulated code to rebind to variables found outside of the innermost scope
+  - if no _global_ or _nonlocal_ statement is in effect - assignments to names always go into the innermost scope
+    - assignments do not copy data - they just bind names to objects
+    - the local scope references the local names of the current function
+      - the local scope outside of functions references the same namespace as the global scope: the module's namespace
+      - class definitions place another namespace in that local scope
+
+
+****** syntax
+- class definitions must be executed before they have any effect
+  - could conceivably place a class definition in a branch of an _if_ statement or inside a function
+******* definition
+#+begin_src python
+class ClassName:
+    <statement-1>
+    .
+    .
+    .
+    <statement-N>
+#+end_src
+
+- when a class definition is entered
+  - a new namespace is created and used as the local scope
+- when a class definition is exited
+  - a class object is created
+    - a wrapper around the contents of the namespaces created by the class definition
+    - original local scope is reinstated
+      - the class object is bound here to the class name given in the class definition
+******* class object
+
+#+begin_src python
+class MyClass:
+    """A simple example class"""
+    i = 12345
+
+    def f(self):
+        return 'hello world'
+
+ x = MyClass()
+
+
+class Complex:
+    def __init__(self, realpart, imagpart):
+        self.r = realpart
+        self.i = imagpart
+
+x = Complex(3.0, -4.5)
+x.r, x.i
+#+end_src
+- class objects support attribute references and instantiation
+  - _attribute references_ use the standard syntax used for all attribute references in python
+    - obj.name
+      - valid attribute names exist in the class's namespace when the class object was created
+    - class attributes can be assigned to
+    - __doc__ is a valid attribute, returning the docstring belonging to a class
+  - _class instantiation_ uses function notation
+    - it creates a new instance of the class and assigns this object to the variable
+    - classes define a method named __init__() to create objects with instances customized to a specfic initial state
+      - class instantiation automatically invokes __init__() for newly created class instances
+      - __init__() may have arguments passed from the class instantion operator
+******* instance object
+- the only operations understood by instance objects are attribute references
+  - there are two valid kinds of valid attributes names: data attributes and methods
+    #+begin_src python
+x.counter = 1
+while x.counter < 10:
+    x.counter = x.counter * 2
+print(x.counter)
+del x.counter
+    #+end_src
+  - data attributes need not be declared
+    - they spring into existence when they are first assigned to
+  - methods are functions that belong to an object
+    - all attributes of a class that are function objects define corresponding methods of its instances
+
+******* method objects
+- usually a method is called right after it is bound
+  - it is not necessary to call a method right away, and can be stored away at a later time
+#+begin_src python
+x.f()
+xf = x.f
+while True:
+    print(xf())
+#+end_src
+- the special thing about methods is that the instance object is passed as the first argument of the function
+
+******* class and instance variables
+- instance variables are for data unique to each instance
+- class variables are for attributes and methods shared by all instances of the class
+  - mutable objects like lists and dicts and should not be used as below in class variables
+    #+begin_src python
+  class Dog:
+
+      kind = 'canine'         # class variable shared by all instances
+      tricks = []             # mistaken use of a class variable
+
+      def __init__(self, name):
+          self.name = name
+
+      def add_trick(self, trick):
+          self.tricks.append(trick)
+
+  >>> d = Dog('Fido')
+  >>> e = Dog('Buddy')
+  >>> d.kind                  # shared by all dogs
+  'canine'
+  >>> e.kind                  # shared by all dogs
+  'canine'
+  >>> d.name                  # unique to d
+  'Fido'
+  >>> e.name                  # unique to e
+  'Buddy'
+  >>> d.add_trick('roll over')
+  >>> e.add_trick('play dead')
+  >>> d.tricks                # unexpectedly shared by all dogs
+  ['roll over', 'play dead']
+    #+end_src
+    - instead use an instance variable
+#+begin_src python
+class Dog:
+
+    def __init__(self, name):
+        self.name = name
+        self.tricks = []    # creates a new empty list for each dog
+
+    def add_trick(self, trick):
+        self.tricks.append(trick)
+
+>>> d = Dog('Fido')
+>>> e = Dog('Buddy')
+>>> d.add_trick('roll over')
+>>> e.add_trick('play dead')
+>>> d.tricks
+['roll over']
+>>> e.tricks
+['play dead']
+#+end_src
+
+- if the same attribute name occurs in both an instance and in a class, then attribute lookup prioritizes the instance
+  #+begin_src python
+class Warehouse:
+   purpose = 'storage'
+   region = 'west'
+
+w1 = Warehouse()
+print(w1.purpose, w1.region)
+
+w2 = Warehouse()
+w2.region = 'east'
+print(w2.purpose, w2.region)
+  #+end_src
+- assigning a function object to a local variable in the class or outside the class is ok
+#+begin_src python
+# Function defined outside the class
+def f1(self, x, y):
+    return min(x, x+y)
+
+class C:
+    f = f1
+
+    def g(self):
+        return 'hello world'
+
+    h = g
+#+end_src
+- this practice only serves to confuse the read of a program
+
+- methods may call other methods by using method attributes of the _self_ argument
+  - the _self_ argument is expected first argument of a class method
+#+begin_src python
+class Bag:
+    def __init__(self):
+        self.data = []
+
+    def add(self, x):
+        self.data.append(x)
+
+    def addtwice(self, x):
+        self.add(x)
+        self.add(x)
+#+end_src
+- each value is an object and therefore has a class (also called it /type/)
+  - it is stored as object.__class__
+
+****** inheritance
+#+begin_src python
+class DerivedClassName(BaseClassName):
+    <statement-1>
+    .
+    .
+    .
+    <statement-N>
+#+end_src
+- the /BaseClassName/ must be defined in a namespace directly accessible from the scope containing the derived class definition
+  - execution of a derived class definition proceeds the same as for a base class
+    - upon construction, the base class is remembered
+    - if a requested attribute is not found in the class
+      - the search proceeds to look in the base class
+        - and applied recursively if the base class is derived from some other class
+- derived classes may override methods of their base classes
+  - an overriding method may want to extend rather than replace the base class method of the same name
+    - just call /BaseClassName.methodname(self, arguments)/
+      - only works if the base class is accessible in the global scope
+- python provides two built-in functions that work with inheritance
+  - _isinstance()_ to check an instance's type
+    - isinstance(obj, int) will be True only if obj.__class__ is int or some class derived from int
+  - _issubclass()_ to check class inheritance
+    - issubclass(bool, int) is True since bool is a subclass of int
+    - issubclass(float, int) is False since float is not a subclass of int.
+
+****** multiple inheritance
+#+begin_src python
+class DerivedClassName(Base1, Base2, Base3):
+    <statement-1>
+    .
+    .
+    .
+    <statement-N>
+#+end_src
+- the search for attributes inherited from a parent class is depth-first, left-to-right,
+  - not searching twice in the same class where there is an overlap in the hierarchy
+    - it is slightly more complex, the method resolution order changes dynamically to support cooperative calls to _super()_
+      - dynamic ordering is necessary because all cases of multiple inheritance exhibit one or more diamond relationships
+        - where at least one of the parent classes can be accessed through multiple paths from the bottommost class
+      - to keep base classes from being accessed more than once
+        - the dynamic algorithm linearizes the search order in a way that preserves left-to-right ordering specified in each class, that calls each parent only once, and that is monotonic
+          - meaning that a class can be subclassed without affecting the precedence order of it parents
+
+
+****** private variables
+- private instance variables that cannot be accessed except from inside of an object do not exist in Python
+  - a name prefixed with an underscore should be treated as a non-public part of the API
+- class-private members are made possible using name mangling
+  - any identifier (e.g. __thing ) with at least two leading underscores, at most one trailing underscore,
+    - is textually replaced with _classname__thing
+      - classname is the current class name with leading underscores stripped
+        - this is done without regard to syntactic position of the identifier
+          #+begin_src python
+class Mapping:
+    def __init__(self, iterable):
+        self.items_list = []
+        self.__update(iterable)
+
+    def update(self, iterable):
+        for item in iterable:
+            self.items_list.append(item)
+
+    __update = update   # private copy of original update() method
+
+class MappingSubclass(Mapping):
+
+    def update(self, keys, values):
+        # provides new signature for update()
+        # but does not break __init__()
+        for item in zip(keys, values):
+            self.items_list.append(item)
+          #+end_src
+
+
+****** dataclass
+- this module provides a decorator and functions
+  - for automatically adding generated special methods to user-defined classes
+- similar to Pascal "record" or C "struct"
+  - useful for bundling together a few named data items
+#+begin_src python
+from dataclasses import dataclass
+
+@dataclass
+class Employee:
+    name: str
+    dept: str
+    salary: int
+
+john = Employee('john', 'computer lab', 1000)
+john.dept
+# 'computer lab'
+john.salary
+# 1000
+#+end_src
+
+
+****** iterators
+- container objects can be looped over using a _for_ statement
+  - the _for_ statement calls _iter()_ on the container object
+    - returns an iterator object that defines the method __next__(), callable as built-in function next()
+      - which accesses elements in the container one at a time
+      - raises _StopIteration_ exception which terminate the for loop
+#+begin_src python
+s = 'abc'
+it = iter(s)
+it
+
+next(it)
+# 'a'
+next(it)
+# 'b'
+next(it)
+# 'c'
+next(it)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+    next(it)
+StopIteration
+#+end_src
+
+add iterator behavior to your classes
+#+begin_src python
+class Reverse:
+    """Iterator for looping over a sequence backwards."""
+    def __init__(self, data):
+        self.data = data
+        self.index = len(data)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.index == 0:
+            raise StopIteration
+        self.index = self.index - 1
+        return self.data[self.index]
+
+rev = Reverse('spam')
+iter(rev)
+
+for char in rev:
+    print(char)
+# m
+# a
+# p
+# s
+#+end_src
+
+
+****** generators
+- a tool for creating iterators
+  - written like regular functions but use the _yield_ statement
+    - whenever they want to return data
+- generators are very compact because __iter__() and __next__() methods are created automatically
+  - each time _next()_ is called on it
+    - the generator resumes where it left off
+      - remembering all the data values and which statement was last executed
+        - this feature is made easier using instance variables like self.index and self.data
+#+begin_src python
+def reverse(data):
+    for index in range(len(data)-1, -1, -1):
+        yield data[index]
+
+
+for char in reverse('golf'):
+    print(char)
+# f
+# l
+# o
+# g
+#+end_src
+- generators can be coded succintly as expressions
+  - designed to be used right away by an enclosing function
+    - tend to be more memory friendly than equivalent list comprehension
+      #+begin_src python
+sum(i*i for i in range(10))                 # sum of squares
+# 285
+
+xvec = [10, 20, 30]
+yvec = [7, 5, 3]
+sum(x*y for x,y in zip(xvec, yvec))         # dot product
+#260
+
+unique_words = set(word for line in page  for word in line.split())
+
+valedictorian = max((student.gpa, student.name) for student in graduates)
+
+data = 'golf'
+list(data[i] for i in range(len(data)-1, -1, -1))
+# ['f', 'l', 'o', 'g']
+      #+end_src
+
+
+*** instances
+
+
+*** errors, exceptions
+- syntax errors shows the parser repeating the offending line
+  - and display little arrows at the place where the error was detected
+    - not always accurate to source of error so check that entire line
+
+- errors detected during execution are called exceptions
+  - and are not unconditionally fatal
+  - exceptions come in different types and the type is printed as part of the error message
+
+****** handling exceptions
+#+begin_src python
+while True:
+    try:
+        x = int(input("Please enter a number: "))
+        break
+    except ValueError:
+        print("Oops!  That was no valid number.  Try again...")
+#+end_src
+- the _try_ statement works as follows
+  1. first the /try/ clause is executed
+  2. if no exception occurs, the except clause is skipped and execution of the _try_ statement is finished
+  3. if an exception occurs during execution of the _try_ clause, the rest of the clause is skipped.
+        Then if its type matches the exception named after the _except_ keyword, the except cause is executed,
+        and then execution continues after the try/except block
+  4. if an exception occurs which does not match the exception named in the except clause, it is passed on to outer _try_ staements;
+        if no handler is found, it is an unhandled exception and execution stops with an error message
+- the _try_ statement may have more than one /except/ clause, to specify different handlers for different exceptions
+  - an /except/ clause may name multiple exceptions as a parenthesized tuple
+#+begin_src python
+... except (RuntimeError, TypeError, NameError):
+...     pass
+#+end_src
+- a class in an _except_ clause matches exceptions
+  - which are instances of the class itself or one of its derived classes
+#+begin_src python
+class B(Exception): # base class
+    pass
+
+class C(B): # subclass
+    pass
+
+class D(C): # subsubclass
+    pass
+
+for cls in [B, C, D]:
+    try:
+        raise cls()
+    except D:
+        print("D")
+    except C:
+        print("C")
+    except B:
+        print("B")
+#+end_src
+- prints out B, C, D in that order
+  - except B: came first, it would have printed B, B, B
+
+- the /except/ clause may specify a variable after the exception name
+  - typically has an /args/ attribute
+    - built-in exception types define __str__() to print all arguments without explicitly accessing /.args/
+      - __str__() output is printed as the last part ('detail') of the message for unhandled exceptions
+#+begin_src python
+try:
+    raise Exception('spam', 'eggs')
+except Exception as inst:
+    print(type(inst))    # the exception type
+    print(inst.args)     # arguments stored in .args
+    print(inst)          # __str__ allows args to be printed directly,
+                         # but may be overridden in exception subclasses
+    x, y = inst.args     # unpack args
+    print('x =', x)
+    print('y =', y)
+
+# <class 'Exception'>
+# ('spam', 'eggs')
+# ('spam', 'eggs')
+# x = spam
+# y = eggs
+
+#+end_src
+
+_BaseException_ is the common base class of all exceptions
+
+_SystemExit_ (fatal) which is raised by _sys.exit()
+  - signals an intention to exit the interpreter
+_KeyboardInterrupt_ (fatal) which is raised when a user wishes to interrupt the program
+
+_Exceptions_ is the base of all the non-fatal exceptions
+
+
+- print or log the exception
+  - and then re-raise it, which allows a caller to handle the exception as well
+#+begin_src python
+import sys
+
+try:
+    f = open('myfile.txt')
+    s = f.readline()
+    i = int(s.strip())
+except OSError as err:
+    print("OS error:", err)
+except ValueError:
+    print("Could not convert data to an integer.")
+except Exception as err:
+    print(f"Unexpected {err=}, {type(err)=}")
+    raise
+#+end_src
+
+- the _try_ ... _except_ statement has an optional /else/ clause
+  - which when present must follow all /except/ clauses
+- the use of /else/ is better than adding an additional code to the _try_ clause
+- exception handlers can handle occurences inside functions that are called indirectly in the _try_ clause
+#+begin_src python
+for arg in sys.argv[1:]:
+    try:
+        f = open(arg, 'r')
+    except OSError:
+        print('cannot open', arg)
+    else:
+        print(arg, 'has', len(f.readlines()), 'lines')
+        f.close()
+
+def this_fails():
+    x = 1/0
+
+try:
+    this_fails()
+except ZeroDivisionError as err:
+    print('Handling run-time error:', err)
+#+end_src
+
+
+****** raising exceptions
+- the _raise_ statement allows the programmer to force a specified exception to occur
+#+begin_src python
+raise NameError('HiThere')
+raise ValueError  # shorthand for 'raise ValueError()'
+try:
+    raise NameError('HiThere')
+except NameError:
+    print('An exception flew by!')
+    raise
+#+end_src
+
+****** exception chaining
+- if an unhandled exception occurs inside an _except_ section
+  - it will have the exception being handled attached to it and included in the error message
+#+begin_src python
+try:
+    open("database.sqlite")
+except OSError:
+    raise RuntimeError("unable to handle error")
+
+
+# exc must be exception instance or None.
+raise RuntimeError from exc
+
+def func():
+    raise ConnectionError
+
+try:
+    func()
+except ConnectionError as exc:
+    raise RuntimeError('Failed to open database') from exc
+
+try:
+    open('database.sqlite')
+except OSError:
+    raise RuntimeError from None
+#+end_src
+- the _raise_ statment allows an optional _from_ clause
+  - allows disabling automatic exception chaining using the /from None/ idiom
+
+****** user-defined exceptions
+- programs may name their own exceptions by creating a new exception class
+  - typically derived from _Exception_ class
+
+- exception classes can be defined which do anything any other class can do
+  - but are usually simple
+
+****** clean-up actions
+- the _try_ statement has another optional clause which is intended to define clean-up actions
+  - that must be executed under all circumstances
+  - if a _finally_ clause is present, the finally clause will execute as the last task
+    - before the _try_ statement completes
+    - the finally clause runs whether or not the the try statement produces an exception
+#+begin_src python
+def divide(x, y):
+    try:
+        result = x / y
+    except ZeroDivisionError:
+        print("division by zero!")
+    else:
+        print("result is", result)
+    finally:
+        print("executing finally clause")
+
+divide(2, 1)
+
+result is 2.0
+executing finally clause
+
+divide(2, 0)
+
+division by zero!
+executing finally clause
+
+divide("2", "1")
+
+executing finally clause
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+    divide("2", "1")
+    ~~~~~~^^^^^^^^^^
+  File "<stdin>", line 3, in divide
+    result = x / y
+             ~~^~~
+TypeError: unsupported operand type(s) for /: 'str' and 'str'
+#+end_src
+
+- some objects define standard clean-up actions to be undertaken when the object is no longer needed
+ - the _with_ statement allows objects like files to be used in a way that ensures they are always cleaned up promptly and correctly
+   #+begin_src python
+with open("myfile.txt") as f:
+    for line in f:
+        print(line, end="")
+   #+end_src
+
+
+****** raising and handling multiple exceptions
+- for concurrency frameworks, when several tasks may have failed in parallel
+  - but also where it is desirable to continue execution and collect multiple errors rather than raise the first exception
+
+- the built-in _ExceptionGroup_ wraps a list of exception instances so that they can be raised together
+  - caught like any other exception
+       #+begin_src python
+   def f():
+       excs = [OSError('error 1'), SystemError('error 2')]
+       raise ExceptionGroup('there were problems', excs)
+
+   f()
+     + Exception Group Traceback (most recent call last):
+     |   File "<stdin>", line 1, in <module>
+     |     f()
+     |     ~^^
+     |   File "<stdin>", line 3, in f
+     |     raise ExceptionGroup('there were problems', excs)
+     | ExceptionGroup: there were problems (2 sub-exceptions)
+     +-+---------------- 1 ----------------
+       | OSError: error 1
+       +---------------- 2 ----------------
+       | SystemError: error 2
+       +------------------------------------
+   try:
+       f()
+   except Exception as e:
+       print(f'caught {type(e)}: e')
+
+   caught <class 'ExceptionGroup'>: e
+
+       #+end_src
+  - using /except*/ instead of /except/
+    - we can selectivly handle only the exceptions in the group that match a certain type
+#+begin_src python
+def f():
+    raise ExceptionGroup(
+        "group1",
+        [
+            OSError(1),
+            SystemError(2),
+            ExceptionGroup(
+                "group2",
+                [
+                    OSError(3),
+                    RecursionError(4)
+                ]
+            )
+        ]
+    )
+
+try:
+    f()
+except* OSError as e:
+    print("There were OSErrors")
+except* SystemError as e:
+    print("There were SystemErrors")
+
+There were OSErrors
+There were SystemErrors
+  + Exception Group Traceback (most recent call last):
+  |   File "<stdin>", line 2, in <module>
+  |     f()
+  |     ~^^
+  |   File "<stdin>", line 2, in f
+  |     raise ExceptionGroup(
+  |     ...<12 lines>...
+  |     )
+  | ExceptionGroup: group1 (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | ExceptionGroup: group2 (1 sub-exception)
+    +-+---------------- 1 ----------------
+      | RecursionError: 4
+      +------------------------------------
+
+#+end_src
+
+****** enriching exceptions with notes
+- exceptions have a method /add_note(note)/
+  - that accepts a string and adds it to the exception's notes list
+
+#+begin_src python
+def f():
+    raise OSError('operation failed')
+
+excs = []
+for i in range(3):
+    try:
+        f()
+    except Exception as e:
+        e.add_note(f'Happened in Iteration {i+1}')
+        excs.append(e)
+
+raise ExceptionGroup('We have some problems', excs)
+  + Exception Group Traceback (most recent call last):
+  |   File "<stdin>", line 1, in <module>
+  |     raise ExceptionGroup('We have some problems', excs)
+  | ExceptionGroup: We have some problems (3 sub-exceptions)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "<stdin>", line 3, in <module>
+    |     f()
+    |     ~^^
+    |   File "<stdin>", line 2, in f
+    |     raise OSError('operation failed')
+    | OSError: operation failed
+    | Happened in Iteration 1
+    +---------------- 2 ----------------
+    | Traceback (most recent call last):
+    |   File "<stdin>", line 3, in <module>
+    |     f()
+    |     ~^^
+    |   File "<stdin>", line 2, in f
+    |     raise OSError('operation failed')
+    | OSError: operation failed
+    | Happened in Iteration 2
+    +---------------- 3 ----------------
+    | Traceback (most recent call last):
+    |   File "<stdin>", line 3, in <module>
+    |     f()
+    |     ~^^
+    |   File "<stdin>", line 2, in f
+    |     raise OSError('operation failed')
+    | OSError: operation failed
+    | Happened in Iteration 3
+    +------------------------------------
+
+#+end_src
+
+
+* Geospatial Data Science with Julia, Dr. Júlio Hoffimann
+
+** Style Guide for Julia Code
+- Variable names must begin with a letter (A-Z,a-z), underscore, or a subset of unicode code points greater than 00A0
+  - variable names are case-sensitive, and have no semantic meaning
+    - Unicode names (UTF-8 encoding) are allowed by typing the backslashed LaTeX symbol name followed by tab
+      - you can shadow existing exported constants, fore as long as you dont redefine a built-in constant or built-in function already
+        - variable names that contain only underscores are write-only, and the values assigned are immediately discarded
+          - variables with explicit names of built-in keywords are disallowed
+
+            [[https://docs.julialang.org/en/v1/manual/variables/#Stylistic-Conventions][_Stylistic Conventions_]]
+            1. Names of variables are in lowercase
+            2. Word separation can be indicated by underscores, but use of underscores is discouraged
+               - unless the name would be hard to read otherwise
+            3. Names of `Types` and `Modules` begin with a capital letter
+               - word separation is shown with upper camel case instead of underscores
+            4. Names of `functions` and `macros` are in lowercase, without underscores
+            5. Functions that write to their arguments have names that end in `!`.
+               - These are called "mutating" or "in-place" functions
+                 - they are intended to produce changes in their arguments after the function is called, not just return a value.
+
+
+** Julia Data Types
+- Julia comes with a rich set of built-in data types
+  - These types help Julia manage memory efficiently
+    - all values in Julia are true objects having a type belonging to the fully connected type graph
+      - all nodes of which are equally first-class as types
+- _Only values, not variables, have types_
+  - variables are simply names bound to values in Julia
+- Data types in Julia form a single, fully connected type graph
+  - At the top is /Any/
+    - Then its subtypes are many common types like /Number/, /AbstractString/, /Bool/, /Char/
+- The three principal types **(Abstract, Primitive, Composite)**
+  - are explicity declared
+    - have names
+      - have explicitly declared supertypes
+        - may have parameters
+  - These types are internally represented as instances of the same concept, /DataType/
+    - /DataType/ may be abstract or concrete
+      - concrete has a specified size, storage layout, and optionally field names
+    - composite type is a /DataType/ that has field names or is empty
+
+*** Numeric
+*** Boolean
+*** Character
+*** String
+*** Collections
+*** Abstract
+*** Composite
+*** Parametric
+
+
+** Exercises
+
+- **easy** create a list of tuples, each representing geographic coordinates, meaning latitude (-180<val<180) and longitude(-90<val<90), and calculate the centroid of these coordinates, then create a dictionary to store the centroid's latitude and longitude
+  - **medium** create a list of tuples, each represent coordinates in 3D cartographic space, meaning latitude and longitude are in radians and height is given in meters, and calculate the local ENU transformation of these coordinates, then create a set to store the 64-bit precision floating-number of these coordinates
+    - **hard** calculate the precision loss between converting between geographic coordinates and ENU coordinates by comparing the the tuples
+
+- **easy** create a dictionary to store attributes of a geographic feature, and include keys for the name, length, and location of the feature, then add an additional attribute and print the dictionary
+  - **medium**
+
+- Write a EPSG converter for WKT1/2, WKB, proj-string, PROJJSON

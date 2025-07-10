@@ -1,4 +1,4 @@
-# Development Tools
+# Dev Tools
 
 ## Language Server Protocol (LSP)
 
