@@ -1,0 +1,208 @@
+#+title: Num Py
+
+* _Overview_
+
+- NumPy is esssential for numerical operations and handling arrays
+  - in a high-level language
+
+** _History_
+*** _Python extended for indexing syntax_ to make array computing easier
+   - Array indexing refers to the use of the square brackets to index array values
+     #+begin_src python
+   #########
+   # Single Element Indexing
+   #####
+   >>> import numpy as np
+   >>> x = np.arange(0b11)
+   >>> x[1]
+   1
+   >>> x[0]
+   0
+     #+end_src
+
+*** [[https://hugunin.net/papers/hugunin95numpy.html][Extending Python for Numerical Computation]]
+   - Python includes numerical extensions implementing a matrix package
+     - with influences from Array Programming Languages
+       - rather than retrofit an existing numerical language to support the wealth of features found in a general-purpose programming language, it makes more sense to attack the problem from the other end instead
+   - All of the basic numeric operators are supported element-wise for matrices
+     - basic array comparison and logical operators are provided as methods
+   - The matrix object is designed to support array of arbitrary dimensions
+   - Mapping semantics are used to support multi-dimensional product form indexing for matrix objects
+     - multi-dimension indices are a sequence of python objects
+       - the first object corresponds to the first dimension of the matrix, and so on
+         - the following objects are possible for each dimension
+           1. a single integer
+             indicating one element from that dimension and a reduction in the number of dimensions in the returned matrix
+           2. a sequence of integers
+             not neccesarily unique, selecting an arbitrary collection of elements along that dimension
+           3. a slice object
+              which selects a range of elements along the dimension with the optional start index, stop index, and step size
+   - Every aritimetic operator is implemented as a special ofunc object with python
+     - these functions are to be called with matrix or scalar arguments to return the normal result
+       - these functions can be subscripted to indicate that they should be applied at specific rank
+         - and they can be modified to indicate that instead of a direct product, they should be applied as a generalized outer, or inner product, or as a reduction or accumulation.
+   - Full range of primitive data types
+     - Matrix object supports arrays of chars, bytes, shorts, ints, longs, floats, doubles, complex floats, complex doubles, and raw python objects
+   - No changes to the Python Core
+     - two new types designed
+       - one for matrices and one for the functions on matrices
+     - and the module
+
+*** Numarray and Numpy
+3. A new package called Numarray, which had faster operations for large arrays but slower than Numeric on small ones
+
+4. NumPy was created to merge both Numeric and Numarray array objects in python
+   - Numarray features were ported to Numeric
+
+
+
+** What is an Array Programming Language?
+https://web.archive.org/web/20110227013846/http://www.vector.org.uk/archive/v223/smill222.htm
+- lets use a simple metaphor for classifying programming languages and follow this with examples of programming a simple example in both a hypothetical and representative machine language and in BASIC
+  - which we will consider representative of a conventional programming language
+
+- Suppose we have a box of apples from which we wish to select all of the good apples
+  - the instructions should conventionally be something like
+
+    Reserve a place for the good apples. Then select an apple from the box, and if it is good put it in a reserved place. Select a second apple, and if it is good put it too in the reserved place. ... Continue in this manner examining each apple in turn until all of the good apples have been selected.
+
+  - the instructions corresponding to an array language would be
+
+    Select all of the good apples from the box
+
+- Based on that analogy we classify programming languages as follows:
+  - one apple at a time
+    Fortran, BASIC, Pascal, C++, Java
+  - all the apples at once
+    APL, J, MATLAB, R, JULIA
+
+
+
+* _Reading_
+
+** [[https://arxiv.org/abs/1102.1523][The NumPy array: a structure for efficient numerical computing (2011)]]
+- The NumPy array: a structure for efficient numerical computation
+  - NumPy arrays are the standard representation for numerical data in the Pythonic sphere of paradigms.
+
+    /Three techniques are applied to improve performance/
+    1. vectorizing calculations
+    2. avoiding copying data in-memory
+    3. minimizing operation costs
+
+
+
+* Basics
+
+** Getting Started
+
+*** Creating NumPy Arrays
+#+begin_src python
+import numpy as np
+# 1D Array creation
+arr_1d = np.array([1,2,3])
+print(f"1D array: {arr_1d}")
+# 2D Array
+arr_2d = np.array([1,2,3],[4,5,6])
+print(f"2D array: {arr_2d}")
+
+# create an array of zeros
+zeros = np.zeros((3,3)) # 3x3 matrix
+print(f"array of zeros: {zeros}")
+# create an array of ones
+ones = np.ones((2,4))
+print(f"array of ones: {ones}")
+# create an array with a range of values
+range_arr = np.arange(0, 10, 2)
+print(f"range array: {range_arr}")
+#+end_src
+*** Basic Array Operations
+#+begin_src python
+
+# Array Addition
+arr_sum = arr_1d + 10
+
+# Array Multiplication
+arr_product = arr_1d * 2
+
+# Element-wise multiplication of two arrays
+arr_2d_product = arr_2d * np.array([1, 2, 3])
+#+end_src
+*** Reshaping Arrays
+#+begin_src python
+# 1D to 2D array
+arr_reshaped = np.arange(12).reshape((3,4)) # 3 rows 4 cols
+#+end_src
+*** Mathematical Functions on Arrays
+#+begin_src python
+sqrt_array = np.sqrt(arr_reshaped)
+
+# add 1 to avoid log(0)
+log_array = np.log1p(arr_reshaped)
+#+end_src
+*** Statistical Operations
+#+begin_src python
+arr = np.array([1, 2, 3, 4, 5, 6, 7, 9, 10])
+mean_v = np.mean(arr)
+median_v = np.median(arr)
+std_v = np.std(arr)
+#+end_src
+*** Random Data Generation
+#+begin_src python
+random_coords = np.random.uniform(low=-90, high=90, size=(5, 2))
+#+end_src
+** Indexing
+**NumPy targets the CPython reference implementation of Python
+**NumPy uses C-Order Indexing**
+ - that means the last index usually represents the most rapidly changing memory location
+   - Fortran and IDL use the first index to represent the most rapidly changing location in memory
+
+#+begin_src bash
+>>> x = np.arange(0b110)
+>>> x
+array([0, 1, 2, 3, 4, 5])
+
+>>> x.shape = (0b1, 0b10, 0b11)
+>>> x
+array([[[0, 1, 2],
+        [3, 4, 5]]])
+>>> x[0,1]
+array([3, 4, 5])
+>>> x[0][1]
+array([3, 4, 5])
+>>> x[:0]
+array([], shape=(0, 2, 3), dtype=int32)
+###############
+# slicing and string arrays
+###############
+>>> x = np.arange(0b1111)
+>>> x
+array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14])
+>>> x.shape = (0b011, 0b101,)
+>>> x
+array([[ 0,  1,  2,  3,  4],
+       [ 5,  6,  7,  8,  9],
+       [10, 11, 12, 13, 14]])
+>>> x[2:5:12]
+array([[10, 11, 12, 13, 14]])
+>>> x[2::12]
+array([[10, 11, 12, 13, 14]])
+>>> x[2:12]
+array([[10, 11, 12, 13, 14]])
+>>> x[4:12]
+array([], shape=(0, 5), dtype=int32)
+>>> x[1:12]
+array([[ 5,  6,  7,  8,  9],
+       [10, 11, 12, 13, 14]])
+>>> x[0:12]
+array([[ 0,  1,  2,  3,  4],
+       [ 5,  6,  7,  8,  9],
+       [10, 11, 12, 13, 14]])
+>>> arr = np.arange(12).reshape((2,6))
+>>> arr
+array([[ 0,  1,  2,  3,  4,  5],
+       [ 6,  7,  8,  9, 10, 11]])
+>>> condition = arr > 5
+>>> arr[condition]
+array([ 6,  7,  8,  9, 10, 11])
+
+#+end_src

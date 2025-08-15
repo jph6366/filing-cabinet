@@ -1,0 +1,240 @@
+#+title: Pandas
+
+* Overview
+- Pandas is a data wrangling platform for Python providing data ingestion, transformation, and export functions
+  - Enables high-performance data structures and data analysis without the R Programming Language
+    - Library is built upon NumPy
+    - Data structures called Series and DataFrames
+      1. _Series_
+         - is a one-dimensional labeled array capable of holding any data type
+           - built on top of NumPy's array
+             - each data point has an axis label unlike in NumPy
+                    #+begin_src python
+           import pandas as pd
+           ##########
+           # Axis labels are collectively referred to as the index
+           #
+           # To create a Series is to call:
+           ##########
+           s = pd.Series(data, index=index)
+                    #+end_src
+      2. _DataFrames_
+         - is a two-dimensional labeled data structure with columns of potentially different types
+           - you can optionally pass index (row labels) and columns (labels) arguments
+         #+begin_src python
+import pandas as pd
+
+d = {
+    "one": pd.Series([1.0, 2.0, 3.0], index=["a", "b", "c"]),
+    "two": pd.Series([1.0, 2.0, 3.0, 4.0], index=["a", "b", "c", "d"]),
+}
+
+df = pd.DataFrame(d)
+
+pd.DataFrame(d, index=["d", "b", "a"], columns=["two", "three"])
+'''
+Out[#]:
+   two three
+d  4.0   NaN
+b  2.0   NaN
+a  1.0   NaN
+'''
+         #+end_src
+
+* Reading
+
+* Basics
+
+** Getting Started
+
+*** Basic DataFrame Operations
+#+begin_src python
+
+# selecting a specific column
+latitudes =  df ["Latitude"]
+
+# filtering rows based on a condition
+df_filtered = df[df["Latitude"] > 36]
+
+# adding a new column with a calculation
+df["Lat_Radians"] = np.radians(df["Latitude"])
+
+# group by  'country' and calculate  the total population for each country
+df_grouped = df.groupby("Country")["Population"].sum()
+
+# merge two DataFrames on the 'ciy' column
+df_merged = pd.merge(df1, df2, on="City")
+
+# handling missing data
+df_nan = pd.DataFrame(data_with_nan)
+# fill missing values with the mean
+df_filled = df_nan.fillna(df_nan["Population"].mean())
+
+# can also read and write data in various formats
+df = pd.read_csv(url)
+# we can calculate the total population of all cities in the dataset
+np.sum(df["population"])
+
+# pandas provides built-in plotting capabilities
+df.plot()
+
+# plot only the columns of data table with data from Paris
+df["station_paris"].plot()
+
+# visually compare the values measured in London and Paris
+df.plot.scatter(x="station_london", y="station_paris", alpha=0.5)
+
+# visualize each of the columns in a separate subplot
+df.plot.area(figsize=(12,4), subplots=True)
+
+#+end_src
+
+
+* Advanced
+
+** PyArrow Functionality
+- Pandas can utilize PyArrow to extend functionality and improve the performance of various APIs
+  - more data types compared to NumPy
+  - missing data support for all data types
+  - performant IO reader integration
+  - interoperability with other DataFrame libraries based on the Apache Arrow specification
+
+*** Data Structures Integration
+- a _Series_, _Index_, or  the columns of a _DataFrame_ can be directly backed by a _pyarrow.ChunkedArray_ similar to NumPy array
+  - to use in pandas pass in a string of a type followed by [pyarrow] into dtype parameter
+
+#+begin_src python
+import pandas as pd
+
+ser = pd.Series([-1.5, 0.2, None], dtype="float32[pyarrow]")
+
+idx = pd.Index([True, None], dtype="bool[pyarrow]")
+
+df = pd.DataFrame([[1, 2], [3, 4]], dtype="uint64[pyarrow]")
+#+end_src
+
+- For PyArrow types that accept parameters
+  - you can pass in a PyArrow type
+    - with those parameters into ArrowDtype
+      - to use in the dtype parameter.
+
+#+begin_src python
+import pyarrow as pa
+
+list_str_type = pa.list_(pa.string())
+
+ser = pd.Series([["hello"], ["there"]], dtype=pd.ArrowDtype(list_str_type))
+
+from datetime import time
+
+idx = pd.Index([time(12, 30), None], dtype=pd.ArrowDtype(pa.time64("us")))
+
+from decimal import Decimal
+
+decimal_type = pd.ArrowDtype(pa.decimal128(3, scale=2))
+
+data = [[Decimal("3.19"), None], [None, Decimal("-1.23")]]
+
+df = pd.DataFrame(data, dtype=decimal_type)
+#+end_src
+
+- to retrieve a pyarrow _pyarrow.ChunkedArray_ from a _Series_ or _Index_
+  - you can call the pyarrow array constructor on the _Series_ or _Index_
+#+begin_src python
+ser = pd.Series([1, 2, None], dtype="uint8[pyarrow]")
+
+pa.array(ser) # pyarrow.lib.UInt8Array
+
+idx = pd.Index(ser)
+
+pa.array(idx) # pyarrow.lib.UInt8Array
+#+end_src
+
+- to convert a _pyarrow.Table_ to a _DataFrame_
+  - you can call the _pyarrow.Table.to_pandas()_ method
+    - with /types_mapper=pd.ArrowDtype/
+#+begin_src python
+table = pa.table([pa.array([1, 2, 3], type=pa.int64())], names=["a"])
+
+df = table.to_pandas(types_mapper=pd.ArrowDtype)
+#+end_src
+
+
+*** Operations
+
+- PyArrow data structure is implemented through pandas' _ExtensionArray_ interface, an abstract base class for custom 1-D array types
+  - the following are examples of operations accelerated by native PyArrow compute functions
+
+#+begin_src python
+import pyarrow as pa
+
+ser = pd.Series([-1.545, 0.211, None], dtype="float32[pyarrow]")
+
+ser.mean()
+
+ser + ser
+
+ser > (ser + 1)
+
+ser.dropna()
+
+ser.isna()
+
+ser.fillna(0)
+
+ser_str = pd.Series(["a", "b", None], dtype=pd.ArrowDtype(pa.string()))
+
+ser_str.str.startswith("a")
+
+from datetime import datetime
+
+######################
+# ArrowDtype is useful
+# if the data type contains parameters
+# like pyarrow.timestamp.
+####################
+pa_type = pd.ArrowDtype(pa.timestamp("ns"))
+
+ser_dt = pd.Series([datetime(2022, 1, 1), None], dtype=pa_type)
+
+ser_dt.dt.strftime("%Y-%m")
+#+end_src
+- also included
+  - numeric aggregations, numeric arithmetic, numeric rounding, logical and comparison functions, string functionality, datetime functionality
+
+*** IO Reading
+- PyArrow also provides IO reading functionality thats been integrated into pandas IO readers
+  - the following functions provide an /engine/ keyword
+    - that dispatches to PyArrow to accelerate reading  from an IO source
+      1. _read_csv()_
+         2. _read_json()_
+            3. _read_orc_()_
+               4. _read_feather()_
+- by default these all and other IO readers return NumPy-backed data
+  - these readers can return PyArrow-backed data
+    - by specifying the parameter /dtype_backend="pyarrow"/
+      - instead of the /engine/ keyword
+
+#+begin_src python
+import io
+
+data = io.StringIO("""a,b,c
+   1,2.5,True
+   3,4.5,False
+""")
+
+
+df = pd.read_csv(data, engine="pyarrow")
+df_pyarrow = pd.read_csv(data, dtype_backend="pyarrow")
+
+#########
+# Several non-IO reader functions
+# can also use the dtype_backend argument
+# to return PyArrow-backed data
+########
+s = pd.Series([1.0, 2.1, 3.0], dtype="Float64")
+pd.to_numeric(s, downcast="float", dtype_backend="pyarrow")
+
+dfn = df.convert_dtypes( dtype_backend="pyarrow")
+s.convert_dtypes( dtype_backend="pyarrow")
+#+end_src
