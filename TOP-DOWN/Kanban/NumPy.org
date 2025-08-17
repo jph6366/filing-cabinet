@@ -89,7 +89,304 @@ https://web.archive.org/web/20110227013846/http://www.vector.org.uk/archive/v223
     2. avoiding copying data in-memory
     3. minimizing operation costs
 
+- A NumPy array is a multidimensional, uniform collection of elements
+  - An array is characterized by the type of elements it contains and by it shape
+  - A matrix may be represented as an array of shape M x N
+    - NumPy arrays can have any dimensionality
+      - they contain other kinds and combinations of elements
+        - booleans, datetime
+  **NumPy is a convenient way of describing one or more blocks of computer memory, so that numbers represented may be easily manipulated**
 
+
+*** structure of a NumPy array: a view on memory
+- NumPy array called ndarray describes memory using:
+  1. _Data Pointer_
+     - memory address of first byte in the array
+  2. _Data Type Description_
+     - the kind of elements contained in the array
+  3. _Shape_
+     - the shape of the array
+  4. _Strides_
+     - the number of bytes to skip in memory to proceed to the next element
+  5. _Flags_
+     - defines whether we are allowed to modify the array
+       - whether memory layout is C or Fortran contiguous, etc.
+         - /In C/ memory is laid out in "row-major" order
+           - rows are stored on after another in-memory
+         - /In Fortran/ columns are stored successivelyx``
+
+
+- the strided memory model provides a way of viewing the same memory
+  - in different ways without copying data
+    #+begin_export python
+    x = np.arange(6).reshape((2,3))
+
+    x.strides
+    # (8, 4) # default integer is 4 bytes in-memory
+                # skip 2 integers to get to the next row
+    #+end_export
+  - by modifying strides
+    - array can be transposed or reshaped at zero cost
+      - no memory needs to be copied
+  - the strides, shape, and dtype attributes of an array
+    - can be specified manually by the user
+#+begin_src python
+##################
+# In each of these cases
+# the resulting array points to the same memory
+##################
+>>> x = np.arange(60).reshape((6,10))
+>>> xT = x.T
+>>> xT
+array([[ 0, 10, 20, 30, 40, 50],
+       [ 1, 11, 21, 31, 41, 51],
+       [ 2, 12, 22, 32, 42, 52],
+       [ 3, 13, 23, 33, 43, 53],
+       [ 4, 14, 24, 34, 44, 54],
+       [ 5, 15, 25, 35, 45, 55],
+       [ 6, 16, 26, 36, 46, 56],
+       [ 7, 17, 27, 37, 47, 57],
+       [ 8, 18, 28, 38, 48, 58],
+       [ 9, 19, 29, 39, 49, 59]])
+>>> xT.strides
+(4, 40)
+>>> z = x.reshape((6,10))
+>>> z
+array([[ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9],
+       [10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+       [20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
+       [30, 31, 32, 33, 34, 35, 36, 37, 38, 39],
+       [40, 41, 42, 43, 44, 45, 46, 47, 48, 49],
+       [50, 51, 52, 53, 54, 55, 56, 57, 58, 59]])
+>>> z.strides
+(40, 4)
+>>> z.dtype = np.dtype('uint8')
+>>> z
+array([[ 0,  0,  0,  0,  1,  0,  0,  0,  2,  0,  0,  0,  3,  0,  0,  0,
+         4,  0,  0,  0,  5,  0,  0,  0,  6,  0,  0,  0,  7,  0,  0,  0,
+         8,  0,  0,  0,  9,  0,  0,  0],
+       [10,  0,  0,  0, 11,  0,  0,  0, 12,  0,  0,  0, 13,  0,  0,  0,
+        14,  0,  0,  0, 15,  0,  0,  0, 16,  0,  0,  0, 17,  0,  0,  0,
+        18,  0,  0,  0, 19,  0,  0,  0],
+       [20,  0,  0,  0, 21,  0,  0,  0, 22,  0,  0,  0, 23,  0,  0,  0,
+        24,  0,  0,  0, 25,  0,  0,  0, 26,  0,  0,  0, 27,  0,  0,  0,
+        28,  0,  0,  0, 29,  0,  0,  0],
+       [30,  0,  0,  0, 31,  0,  0,  0, 32,  0,  0,  0, 33,  0,  0,  0,
+        34,  0,  0,  0, 35,  0,  0,  0, 36,  0,  0,  0, 37,  0,  0,  0,
+        38,  0,  0,  0, 39,  0,  0,  0],
+       [40,  0,  0,  0, 41,  0,  0,  0, 42,  0,  0,  0, 43,  0,  0,  0,
+        44,  0,  0,  0, 45,  0,  0,  0, 46,  0,  0,  0, 47,  0,  0,  0,
+        48,  0,  0,  0, 49,  0,  0,  0],
+       [50,  0,  0,  0, 51,  0,  0,  0, 52,  0,  0,  0, 53,  0,  0,  0,
+        54,  0,  0,  0, 55,  0,  0,  0, 56,  0,  0,  0, 57,  0,  0,  0,
+        58,  0,  0,  0, 59,  0,  0,  0]], dtype=uint8)
+>>> z.shape
+(6, 40)
+ >>> z.strides
+(40, 1)
+#+end_src
+
+
+*** numerical operations on arrays: vectorization
+- Grouping element-wise operations together as a process is vectorization
+#+begin_src python
+a = [1, 3, 5]
+
+b = [3*x for x in a]
+
+# VS.
+
+# scalars and arrays
+
+a = np.array([1, 3, 5])
+
+b = 3 * a
+
+
+#########
+# fast element-wise operation
+########
+b - a
+
+#########
+# operations are broadcasted across the array
+#########
+m = np.arange(60).reshape((6,10))
+
+b + m
+
+####
+# broadcasted arrays are never physically constructed
+####
+#+end_src
+
+*** broadcasting rules
+- NumPy verifies all dimensions are matched before broadcasting two arrays
+  - the dimension of the output array is expanded to the larger of the two
+    - therefore arrays are compatible to yield and output new shape
+
+*** vectorization and broadcasting
+**** evaluating functions
+#+begin_src  python
+def f(x):
+    return sin(x/2) ** 2 + cos(x) + cos(x) sin(x/2)**2
+
+x = np.arange(1e5)
+
+y = [f(i) for i in x]
+#+end_src
+- most array-based systems don't provide a convention for circumventing creation of temporary arrays
+  - the user may choose to perform operations in-place
+    - by not allocating new memory and keeping all results in the current array
+**** finite differencing
+- the derivative on a discrete sequence is usually computed using finite differencing
+  - slicing makes this operation trivial
+    #+begin_src python
+x = np.arange(0, 10, 2)
+
+y = x**2
+
+dy_dx = (y[1:] - y[:-1]) / (x[1:] - x[:-1])
+# y[1:] - y[:-1] has the effect of subtracting,
+# from each element in the array,
+# the element directly preceding it
+
+# calculating the central divided difference
+dy_dx_c = (y[2:]-y[:-2])/(x[2:]-x[:-2])
+# using NumPy is 100x faster than Python
+    #+end_src
+- performs the same differencing on the x array and dividing the two resulting arrays yields the forward divided difference
+
+**** Creating a grid using broadcasting
+- suppose we want to produce a three-dimensional grid of distances
+  - most vectorized programming languages require forming three intermediate MxN arrays, i, j, and k
+    #+begin_src python
+###########
+# mgrid object
+# produces a meshgrid when sliced
+############
+i, j, k = np.mgrid[-100:100, -100:100, -100:100]
+    #+end_src
+    - Broadcasting does not require large intermediate arrays
+      - construct coordinate vectors
+#+begin_src python
+# Construct the row vector: from-100 to +100
+i = np.arange(-100, 100).reshape(200, 1, 1)
+# Construct the column vector
+j = np.reshape(i, (1, 200, 1))
+# Construct the depth vector
+k = np.reshape(i, (1, 1, 200))
+
+###
+# OR JUST USE SHORTHAND
+###
+i, j, k = np.ogrid[-100:100,-100:100,-100:100]
+#+end_src
+
+**** Computer Vision
+n x 3 array of 3D points
+3 x 3 camera matrix
+#+begin_src python
+pts  = np.random.random((100000, 3))
+camera = np.array([[600., 0., 1800.],
+                  [...],
+                  [...]])
+
+vecs = camera.dot(pts.T).T
+
+######
+# numpy's array operations with element-by-element
+# division and the broadcasting machinery
+#####
+pixel_coords = vecs/vecs[:, 2, np.newaxis]
+#+end_src
+- we want to transform 3D coordinates into 2D pixel locations on an image
+  - this operation involves taking the matrix dot product of each point with the camera matrix
+    - then dividing the resulting vector by its third component
+
+- When repeated operations take place on very LARGE chunks of memory
+  - it may be better to use an outer for-loop
+    - combined with a vectorized inner loop
+      - to make optimal use of system cache
+
+** Sharing Data
+*** Efficient I/O with memory mapping
+- an array storedon disk may be addressed directly without copying it to memory using memory mapping
+  - its useful for addressing only a small portion of a very large array
+  #+begin_src python
+a = np.memmap('/tmp/myarray.memmap',
+              mode='write', shape=(300,300),
+              dtype=np.int)
+a.flat = np.arange(300* 300)
+
+# when the flush is called its data is written to disk
+a.flush()
+# the array can now be loaded
+# and parts of it can be manipulated
+b = np.memmap('/tmp/myarray.memmap',
+              mode='r+', shape=(300, 300),
+              dtype=np.int)
+b[100, :] *= 2
+b.flush()
+  #+end_src
+*** the array interface for foreign blocks of memory
+- NumPy defines an array interface
+  - that specifies how a given objects
+    - exposes a block of memory
+- NumPy knows how to view any object
+  - with a valid __array_interface__ dictionary attribute as an array
+    - important values include
+      - data, address of data in-memory
+      - shape
+      - typestr
+        #+begin_src python
+import ctypes
+class MutableString(object):
+    def __init__(self, s):
+        # Allocate string memory
+        self._s = ctypes.create_string_buffer(s)
+        self.__array_interface__ = {
+            # Shape of the array
+            ’shape’: (len(s),),
+            # Address of data,
+            # the memory is not read-only
+            ’data’: (ctypes.addressof(self._s), False),
+            # Stores 1-byte unsigned integers.
+            # "|" indicates that Endianess is
+            # irrelevant for this data-type.
+            ’typestr’: ’|u1’,
+        }
+     def __str__(self):
+         #"Convert to a string for printing."
+         return str(buffer(self._s))
+        #+end_src
+
+*** structured data-types to expose complex data
+- NumPy arrays are homogeneous
+  - each element of the array has the same type
+  - arrays that store compound elements
+    - combinations of data-types
+    - are strucutred arrays
+#+begin_src python
+dt = np.dtype([('time', np.uint64),
+               ('pos', [('x', float),
+                        ('y', float)])])
+x = np.array([(1, (0,0.5)),
+              (2, (0, 10.3)),
+              (3, (5.5, 1.1))],
+             dtype=dt)
+
+x['time']
+
+times = (x['time'] >= 2)
+
+x[times]['pos']['x']
+
+################
+# reading complex binary files
+##################
+data = np.fromfile("foo.dat", dtype=dt)
+#+end_src
 
 * Basics
 
