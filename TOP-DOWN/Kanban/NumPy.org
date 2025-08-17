@@ -20,7 +20,7 @@
    0
      #+end_src
 
-*** [[https://hugunin.net/papers/hugunin95numpy.html][Extending Python for Numerical Computation]]
+*** [[http://hugunin.net/papers/hugunin95numpy.html][Extending Python for Numerical Computation]]
    - Python includes numerical extensions implementing a matrix package
      - with influences from Array Programming Languages
        - rather than retrofit an existing numerical language to support the wealth of features found in a general-purpose programming language, it makes more sense to attack the problem from the other end instead
@@ -78,7 +78,7 @@ https://web.archive.org/web/20110227013846/http://www.vector.org.uk/archive/v223
 
 
 
-* _Reading_
+_Reading_
 
 ** [[https://arxiv.org/abs/1102.1523][The NumPy array: a structure for efficient numerical computing (2011)]]
 - The NumPy array: a structure for efficient numerical computation
