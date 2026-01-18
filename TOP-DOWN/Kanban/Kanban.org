@@ -1,21 +1,33 @@
 #+title: Kanban
 
+* PLACEHOLDER
 
 * BACKLOG
+
 Google Summer of Code 2026 Project Proposals
 - JuliaGeo
 - PySAL
 - OpenStreetMaps
 - OSGEO
+
 [[https://github.com/FluxML/fluxml.github.io/issues/107][FluxML/fluxml.github.io#107 Create Machine Learning Tutorials with Flux.jl]]
+
 [[https://github.com/JuliaLang/julia/issues/24043][JuliaLang/julia#24043 Undocumented exceptions]]
+
 * IN-PROGRESS
+
 [[https://github.com/JuliaGraphs/Graphs.jl/issues/447][JuliaGraphs/Graphs.jl#447 A reliable idiomatic wrapper for the C++ library `L...]]
 
 * REVIEW
+
 [[https://github.com/jph6366/peppi-jlrs][GitHub - jph6366/peppi-jlrs]]
+
 [[https://github.com/jph6366/peppi-jl][GitHub - jph6366/peppi-jl: Julia bindings for the peppi Slippi replay parser]]
 
+[[https://github.com/OSIPI/TF2.4_IVIM-MRI_CodeCollection/pull/99][OSIPI/TF2.4_IVIM-MRI_CodeCollection#99 Added the feature to read DICOM images...]]
+
 * COMPLETED
+
 [[https://github.com/JuliaEarth/GeoIO.jl/pull/188][JuliaEarth/GeoIO.jl#188 squash GPKG reader by jph6366]]
+
 [[https://github.com/JuliaEarth/GeoIO.jl/pull/190][JuliaEarth/GeoIO.jl#190 squash GPKG write by jph6366]]

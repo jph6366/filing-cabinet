@@ -147,3 +147,395 @@ zero(g)
 # {0, 0} directed simple Int64 graph
 
 #+end_src
+
+*** Source Code for simple undirected graphs
+
+_simple edge_
+#+begin_src julia
+import Base: Pair, Tuple, show, ==, hash
+import Graphs: AbstractEdge, src, dst, reverse
+
+abstract type AbstractSimpleEdge{T<:Integer} <: AbstractEdge{T} end
+
+struct SimpleEdge{T<:Integer} <: AbstractSimpleEdge{T}
+    src::T
+    dst::T
+end
+
+SimpleEdge(t::Tuple) = SimpleEdge(t[1], t[2])
+SimpleEdge(p::Pair) = SimpleEdge(p.first, p.second)
+SimpleEdge{T}(p::Pair) where T<:Integer = SimpleEdge(T(p.first), T(p.second))
+SimpleEdge{T}(t::Tuple) where T<:Integer = SimpleEdge(T(t[1]), T(t[2]))
+
+eltype(::Type{<:ET}) where ET<:AbstractSimpleEdge{T} where T = T
+
+# Accessors
+src(e::AbstractSimpleEdge) = e.src
+dst(e::AbstractSimpleEdge) = e.dst
+
+# I/O
+show(io::IO, e::AbstractSimpleEdge) = print(io, "Edge $(e.src) => $(e.dst)")
+
+# Conversions
+Pair(e::AbstractSimpleEdge) = Pair(src(e), dst(e))
+Tuple(e::AbstractSimpleEdge) = (src(e), dst(e))
+
+SimpleEdge{T}(e::AbstractSimpleEdge) where T <: Integer = SimpleEdge{T}(T(e.src), T(e.dst))
+
+# Convenience functions
+reverse(e::T) where T<:AbstractSimpleEdge = T(dst(e), src(e))
+==(e1::AbstractSimpleEdge, e2::AbstractSimpleEdge) = (src(e1) == src(e2) && dst(e1) == dst(e2))
+hash(e::AbstractSimpleEdge, h::UInt) = hash(src(e), hash(dst(e), h))
+#+end_src
+
+_type for undirected graph_
+#+begin_src julia
+mutable struct SimpleGraph{T <: Integer} <: AbstractSimpleGraph{T}
+    ne::Int
+    fadjlist::Vector{Vector{T}} # [src]: (dst, dst, dst)
+
+    function SimpleGraph{T}(ne::Int, fadjlist::Vector{Vector{T}}) where T
+        throw_if_invalid_eltype(T)
+        new{T}(ne, fadjlist)
+    end
+end
+
+function SimpleGraph(
+    ne,
+    fadjlist::Vector{Vector{T}}
+) where T
+
+    SimpleGraph{T}(ne, fadjlist)
+end
+
+eltype(x::SimpleGraph{T}) where T = T
+#+end_src
+
+
+
+
+** Making and Modifying Graphs
+- Graphs.jl provides a number of methods for creating a graph object
+  - tools for building and manipulating graph objects
+    - a wide array of graph generator functions
+      - and the ability to read and write graphs from files
+        - using _GraphIO.jl_
+
+_Modifying Graphs_
+          #+begin_src julia
+SimpleGraph{T}
+SimpleGraphFromIterator(iter)
+eltype(iter) <: SimpleEdge
+SimpleDiGraph{T}
+SimpleDiGraphFromIterator(iter)
+Edge
+add_edge!
+rem_edge!
+add_vertex!
+add_vertices!
+rem_vertex!
+Base.zero(g)
+# Return a zero-vertex, zero-edge version of the graph type G
+          #+end_src
+
+_Graph Generators_
+- Graphs.jl implements many graph generators
+
+  /Graphs.Edge/
+  /Graphs.add_vertices!/
+
+  _Datasets_
+  - graphs and integration withe the /MatrixDepot.jl/ pkg are available in Datasets submodule of /LightGraphsExtra.jl/
+  - selected graphs from Stanford Large Network Dataset Collection may found in /SNAPDatasets.jl/
+
+_ALL GENERATORS_
+#+begin_src julia
+SimpleDiGraph{T}(nv, ne; seed=-1)
+SimpleGraph{T}(nv, ne, edgestream::Channel)
+SimpleGraph{T}(nv, ne, smb::StochasticBlockModel)
+SimpleGraph{T}(nv, ne; seed=-1)
+StochasticBlockModel{T,P}
+barabasi_albert!(g::AbstractGraph, n::Integer, k::Integer)
+barabasi_albert(n::Integer, n0::Integer, k::Integer)
+barabasi_albert(n, k)
+blockcounts(sbm, A)
+dorogovtsev_mendes(n)
+erdos_renyi(n, ne)
+erdos_renyi(n, p)
+expected_degree_graph(ω)
+kronecker(SCALE, edgefactor, A=0.57, B=0.19, C=0.19; seed=-1)
+make_edgestream(sbm)
+random_configuration_model(n, ks)
+random_orientation_dag(g)
+random_regular_digraph(n, k)
+random_regular_graph(n, k)
+random_tournament_digraph(n)
+static_fitness_model(m, fitness)
+static_fitness_model(m, fitness_out, fitness_in)
+static_scale_free(n, m, α_out, α_in)
+stochastic_block_model(c, n)
+# just to name a few theres a bunch...
+#+end_src
+
+
+** Reading/Writing Graphs
+
+Graphs may be written to I/O streams and files using /savegraph/ and read with the /loadgraph/
+
+**the default graph format is compressed Graphs.jl gormat /LG/**
+
+#+begin_src julia
+
+g = erdos_renyi(5, 0.2)
+
+savegraph("mygraph.lgz", g)
+reloaded_g = loadgraph("mygraph.lgz")
+
+# dictionaries of graphs can also be saved
+# and subsequently re-loaded one by one
+graph_dict = {"g1" => erdos_renyi(5, 0.1),
+              "g2" => erdos_renyi(10, 0.2),
+              "g3" => erdos_renyi(2, 0.9)}
+
+savegraph("mygraph_dict.lg", graph_dict)
+
+# Re-load only graph g1
+reloaded_g1 = loadgraph("mygraph_dict.lg", "g1")
+#+end_src
+
+*** Source code for loadgraph and savegraph
+
+#+begin_src julia
+function loadgraph(fn::AbstractString, gname::AbstractString, format::AbstractGraphFormat)
+    open(fn, "r") do io
+        loadgraph(auto_decompress(io), gname, format)
+    end
+end
+loadgraph(fn::AbstractString) = loadgraph(fn, "graph", LGFormat())
+loadgraph(fn::AbstractString, gname::AbstractString) = loadgraph(fn, gname, LGFormat())
+loadgraph(fn::AbstractString, format::AbstractGraphFormat) = loadgraph(fn, "graph", format)
+
+
+function savegraph(fn::AbstractString, g::AbstractGraph, gname::AbstractString,
+        format::AbstractGraphFormat; compress=nothing
+    )
+    if compress !== nothing
+        if !compress
+            @info("Note: the `compress` keyword is no longer supported in Graphs. Saving uncompressed.")
+        else
+            Base.depwarn("Saving compressed graphs is no longer supported in Graphs. Use `LGCompressedFormat()` from the `GraphIO.jl` package instead. Saving uncompressed.", :savegraph)
+        end
+    end
+    io = open(fn, "w")
+    try
+        return savegraph(io, g, gname, format)
+    catch
+        rethrow()
+    finally
+        close(io)
+    end
+end
+
+# without graph name
+savegraph(fn::AbstractString, g::AbstractGraph, format::AbstractGraphFormat; compress=nothing) =
+    savegraph(fn, g, "graph", format, compress=compress)
+
+# without format - default to LGFormat()
+savegraph(fn::AbstractString, g::AbstractSimpleGraph; compress=nothing) = savegraph(fn, g, "graph", LGFormat(), compress=compress)
+
+#+end_src
+
+
+** Operators
+
+Graphs.jl implements the following graph operators. In general, functions with two graph arguments will require them to be of the same type (either both SimpleGraph or both SimpleDiGraph).
+
+Base.intersect
+Base.join
+Base.reverse
+Base.reverse!
+Base.union
+Graphs.cartesian_product
+Graphs.complement
+Graphs.crosspath
+Graphs.difference
+Graphs.egonet
+Graphs.induced_subgraph
+Graphs.merge_vertices
+Graphs.merge_vertices!
+Graphs.symmetric_difference
+Graphs.tensor_product
+SparseArrays.blockdiag
+
+** Core functions
+
+Graphs.jl includes the following core functions:
+
+Graphs.add_vertices!
+Graphs.all_neighbors
+Graphs.common_neighbors
+Graphs.degree
+Graphs.degree_histogram
+Graphs.density
+Graphs.has_self_loops
+Graphs.indegree
+Graphs.is_ordered
+Graphs.neighbors
+Graphs.num_self_loops
+Graphs.outdegree
+Graphs.squash
+Graphs.weights
+Graphs.Δ
+Graphs.Δin
+Graphs.Δout
+Graphs.δ
+Graphs.δin
+Graphs.δout
+
+** Plotting Graphs
+
+Integrates with _GraphPlot.jl_, _GraphRecipes.jl_, _GraphMakie.jl_, and more
+
+** Path and Traversal
+- Graphs.jl provides several traversal and shortest-path algos w/ various utilty functions
+  - where appropriate, edge distances may be passed in as a matrix of real-number values
+
+- edge distances for most traversals may be passed in as a _sparse or dense matrix_ of values index by /[src,dst]/ vertices
+  - that is /distmx[2,4] = 2.5/ assigns the distance 2.5 to (directed) edge connecting vertex 2 and vertex 4
+
+    _default edge distances are passed in via_
+
+    /DefaultDistance/
+
+
+*** Traversal
+- traversal refers to a process that traverses vertices of a graph
+  - following a certain order
+
+    /BreadthFirst/
+- provides a breadth first traversal of the graph `g`starting with source vertex `s`,
+  - and return a DAG of vertices in the order they were discoverd
+- perform a BFS of graph `g` starting from vertex `s`
+  - return a vector of parent vertices indexed by vertex
+    *this implementation is designed to perform well on large graphs*
+#+begin_src julia
+bfs(g, s[; dir=:out])
+bfs_parents(g, s[; dir=:out])
+#+end_src
+
+    /DepthFirst/
+- return a topo sort of a directed graph `g` as a vector of vertices
+  - in topological order
+- return an ordered vector of vertices representing a DAG
+  - based on DFS of graph `g` starting with source vertex `s`
+      #+begin_src julia
+topological_sort_by_dfs(g)
+dfs_tree(g, s)
+#+end_src
+
+  /MaximumAdjacency/
+- return vertices in `g` traversed by maximum adjacency search
+  - starting from `s` optionally
+  - optional `distmx` matrix
+  - if `log` is `true`
+    - visitor events will be printed to `io` `STDOUT`
+    #+begin_src julia
+  maximum_adjacency_visit(g[, distmx][, log][, io][, s])
+  maximum_adjacency_visit(g[, s])
+    #+end_src
+
+
+/Diffusion/
+- run diffusion simulation for `g` and `n` steps with spread probability based on `p`
+  - return a vector with the set of new vertices reached at each step of the simul.
+- given results of `diffusion` or params to the `diffusion` itself
+  - return the rate of diffusion as a vector resprestnting the cum num of vertices
+    - infected at each simulation step
+    #+begin_src julia
+diffusion(g, p, n)
+diffusion_rate(g, p, n; ...)
+    #+end_src
+
+
+/Random Walks/
+- perform a random walk on graph `g` starting at `s`
+  - continuing for a maximum of `niter` steps
+    - return a vector of vertices vistited in order
+#+begin_src julia
+randomwalk(g, s, niter; seed=-1)
+non_backtracking_randomwalk(g, s, niter; seed=-1)
+self_avoiding_walk(g, s, niter; seed=-1)
+#+end_src
+
+/Connectivity/Bipartiteness/
+- connectivity funcs are defined on both undirected and directed graphs
+#+begin_src julia
+is_connected(g)
+is_strongly_connected(g)
+is_weakly_connected(g)
+connected_components(g)
+strongly_connected_components(g)
+strongly_connected_components_kosaraju(g)
+weakly_connected_components(g)
+has_self_loops(g)
+attracting_components(g)
+is_bipartite(g)
+bipartite_map(g) -> Vector{UInt8}
+biconnected_components(g) -> Vector{Vector{Edge{eltype(g)}}}
+condensation(g[, scc])
+neighborhood(g, v, d, distmx=weights(g))
+neighborhood_dists(g, v, d, distmx=weights(g))
+articulation(g)
+bridges(g)
+period(g)
+isgraphical(degs)
+#+end_src
+
+/Cycle Detection/
+#+begin_src julia
+is_cyclic(g)
+cycle_basis(g, root=nothing)
+maxsimplecycles(dg::::IsDirected, byscc::Bool = true)
+simplecycles(dg::::IsDirected)
+simplecycles_iter(dg::DiGraph, ceiling = 10^6)
+simplecycles_hawick_james(g)
+simplecyclescount(dg::DiGraph, ceiling = 10^6)
+simplecycleslength(dg::DiGraph, ceiling = 10^6)
+simplecycles_limited_length(g, n, ceiling=10^6)
+karp_minimum_cycle_mean(g[, distmx])
+
+#+end_src
+
+/Minimum Spanning Trees/
+#+begin_src julia
+kruskal_mst(g, distmx=weights(g); minimize=true)
+prim_mst(g, distmx=weights(g))
+
+#+end_src
+
+/Shortest-Path/
+#+begin_src julia
+a_star(g, s, t[, distmx][, heuristic])
+dijkstra_shortest_paths(g, srcs, distmx=weights(g));
+desopo_pape_shortest_paths(g, src, distmx=weights(g))
+bellman_ford_shortest_paths(g, s, distmx=weights(g))
+bellman_ford_shortest_paths(g, ss, distmx=weights(g))
+floyd_warshall_shortest_paths(g, distmx=weights(g))
+yen_k_shortest_paths(g, source, target, distmx=weights(g), K=1; maxdist=Inf);
+spfa_shortest_paths(g, s, distmx=weights(g))
+
+#+end_src
+
+/Path discovery/enumeration/
+#+begin_src julia
+gdistances(g, source; sort_alg=QuickSort)
+gdistances!(g, source, dists; sort_alg=QuickSort)
+enumerate_paths(state[, vs])
+AbstractPathState
+struct DijkstraState{T, U}
+struct DEposoPapeState{T, U}
+BellmanFordState{T, U}
+struct FloydWarshallState{T, U}
+struct YenState{T, U}
+
+#+end_src
