@@ -17,7 +17,7 @@ a polyfill is code that implements a new standard feature of a deployment enviro
 - The WHATWG works on a number of technologies that are fundamental parts of the web platform. They are organised somewhat arbitrarily based on the preferences of those editing the standard for those technologies.
 - This specification defines a big part of the web platform, in lots of detail. Its place in the web platform specification stack relative to other specifications can be best summed up as follows.
 
-![](../assets/images/kitchensink.png)
+![](../../BOTTOM-UP/assets/images/kitchensink.png)
 
 ### EMBEDDED CONTENT
 

@@ -1,6 +1,6 @@
 #+GIS Programming with Python & Julia:
 
-* GIS Programming, Dr. Qiusheng Wu 
+* GIS Programming
 
 
 ** Jupyter Notebooks
@@ -2461,66 +2461,13 @@ raise ExceptionGroup('We have some problems', excs)
 
 #+end_src
 
-
-* Geospatial Data Science with Julia, Dr. Júlio Hoffimann
-
-** Style Guide for Julia Code
-- Variable names must begin with a letter (A-Z,a-z), underscore, or a subset of unicode code points greater than 00A0
-  - variable names are case-sensitive, and have no semantic meaning
-    - Unicode names (UTF-8 encoding) are allowed by typing the backslashed LaTeX symbol name followed by tab
-      - you can shadow existing exported constants, fore as long as you dont redefine a built-in constant or built-in function already
-        - variable names that contain only underscores are write-only, and the values assigned are immediately discarded
-          - variables with explicit names of built-in keywords are disallowed
-
-            [[https://docs.julialang.org/en/v1/manual/variables/#Stylistic-Conventions][_Stylistic Conventions_]]
-            1. Names of variables are in lowercase
-            2. Word separation can be indicated by underscores, but use of underscores is discouraged
-               - unless the name would be hard to read otherwise
-            3. Names of `Types` and `Modules` begin with a capital letter
-               - word separation is shown with upper camel case instead of underscores
-            4. Names of `functions` and `macros` are in lowercase, without underscores
-            5. Functions that write to their arguments have names that end in `!`.
-               - These are called "mutating" or "in-place" functions
-                 - they are intended to produce changes in their arguments after the function is called, not just return a value.
-
-
-** Julia Data Types
-- Julia comes with a rich set of built-in data types
-  - These types help Julia manage memory efficiently
-    - all values in Julia are true objects having a type belonging to the fully connected type graph
-      - all nodes of which are equally first-class as types
-- _Only values, not variables, have types_
-  - variables are simply names bound to values in Julia
-- Data types in Julia form a single, fully connected type graph
-  - At the top is /Any/
-    - Then its subtypes are many common types like /Number/, /AbstractString/, /Bool/, /Char/
-- The three principal types **(Abstract, Primitive, Composite)**
-  - are explicity declared
-    - have names
-      - have explicitly declared supertypes
-        - may have parameters
-  - These types are internally represented as instances of the same concept, /DataType/
-    - /DataType/ may be abstract or concrete
-      - concrete has a specified size, storage layout, and optionally field names
-    - composite type is a /DataType/ that has field names or is empty
-
-*** Numeric
-*** Boolean
-*** Character
-*** String
-*** Collections
-*** Abstract
-*** Composite
-*** Parametric
-
-
 ** Exercises
 
-- **easy** create a list of tuples, each representing geographic coordinates, meaning latitude (-180<val<180) and longitude(-90<val<90), and calculate the centroid of these coordinates, then create a dictionary to store the centroid's latitude and longitude
+- **easy** create a list of tuples, each representing geographic coordinates, meaning latitude (-180< val <180) and longitude(-90< val <90), and calculate the centroid of these coordinates, then create a dictionary to store the centroid's latitude and longitude
   - **medium** create a list of tuples, each represent coordinates in 3D cartographic space, meaning latitude and longitude are in radians and height is given in meters, and calculate the local ENU transformation of these coordinates, then create a set to store the 64-bit precision floating-number of these coordinates
     - **hard** calculate the precision loss between converting between geographic coordinates and ENU coordinates by comparing the the tuples
 
 - **easy** create a dictionary to store attributes of a geographic feature, and include keys for the name, length, and location of the feature, then add an additional attribute and print the dictionary
   - **medium**
 
-- Write a EPSG converter for WKT1/2, WKB, proj-string, PROJJSON
+- **hard** Write a EPSG converter for WKT1/2, WKB, proj-string, PROJJSON

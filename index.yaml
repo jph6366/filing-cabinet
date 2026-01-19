@@ -3,7 +3,8 @@
 
 page:
   siteTitle: Filing Cabinet
-
+  headHtml: |
+    <snippet var="js.katex" />
 template:
   theme: red
   uptree:

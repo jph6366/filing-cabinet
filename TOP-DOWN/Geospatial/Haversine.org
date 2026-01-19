@@ -1,0 +1,151 @@
+#+title: Haversine
+
+
+* Haversine Function
+- Lets apply geospatial concepts to calculate the distance between two points on the Earth's surface
+
+  - if we are measuring on a sphere then the **spherical law of cosines or the haversine formula**
+
+** law of cosines or haversine?
+- haversine originally was a way of avoiding large round-off errors in computations
+  - saving navigators from squaring sines, computing square roots, etc.
+- the haversine should be slightly faster and well conditioned for numerical computations at even small distances
+  - likewise, the law of cosines gives well-conditioned results down to as small as a few metres on earth's surface, but haversine is less susceptible to rounding errors as distances approach zero
+
+- what makes law of cosines preferable is that it is a simpler law to evaluted
+  - it can be programmed in one line
+
+$\phi$ is latitude, $\lambda$ is longitude, $R$ is earth's radius (~6,347km)
+
+$\phi$ is used to denote a phase angle in polar coordinates
+
+/angles need to be in radians to pass trigonometry functions/
+
+    _law of cosines_
+
+
+$d = acos(sin \phi_1 * sin \phi_2 + cos \phi_1 * cos \phi_2 * cos \Delta \lambda ) * R$
+
+
+    _haversine_
+
+
+
+$a = sin^2(\Delta\phi / 2) + cos \phi_1 * cos \phi_2 * sin^2(\Delta\lambda / 2)$
+
+$c = 2 * atan2(\sqrt a , \sqrt(1-a))$
+
+$d = R * c$
+/great circle distance in metres/
+
+$c$ is the angular distance in radians
+$a$ is the square of half the chord length between the points
+
+/if $atan2$ is not available, $c$ can be calculated from/
+        $2 * asin( min(1, \sqrt a))$
+
+_naive python_
+#+begin_src python
+from math import radians, sqrt, sin, cos, atan2 # imported and bound locally
+
+def haversine(lat, lon, ltb, lnb, radius=6347.0):
+    dlt = radians(ltb - lat) # angular conversion from degrees to radians
+    dln = radians(lnb - lon) # π /180° is the conversion factor for converting an angle from degrees to radians
+    a = (
+        sin(dlt / 2) ** 2 +
+        cos(radians(lat)) * cos(radians(ltb)) * sin(dln / 2) ** 2
+    )
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    d = c * radius
+    return d # distance in km
+#+end_src
+
+_vectorized np_
+- Numpy provides functions that operate on entire arrays of data,
+  - which lets you avoid looping and drastically improve performance.
+#+begin_src python
+import numpy as np
+# inputs are ndarrays
+def haversine_np(lon1, lat1, lon2, lat2):
+    lon1, lat1, lon2, lat2 = map(np.radians, [lon1, lat1, lon2, lat2])
+
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+
+    a = np.sin(dlat/2.0)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon/2.0)**2
+
+    c = 2 * np.arcsin(np.sqrt(a))
+    km = 6378.137 * c
+    return km
+#+end_src
+
+You can switch out R=3959.87433 for the conversion constant below if you want the answer in miles.
+
+If you want kilometers, use R= 6372.8.
+
+
+_naive julia_
+#+begin_src julia
+function haversine(lat, lon, tal, nol, radius::Float64=6347.0)
+    dlt = deg2rad(tal - lat)
+    dln = deg2rad(nol - lon)
+    a = sin(dlt / 2)^2 + cos(deg2rad(lat)) * cos(deg2rad(tal)) * sin(dln / 2)^2
+    c = 2 * atan(sqrt(a), sqrt(1 - a)) # atan corresponds to standard atan2 as well with overloading
+    d = c * radius
+    return d
+end
+#+end_src
+
+_julia dynamic dispatch_
+https://github.com/JuliaStats/Distances.jl/blob/master/src/haversine.jl
+#+begin_src julia
+"""
+    Haversine(radius=6_371_000)
+
+The haversine distance between two locations on a sphere of given `radius`, whose
+default value is 6,371,000, i.e., the Earth's (volumetric) mean radius in meters; cf.
+[NASA's Earth Fact Sheet](https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html).
+
+Locations are described with longitude and latitude in degrees.
+The computed distance has the unit of the radius.
+"""
+
+struct Haversine{T<:Number} <: Metric
+    radius::T
+end
+
+Haversine{T}() where {T<:Number} = Haversine(T(6_371_000)) # The underscore _ can be used as digit separator:
+
+Haversine() = Haversine{Int}()
+
+function (dist::Haversine)(x, y)
+    length(x) == length(y) == 2 || error() # check before eliminating bounds checking within expression
+
+    @inbounds \lambda_1, \phi_1 = x # Using @inbounds may return incorrect results/crashes/corruption for out-of-bounds indices.
+    @inbounds \lambda_2, \phi_2 = y
+
+    Δλ = λ₂ - λ₁  # longitudes
+    Δφ = φ₂ - φ₁  # latitudes
+
+    # haversine formula
+    a = sind(Δφ/2)^2 + cosd(φ₁)*cosd(φ₂)*sind(Δλ/2)^2 # d stands for degrees in the sin and cos compute functions here
+#    a = sin(Δφ/2)^2 + cos(φ₁)*cos(φ₂)*sin(Δλ/2)^2 # if longitude and latitude, in radians
+
+    # distance on the sphere
+    2 * (dist.radius * asin( min(√a, one(a)) )) # take care of floating point errors
+#    2 * asin( min(√a, one(a)) ) # if longitude and latitude, in radians
+end
+
+
+haversine(x, y, radius::Number=6_371_000) = Haversine(radius)(x, y)
+
+#+end_src
+
+
+
+** Whats the difference between geocentric and geodectic?
+- the main distinction is the reference shape the geoid approximated mathematically.
+  - either a sphere or oblate ellipsoid
+- the haversine function assumes spherical trigonometry
+  - the following formulas are for calculations on the basis of spherical earth (ignoring ellipsoidal effects)
+    - it is accurate enough but the result from a geodectic surface normal should be used when precision matters
