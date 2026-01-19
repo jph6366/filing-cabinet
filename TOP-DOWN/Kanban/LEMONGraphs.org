@@ -539,3 +539,71 @@ struct FloydWarshallState{T, U}
 struct YenState{T, U}
 
 #+end_src
+
+** Distance Measurement
+#+begin_src julia
+BoundedMinkowskiCost(μ₁, μ₂)
+MinkowskiCost(μ₁, μ₂; p::Real=1)
+center(eccentricities)
+center(g, distmx=weights(g))
+diameter(eccentricities)
+diameter(g, distmx=weights(g))
+eccentricity(g[, v][, distmx])
+eccentricity(g[, vs][, distmx])
+edit_distance(G₁::AbstractGraph, G₂::AbstractGraph)
+edit_distance(G₁, G₂, subst_cost=MinkowskiCost(μ₁, μ₂))
+periphery(eccentricities)
+periphery(g, distmx=weights(g))
+radius(eccentricities)
+radius(g, distmx=weights(g))
+transitiveclosure(g, selflooped=false)
+transitiveclosure(g, selflooped=false)
+
+#+end_src
+** Centrality Measures
+#+begin_src julia
+betweenness_centrality(g[, vs])
+betweenness_centrality(g, k)
+closeness_centrality(g, distmx=weights(g); normalize=true)
+degree_centrality(g)
+indegree_centrality(g)
+outdegree_centrality(g)
+eigenvector_centrality(g)
+katz_centrality(g, α=0.3)
+pagerank(g, α=0.85, n=100, ϵ=1.0e-6)
+stress_centrality(g[, vs])
+stress_centrality(g, k)
+radiality_centrality(g)
+
+#+end_src
+
+** Linear Algebra
+
+/LinAlg/ is the pkg for using the type system to check types of graph matrices
+
+- the core /Adjacency/ matrix type
+  - subtypes represent the different normalizations of the adj matrix
+
+        /AveragingAdjacency/ /AveragingLaplacian/ /CombinatorialAdjacency/ /GraphMatrix/ /NormalizedAdjacency/ /NormalizedLaplacian/ /StochasticAdjacency/ /StochasticLaplacian/
+- /Noop/ represents no action
+- /degrees(adjmat)/
+  - returns the degrees of a graph represnted by /CombinatorialAdjacency/ `adjmat`
+- /degrees(graphmx)/
+  - returns the degrees of a graph represented by graph matrix `graphmx`
+- /symmetrize(A::SparseMatrix, which=:or)/
+  - return a symmetric version of graph as a sparse matrix
+    - which may be one of :triu, :tril, :sum, or :or. Use :sum for weighted graphs
+- /symmetrize(adjmat, which=:or)/
+  - return a symmetric version of graph (represented by CombinatorialAdjacency adjmat) as a CombinatorialAdjacency
+- /adjacency_matrix(g[, T=Int; dir:=out])/
+  - Return a sparse adjacency matrix for a graph, indexed by [u, v] vertices
+- /adjacency_spectrum(g[, T=Int; dir=:unspec])/
+  - Return the eigenvalues of the adjacency matrix for a graph g, indexed by vertex
+- /incidence_matrix(g[, T=Int; oriented=false])/
+  - Return a sparse node-arc incidence matrix for a graph, indexed by [v, i], where i is in 1:ne(g), indexing an edge e
+- /laplacian_matrix(g[, T=Int; dir=:unspec])/
+  - Return a sparse Laplacian matrix for a graph g, indexed by [u, v] vertices
+- /laplacian_spectrum(g[, T=Int; dir=:unspec])/
+  - Return the eigenvalues of the Laplacian matrix for a graph g, indexed by vertex
+- /spectral_distance(G₁, G₂ [, k])/
+  - Compute the spectral distance between undirected n-vertex graphs G₁ and G₂ using the top k greatest eigenvalues

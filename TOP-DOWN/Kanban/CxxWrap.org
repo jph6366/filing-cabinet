@@ -1,0 +1,173 @@
+#+title: Cxx Wrap
+
+Aims to be like Boost
+- The Boost C++ Libraries are a set of libraries for the C++ programming language that provides support for tasks and structures such as linear algebra, pseudorandom number generation, multithreading, image processing, regular expressions, and unit testing. It contains 164 individual libraries...
+
+  _the idea_
+  - write C++ code to wrap interfaces with Julia
+    - then one-liner of Julia access wrapped code
+
+  _the mechanism behind this package_
+  - functions and types are registered in C++
+    - that is compiled into a DLL -> the DLL is loaded into Julia
+      - Julia uses the data provided through a C interface
+        - to generate functions accessible from Julia
+          **the functions are passed as _RAW FUNCTION POINTERS_, for regular cpp funcs that do not need argument or return type conversion, or _std::functions_, for lambda expressions and auto-conversion of arguments and return types.**
+          - Julia wraps all this automatically
+
+        /must have C++ compiler installed supporting C++17/
+** Hello World Example
+
+#+begin_src c++
+std::string greet()
+  {
+    return "hello, world";
+  }
+
+#include "jlcxx/jlcxx.hpp"
+
+JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
+  {
+    mod.method("greet", &greet);
+  }
+#+end_src
+
+- compile the code into shared lib `libhello.so`
+
+_recommended way to compile the C++ code_
+- use CMake to discover `libcxxwrap-julia` and the julia libs
+#+begin_src c
+project(TestLib)
+
+cmake_minimum_required(VERSION 3.5)
+set(CMAKE_MACOSX_RPATH 1)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+
+find_package(JlCxx)
+get_target_property(JlCxx_location JlCxx::cxxwrap_julia LOCATION)
+get_filename_component(JlCxx_location ${JlCxx_location} DIRECTORY)
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${JlCxx_location}")
+
+message(STATUS "Found JlCxx at ${JlCxx_location}")
+
+add_library(testlib SHARED testlib.cpp)
+
+target_link_libraries(testlib JlCxx::cxxwrap_julia)
+
+install(TARGETS
+  testlib
+LIBRARY DESTINATION lib
+ARCHIVE DESTINATION lib
+RUNTIME DESTINATION lib)
+#+end_src
+
+the following commands can be used to to build the CMakeLists.txt
+#+begin_src bash
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/path/to/libcxxwrap-julia-prefix /path/to/sourcedirectory
+cmake --build . --config Release
+#+end_src
+
+**path for CMAKE_PREFIX_PATH can be obtained using `CxxWrap.prefix_path()` in Julia**
+
+
+  #+begin_src julia
+module CppHello
+    using CxxWrap
+    @wrapmodule(() -> joinpath("path/to/libbuild","libhello"))
+
+    function __init__()
+        @initcxx
+    end
+end
+
+# try it out
+@show CppHello.greet()
+  #+end_src
+
+
+** Module entry point
+
+_JLCXX_MODULE define_julia_module(jlcxx::Module& mod)_
+- defines module entry point
+  - each module has its own entry point
+
+    #+begin_src cpp
+JLCXX_MODULE define_module_a(jlcxx::Module& mod)
+{
+  // add stuff for A
+}
+
+JLCXX_MODULE define_module_b(jlcxx::Module& mod)
+{
+  // add stuff for B
+}
+    #+end_src
+#+begin_src julia
+module A
+  using CxxWrap
+  @wrapmodule(() -> "mylib.so",:define_module_a)
+end
+
+module B
+  using CxxWrap
+  @wrapmodule(() -> "mylib.so",:define_module_b)
+end
+#+end_src
+
+
+*In specific cases, it may also be necessary to specify dlopen flags such as RTLD_GLOBAL. These can be supplied in a third, optional argument to @wrapmodule,*
+
+
+
+** Advanced Examples and Notes
+
+**the function call overhead is the same as `ccall` on a C func if the C++ func is a regular func and does not require argument conversion**
+- when `std::function` is used extra overhead is expected...
+
+*** Exposing Classes
+
+#+begin_src cpp
+struct World
+{
+  World(const std::string& message = "hello") : msg(message){}
+  void set(const std::string& msg) {this->msg = msg; }
+  std::string greet() {return msg; }
+  std::string msg;
+  ~World() { std::cout << "destry world" << msg << std::endl; }
+};
+
+JLCXX_MODULE define_module_world(jlcxx::Module& mod)
+  {
+    types.add_type<World>("World")
+        .constructor<const std::string&>()
+        .method("set", &World::set)
+        .method("greet", &World::greet);
+  }
+// `constructor` creates a finalizer
+// disable with the arg `jlcxx::finalize_policy::no`
+types.add_type<World>("World")
+  .constructor<const std::string&>(jlcxx::finalize_policy::no);
+#+end_src
+
+#+begin_src julia
+w = CppTypes.World()
+CppTypes.greet(w) # "hello"
+CppTypes.set(w, "hi")
+
+# the add_type function actually builds 2 julia types related to World
+abstract type World end
+# boxed type
+mutable struct WorldAllocated <: World
+    cpp_object::Ptr{Cvoid}
+end
+
+# variable w may get deleted when out of scope
+# the caller must manage the lifetime the of the result
+greet(w::World) = ccall($fpointer, Any, (Ptr{Cvoid}, WorldRef), $thunk, cconvert(WorldRef, w))
+# here cconvert from WorldAllocated to WorldRef is defined automatically
+#+end_src
+
+
+ ***WARNING: the ordering of C++ code matters!!!***
+ *types used as function arguments or return types must be added before they are used in a function*
