@@ -171,3 +171,27 @@ greet(w::World) = ccall($fpointer, Any, (Ptr{Cvoid}, WorldRef), $thunk, cconvert
 
  ***WARNING: the ordering of C++ code matters!!!***
  *types used as function arguments or return types must be added before they are used in a function*
+
+
+
+** wrapping GeographicLib C++ for GeographicModels.jl
+
+*** using GeographicLib in C++
+#+begin_src cpp
+#include <GeographicLib.LambertConformalConic.hpp>
+using namespace GeographicLib;
+#+end_src
+- build code with CMake
+#+begin_src c
+    find_package (GeographicLib REQUIRED)
+    include_directories (${GeographicLib_INCLUDE_DIRS})
+    add_executable (program source1.cpp source2.cpp)
+    target_link_libraries (program ${GeographicLib_LIBRARIES})
+#+end_src
+#+begin_src bash
+    mkdir BUILD
+    cd BUILD
+    cmake -D CMAKE_INSTALL_PREFIX="/tmp/testgeog" \
+      -S . -B BUILD
+    make -C BUILD -j4
+#+end_src

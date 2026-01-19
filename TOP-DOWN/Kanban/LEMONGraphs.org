@@ -1,5 +1,5 @@
 #+title: Lemon Graphs
-
+* LEMONgraphs.jl
 
 * Graphs.jl
 - network and graph analysis in julia
@@ -213,7 +213,6 @@ eltype(x::SimpleGraph{T}) where T = T
 
 
 
-
 ** Making and Modifying Graphs
 - Graphs.jl provides a number of methods for creating a graph object
   - tools for building and manipulating graph objects
@@ -276,7 +275,6 @@ static_scale_free(n, m, α_out, α_in)
 stochastic_block_model(c, n)
 # just to name a few theres a bunch...
 #+end_src
-
 
 ** Reading/Writing Graphs
 
@@ -344,7 +342,6 @@ savegraph(fn::AbstractString, g::AbstractGraph, format::AbstractGraphFormat; com
 savegraph(fn::AbstractString, g::AbstractSimpleGraph; compress=nothing) = savegraph(fn, g, "graph", LGFormat(), compress=compress)
 
 #+end_src
-
 
 ** Operators
 
@@ -607,3 +604,348 @@ radiality_centrality(g)
   - Return the eigenvalues of the Laplacian matrix for a graph g, indexed by vertex
 - /spectral_distance(G₁, G₂ [, k])/
   - Compute the spectral distance between undirected n-vertex graphs G₁ and G₂ using the top k greatest eigenvalues
+
+
+* LEMON
+LEMON stands for _Lib for Efficient Modeling and Optimization_
+ - cpp template library for providing efficient implementations of data structs and algos
+   - focus on combinatorial optimization tasks connected
+     - connected mainly with graphs and networks
+       - for telecommunication, computer networks, logistics, scheduling, and other areas
+** Installation Instructions
+ _building and installing LEMON from source on Linux_
+ #+begin_src bash
+cd lemon-x.y.z
+mkdir build && cd build
+cmake ..
+make
+make check
+make html
+make install
+ #+end_src
+
+** Compile your First Code
+
+_a directed graph is created with 2 nodes and an arc is added to it_
+#+begin_src cpp
+#include <iostream>
+#include <lemon/list_graph.h>
+
+using namespace lemon;
+using namespace std;
+
+int main()
+  {
+    ListDigraph g;
+    ListDigraph::Node u = g.addNode();
+    ListDigraph::Node v = g.addNode();
+    ListDigraph::Arc a = g.addArc(u, v);
+
+    cout << "hello world! this is LEMON" << end1;
+    cout << "we have a directed graph with " << countNodes(g) << " nodes"
+         << " and " << countArcs(g) << " arc" << end1;
+    return 0;
+  }
+#+end_src
+
+- compile this code
+  #+begin_src
+# system-wide LEMON install
+g++ -o hello_lemon hello_lemon.cc -lemon
+
+# executable
+./hello_lemon
+
+# user-local LEMON install
+g++ -o hello_lemon -I ~/lemon/include hello_lemon.cc -L ~/lemon/lib -lemon
+
+  #+end_src
+
+
+** Basic Concepts
+
+we work the with `lemon` namespace
+- please assume that below directive is added to all code snippets
+  `using namespace lemon;`
+
+*** Directed Graphs
+- most versatile digraph structure `ListDiGraph`
+  - there are more digraph types
+- include the header file
+- default constructor of the class creates empty graph
+- nodes and arcs are identified by two data types
+  - Node and Arc
+    - you can add items to the graph using member functions
+    - parallel and loop arcs are supported
+- you can also remove nodes/arcs with erase()
+  - there are several more options to remove but not every graph item supports deletion
+- source() and target() give back the two nodes of an arc
+- each graph item has a non-negative int identifier using the id()
+  - identifiers are unique w.r.t. a certain itemtype in a graph
+    - a node and an arc may have the same ID
+    #+begin_src cpp
+#include <lemon/list_graph.h>
+ListDigraph g;
+ListDigraph::Node x = g.addNode();
+ListDigraph::Node y = g.addNode();
+ListDigraph::Node z = g.addNode();
+g.addArc(x,y);
+g.addArc(y,z);
+g.addArc(z,x);
+
+ListDigraph::Arc parallel = g.addArc(x,y);
+ListDigraph::Arc loop = g.addArc(x,x);
+
+if (g.source(loop) == g.target(loop))
+  std::cout << "This is a loop arc" << std::endl;
+
+std::cout << "Arc " << g.id(arc) << " goes from node "
+  << g.id(g.source(arc)) << " to node " << g.id(g.target(arc)) << std::endl;
+#+end_src
+
+
+*** Iterators
+- graph strucutres provide several iterators
+  - using /NodeIt/ lists nodes
+    - name of iter type starts with a name that refers to the iterated objects
+    - *INVALID is a constant in lemon namespace*
+
+*CONTRARY TO THE ITERATORS IN C++ STL, LEMON ITERATORS ARE CONVERTIBLE TO ITEM TYPES*
+ _without having to use operator*()_
+
+ - graph items are ordered by `less than` operator (w.r.t. to int identifiers)
+
+- using /ArcIt/ lists arcs
+  - you can list arcs starting from/arriving at a certain node
+    - /OutArcIt/ /InArcIt/
+
+- LEMON provides counting functions
+  - countNodes(), countArcs(), countInArcs(), countOutArcs()
+    **Using them is not just simpler than the above loops, but they could be much faster, since several graph types support constant time item counting**
+       #+begin_src cpp
+ int cnt = 0;
+ for (ListDigraph::NodeIt n(g); n != INVALID; ++n)
+     cnt++;
+ std::cout << "number of nodes:" << cnt << std::endl;
+
+ // add full graph to existing nodes
+ for (ListDigraph::NodeIt u(g); u != INVALID; ++u)
+   for (ListDigraph::NodeIt v(g); v != INVALID; ++v)
+     if (u != v) g.addArc(u, v);
+
+// only add one of the opposite arcs
+for (ListDigraph::NodeIt u(g); u != INVALID; ++u)
+  for (ListDigraph::NodeIt v(g); v != INVALID; ++v)
+    if (u < v) g.addArc(u, v);
+
+int cnt = 0;
+for (ListDigraph::ArcIt a(g); a != INVALID; ++a)
+  cnt++;
+std::cout << "Number of arcs: " << cnt << std::endl;
+
+int cnt = 0;
+for (ListDigraph::OutArcIt a(g, x); a != INVALID; ++a)
+  cnt++;
+std::cout << "Number of arcs leaving the node 'x': " << cnt << std::endl;
+       #+end_src
+
+
+
+*** Maps
+- maps allows assigning values of any type to the node or arcs of a graph
+  _maps enable FAST read/write, DYNAMIC alloc/dealloc, AUTOMATIC storage construction/destruction_
+
+  **graph classes represent pure graph structure, data that is assigned to the items of the graph MUST be stored separately using maps**
+
+- to assign int values to each node
+  - you alloc a NodeMap<int>
+- any data typed w/ a default constructor can be assigned to graph items
+
+- when a map is created
+  - you can give an initial values of the elements as a second parameter
+
+
+  #+begin_src cpp
+ListDigraph::NodeMap<int> map(g);
+map[x] = 2;
+map[y] = 3;
+map[z] = map[x] + map[y];
+ListDigraph::NodeMap<std::string> name(g);
+name[x] = "Node A";
+name[y] = "Node B";
+
+// create a map that assigns char labels to the nodes
+ListDigraph::NodeMap<char> label(g);
+char ch = 'A';
+for (ListDigraph::NodeIt n(g); n != INVALID; ++n)
+  label[n] = ch++;
+
+// puts the number of outgoing arcs for each node in map
+ListDigraph::NodeMap<int> out_deg(g, 0);
+for (ListDigraph::ArcIt a(g); a != INVALID; ++a)
+  out_deg[g.source(a)]++;
+  #+end_src
+
+
+
+** Algorithms
+
+LEMON provides well-known fundamental algorithms for discovering graph properties
+- and even complex optimisation algorithms
+
+*** Graph Search
+
+- commonly we have BFS, DFS implemented as classes `Bfs` and `Dfs`
+  - algos are placed in separated files named after the algo
+
+**All algorithms are implemented in _template classes_ **
+- typically template params specify the used graph type and required map types
+- you can execute the algo by calling run()
+
+**by default distances and path info are stored in internal maps**
+- access with distMap() and predMap() or dist(),path(),predNode(),predArc()
+
+- call init() to initialize internal data structures
+  - instead of run() have more control executing algo step-by-step
+  - add one or more source nodes to the queue
+    - and they'll be processed just like the run()
+  - start path computation with the start()
+    - or write your own loop to process nodes one-by-one
+
+#+begin_src cpp
+
+#include <lemon/bfs.h>
+ListDigraph g;
+Bfs<ListDigraph> bfs(g);
+// find shortest path from s to all other nodes
+bfs.run(s);
+// find shortest path from s to target node t
+bfs.run(s,t);
+
+// print the shortest path of those nodes that are at most in a certain distnace `max_dist`
+for (ListGraph::NodeIt n(g); n != INVALID; ++n) {
+  if (bfs.reached(n) && bfs.dist(n) <= max_dist) {
+    std::cout << gr.id(n);
+    Node prev = bfs.prevNode(n);
+    while (prev != INVALID) {
+      std::cout << "<-" << gr.id(prev);
+      prev = bfs.prevNode(n);
+    }
+    std::cout << std::endl;
+  }
+}
+
+bfs.init();
+bfs.addSource(s1);
+bfs.addSource(s2);
+bfs.start(t);
+
+// execution reaches all nodes in the digraph
+// ... algo is started for each node that is not visited before
+bfs.init();
+for (NodeIt n(g); n != INVALID; ++n) {
+  if (!bfs.reached(n)) {
+    bfs.addSource(n);
+    bfs.start();
+  }
+}
+
+// bfs.start() is only a shortcut of following code
+while (!bfs.emptyQueue()) {
+  bfs.processNextNode();
+}
+#+end_src
+
+
+*** Shortest Paths
+
+the LEMON Dijkstra class
+#+begin_src cpp
+dijkstra(g, length).distMap(dist).run(s,t);
+// or use class inteface like below
+// execution is controlled to a higher extent
+Dijkstra<ListDigraph> dijkstra(g, length);
+dijkstra.distMap(dist);
+dijsktra.init();
+dijkstra.addSource(s);
+dijkstra.start();
+
+// instaed of using .start()
+while (!dijkstra.emptyQueue()) {
+  ListDigraph::Node n = dijkstra.processNextNode();
+  cout << g.id(n) << ' ' << dijkstra.dist(g) << endl;
+}
+#+end_src
+
+- LEMON provides other algos for finding shortest paths
+** Style Guide
+*** Naming Conventions
+- in LEMON the name of a source file is written in lowercase and words are separated with underscores
+  - all header files are located in the lemon subdir
+
+    `#include <lemon/header_file.h>`
+
+- the name of the a class or any type look like
+  `AllWordsCapitalizedWithoutUnderscores`
+
+- the name of a function looks like
+  `firstWorldLowercaseRestCapitalizedWithoutUnderscores`
+
+- the names of constants and macros look like
+  `ALL_UPPERCASE_WITH_UNDERSCORES`
+
+
+
+** LEMON Graph Format (LGF)
+- LGF is a column-oriented file format for storing graphs and associated data like node and edges maps
+
+- each line with `#` first non-whitespace char is considered a comment line
+  - otherwise the file consists of sections starting with a header line
+
+- the header line starts with `@` char
+  - followed by the section type `@nodes, @arcs, @edges, @attributes`
+    - each header line may have an optional name to distinguish sections
+
+- the standard sections are column-oriented
+  - consisting of tokens separated by whitespaces
+    - a token can be plain or quoted
+      - plain token is a sequence of non-whitespace chars
+      - quoted token is a char sequence surrounded by """"
+        - can contain whitespaces and escape sequences
+
+          _@nodes describes a set of nodes and associated maps_
+          _@arcs describes the names of the maps but label is not obligatory_
+          - if no map in @arcs then a sole `-` exists in the first line
+          _@edges is just a synonym of @arcs_,
+          - @arcs section can store the edgeset of an undirected graph
+          _@attributes sections contains KV pairs_
+          - consisting of two tokens on each line
+            - an attribute name and an attribute value
+
+          #+begin_src
+ @nodes
+ label  coordinates  size    title
+ 1      (10,20)      10      "First node"
+ 2      (80,80)      8       "Second node"
+ 3      (40,10)      10      "Third node"
+...
+
+ @arcs
+         capacity
+ 1   2   16
+ 1   3   12
+ 2   3   18
+...
+
+ @arcs
+         -
+ 1   2
+ 1   3
+ 2   3
+...
+
+ @attributes
+ source 1
+ target 3
+ caption "LEMON test digraph"
+          #+end_src
