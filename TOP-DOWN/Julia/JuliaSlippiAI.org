@@ -1,0 +1,406 @@
+#+title: Julia Slippi Ai
+
+
+
+** Investigation
+
+1. Overview of slippi-ai
+   - a ML system designed to trained AI agents to play SSB Melee competitively
+     - the system implements a two-stage training pipeline
+       1. that begins with imitation learning from human gameplay data
+       2. and progresses to RL through self-play
+
+          _for detailed information on subsystems_
+          theres /System Architecture/, /Training Systems/, /Evaluation Systems/, and /Data Processing/, we'll cover these later...
+
+2. Project purpose and Scope
+   - its predecessor relied on purely deep reinforcement learning
+     - this system benefits from behavioral cloning from Slippi replay files to create agents that exhibit more human-like gameplay patterns before refining their strategies through self-play
+
+       raw replay data => AI agents
+          includes data pre-processing, NN training, evaluation frameworks, and interactive applications such as netplay integration and twitch bot functionality
+
+
+
+3. Training Pipeline overview
+
+   _Stage 1: imitation learning_
+   - the first stage uses behavorial cloning to train agents on human gameplay data extracted from Slippi replay files
+     - orchestrated in `scripts\train.py` and utilizes the `train_lib` module to implement supervised learning on state-action pairs derived from professional and high-level amateur gameplay
+
+   _Stage 2: reinforcement learning_
+   - the second stage takes the imitation-trained policy and refines it through self-play using proximal policy optimization PPO
+     - handled by `slippi-ai\rl\run/py` for single-agent training and `slippi-ai\rl\train_two.py` for simultaneous two-agent training scenarios
+
+
+4. Tech Stack and Dependencies
+
+   _DL_: TF Probability for NN training and inference
+   _NN_: DeepMind Sonnet for high-level network architecture
+   _DATA_: Pandas + PyArrow+Parquet for replay parsing and dataset manipulation
+   _TELEMETRY_: Wandb for training metrics and model versioning
+   _DISTRIBUTED_: Ray for scalable evaluation and training
+   _EMULATOR_: libmelee for dolphin emulator communication
+   _CONFIG_: fancyflags for CLI-arg mgmt
+
+
+** Key Entry Points
+
+_Training_
+- *scripts/train.py* imitation learning from replay data
+- *slippi_ai/rl/run.py* single-agent reinforcement learning
+- *slippi_ai/rl/train.py* two-agent simultaneous training
+
+_Evaluation_
+- *scripts/eval_two.py* local-agent evaluation and human play
+- *scripts/run_evaluator.py* batch evaluation with statistical analysis
+- *scripts/netplay.py* online play
+
+_Data processing_
+- *slippi_db/parse_local.py*
+
+
+
+* A Walk thru the code
+
+Stepping through the processes
+
+** parsing local slippi replays
+
+1. Download the compressed ranked replays
+   - 75 - 125 GBs == 120k - 170k replays
+
+   - I sampled 3,300 replays for intial sanity test
+
+2. Now we step through /parse_local/
+
+   - expects to be supplied an organized "root" dir:
+     - includes Root/
+       - /Raw, raw.json, Parsed, parsed.pkl, meta.json
+
+     - _Raw_ contains .zip/.7z archives of .slp files
+     - _raw.json_ file contains info about each raw archive
+       - whether its been processed, if processed then removed to save space
+     - _Parsed_ dir populated by this script w/ a *Parquet* file for each .slp file
+       - these files are named by the MD5 hash of .slp file
+         - and are used by *imitation learning*
+     - _parsed.pkl_ pickle file contains metadata abt each processed .slp in Parsed
+     - _meta.json_ is created by /scripts/make_local_dataset/
+       - and used by *imitation learning* to know which files to train on
+
+
+*** Dependencies
+
+_concurrent.futures_
+
+_json_
+_os_
+_pickle_
+_from absl import app, flags_
+_tqdm
+_peppi_py_
+        _from slippi_db import parse_peppi, preprocessing, utils, parsing_utils_
+
+functions
+1. parse_slp(file, outputdir, tmpdir, compression, compressionlevel)
+   - result = dict(name=file.name)
+   - /utils.md5/
+     - result.update(
+       slpmd5 = md5,
+       slpsize = len(slpbytes)
+        )
+   - game = peppipy.readslippi
+     - metadata = preproc.getmetadata(game)
+     - istraining, reason = preproc.istrainingreplay(metadata)
+       - result.update(metadata)
+       - result.update(valid=true,istraining=istraining,nottrainingreason=reason)
+   - if istraining
+     - game = parsepeppi.frompeppi(Game)
+       - gamebytes =parsingutils.convertgame(
+         game, compression=compression, compressionlevel=comrpessionlevel)
+       - result.update(pq_size=len(gamebytes)),
+         compression=comrepssion.value)
+       )
+         - with open(...'wb') as f
+           - f.write(gamebytes)
+
+   - return result
+
+2. parse_files
+3. parse_chunk
+4. parse_7zs
+5. run_parsing
+
+
+*** Steps
+
+ - standardized directory hierarchy under a root directory
+ - multi-threaded in-memory extraction and parsing
+   - derived qualities and filter candidate replays
+     - exclude bad AI
+     - damage threshold
+     - winner detection
+     - match deduplication
+
+** Training(s)
+
+*** imitation learning
+- create experiment dir
+  - loads/restores checkpoints
+- build train/test data sources from replay files
+- create policy network and value function
+- alternates between training steps and eval
+- saves best models based on evaluation loss
+
+
+**** walk thru code
+
+- train_lib.train requires the /Config/ struct
+***** Configuration
+#+begin_src julia
+struct Config
+    runtime::RuntimeConfig
+    dataset::DatasetConfig
+    data::DataConfig
+    observation::ObservationConfig
+    learner::LearnerConfig
+    network::NetworkConfig
+    controllerhead::ControllerHeadConfig
+    embed::EmbedConfig
+    policy::PolicyConfig
+    valuefunc::ValueFunctionConfig
+    maxnames::Integer
+    exptroot
+    exptdir
+    tag
+    restorepickle
+    tested
+    version::Integer
+end
+#+end_src
+_RuntimeConfig_
+  - max runtime in seconds
+  - interval for seconds between logging
+  - interval for seconds between saving to disk
+  - number for training steps between evaluations
+  - number for batches per evaluation
+_DataSetConfig_
+  - data directory for parsed peppiDb
+  - metadata path for chunked data
+  - test ratio for splitting up training data
+  - allowed smash characters
+  - allowed smash opponents
+  - allowed player names
+  - banned player names
+  - yield swapped versions of each replay
+  - mirror left/right in each replay
+  - seed
+_DataConfig_
+  - training batch size
+  - unroll length
+  - damage ratio
+  - compressed
+  - number of workers
+  - balance characters bool
+_ObservationConfig_
+  - animation::AnimationConfig
+        _AnimationConfig_
+        - mask::Boolean
+
+_LearnerConfig_
+  - learning rate::Float
+  - compile::Boolean
+  - jit_compile::Boolean
+  - decay rate::Float
+  - value cost::Float
+  - reward halflife::Float
+
+_NetworkConfig_
+  - name='mlp'
+  - mlp=MLP.config
+  - lstm=LSTM.config
+  - gru=GRU.config
+  - res_lstm=DeepResLSTM.config
+  - tx_like=Transformerlike.config
+
+_ControllerHeadConfig_
+  - independent=Independent
+    - models each component of the controller independently
+  - autoregressive=AutoRegressive
+    - samples components sequentially conditioned on past samples
+
+_EmbedConfig_
+  - playerConfig
+  - controllerConfig
+  - randall::Bool
+  - fountainofdreams::Bool
+  - itemsConfig
+    _PlayerConfig_
+    - xy scale
+    - shield scale
+    - speed scale
+    - with speeds::Bool
+    - with controller::Bool
+    - with nana::Bool
+    - legacy jumps left::Bool
+    _ControllerConfig_
+    - axis spacing
+    - shoulder spacing
+    _ItemsConfig_
+    - type::ItemsType
+        _ItemsType_ SKIP or FLAT or MLP
+    - mlp sizes::Tuple{Int}
+
+_PolicyConfig_
+- train value head::Bool
+- delay::Integer
+
+_ValueFunctionConfig_
+- train separate network::Bool
+- separate network config::Bool
+- network::NetworkConfig
+
+***** Train
+- setup Wandb for logging
+- attempt to restore parameters using our pickle file
+- lots of config validation checks
+- create data sources for training and testing
+  - setup TrainManager and TestManager
+  _TrainManager_
+  - Learner
+  - DataSource
+  - step kwargs
+  - prefetch = 16
+    dataProfiler()
+    stepProfiler()
+    framesQueue queue.Queue(maxsize=prefetch)
+    stopRequested threading.Event()
+    dataThread threading.Thread(target=self.produce_frames)
+
+    /"used to produce tensors from frames"/
+        produce_frames(self):
+                _while stop not requested_
+    - batch, epoch = next(self.dataSource)
+      - frames = batch.frames
+    - frames = frames._replace( state_action = self.learner.policy.embed_state_action.from_state(frames.state_action))
+      - frames = utils.map_nt(tf.convert_to_tensor, frames)
+    - data = (batch, epoch, frames)
+      - self.framesQueue.put(data)
+
+   /"stop requested"/
+        stop(self):
+                self.stop_requested.set()
+                self.data_thread.join()
+
+  /"step to get next frames in queue as input for batch training"/
+        step(self, compiled):
+                batch, epoch, frames = self.frames_queue.get()
+                stats, self.hidden_state = self.learner.step(
+                        frames, self.hidden_state, compiled, **kwargs)
+                )
+                stats.update(epoch)
+
+                return stats, batch
+
+    
+  /inline funcs/
+  - get_tf_state
+    - set_tf_state
+    - save
+    - maybe_log
+      (do a test step and log both train and test stats)
+    - maybe_eval
+*** reinforcement learning
+- load imitation-trained policy as teacher
+- environment setup for dolphin emulator instances
+- actor-learner separates rollout collection from learning
+- performs policy gradient updates
+  - with KL constraints
+- self-play: update opponent with current policy
+
+*** Q-learning
+- create sample policy and Q-policy
+- initialize values and Q-value networks
+- joint training: alternate between policy imitation and Q-learning
+- action sampling: use sample policy to generate action candidates
+- Q-policy updates: trains policy to select actions maximizing Q-values
+
+
+*** Steps
+- raw slippi replays (post meta-extraction)
+- data source data library/module
+- TrainManager for IL and LearnerManager for RL, and Learner for Q-Learning
+- the training system produces trained policy instances
+  - it uses a hierarchial configuration approach with dataclasses that can be overriden via CLI flags
+    - each training system has its own top-level config class that composes various specialized config components
+
+
+** Agent(s)
+- the agent system manages multiple types of agents with different execution models
+  - handling state synchronization and delayed inference
+
+- provides infra for managing AI agents during evaluation, gameplay, and real-time interaction with the Dolphin emulator
+  - handles agent instantiation, asynchronous inference, delay simulation, and controller output management
+
+- built around a hierarchy of agent classes that provide different levels of functionality and performance optimization
+
+*** Basic Agent
+provides the fundamental agent functionality by wrapping a `Policy` and tracking recurrent hidden state across timesteps
+1. *policy integration* wraps policy for inference
+2. *state management* tracks hiddenstate and prevcontroller
+3. *batching support* handles batched inference
+4. *compilation* TF fun JIT compilation
+
+   1. Game embedding && needs_reset -> BasicAgent.step()
+      2. embed state action && hiddenstate -> policy.sample() -> updated hiddenstate
+         3. SampleOutputs -> controller state & logits
+
+*** Delayed Agent/Async Delayed Agent
+implements delay simulation to model realistic timing constraints between input perception and controller output
+_DelayedAgent_ uses a /PeekableQueue/ to buffer outputs and simulate processing delay
+1. run synchronously
+   1. game state -> DelayedAgent.push() -> *BasicAgent.step()*
+      ->  _output_queue.put() <- initial queue fill <- dummy_sample_outputs
+
+   2. DelayedAgent.pop() -> _output_queue.get() -> SampleOutputs
+   3. batchsteps > 0 -> multistep batching -> _input_queue -> *BasicAgent.step()*
+
+_AsyncDelayedAgent_ runs inference on a separate thread using threading pools and queues
+1. runs asynchronously
+   1. worker thread for multi-threading
+   2. state queue for input queue for game states
+   3. output queue for buffered controller outputs
+   4. context manager for lifecycle , start, stop, run
+*** Dolphin Integration Agent
+- the *Agent* class provides the highest level interface for interacting with dolphin emulator instances
+
+  _Agent 2 Dolphin integration flow_
+  melee.GameState -> Agent.step() -> get_game() -> DelayedAgent.step() -> SampleOutputs -> embed_controller.decode() -> send_controller -> melee.Controller
+
+  name_codes -> name management -> nameChangeMode -> FIXED/CYCLE/RANDOM
+
+*** Agent Factory Functions
+factory functions for creating approximately configured agents
+1. _build_delayed_agent()_
+   creates delayed agents w/ automatic name resolution and config
+2. _build_agent()_
+   creates fully-configured agent instances for Dolphin interaction
+   - opponent port, agent nametag, melee controller instance, saved agent state
+
+*** Evaluation system
+ Evaluation system uses /RolloutWorker/ and /Evaluator/ classes to orchestrate agent execution across multiple envs
+
+ _rollout()_ method coorinates between agents and environments to collect structured trajectory data
+ - *states* game states over time /shape/: [T+1, B]
+ - *actions* controller outputs   /shape/: [T+1, B]
+ - *rewards* computed rewards     /shape/: [T, B]
+ - *is_resetting* reset flags     /shape/: [T+1, B]
+ - *initial_state* agent's initial hidden state ... [B]
+ - *delayed_actions* buffered future actions [D,B]
+
+*** Distributed Evaluation
+*RayEvaluator* extends evaluation capabilities across multiple workers
+
+RayEvaluator -> RayRolloutWorker.remote() -> Worker 1, 2, ... N
+update_variables() -> Parameter Sync -> Worker 1, 2, ... N
+rollout() -> ray.get() -> Merge Results -> Aggregated Metrics

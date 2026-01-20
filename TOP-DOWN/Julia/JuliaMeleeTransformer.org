@@ -1,0 +1,239 @@
+#+title: Julia Melee Transformer
+
+* Overview
+Ruleset:
+1. There are 6 legal stages
+   2. pick any character
+      3. no items
+         4. 4 lives each; 8 minute time limit
+            5. goal is to hit each other off stage; last person standing wins!
+
+- S/O to imitation learning + reinforcement learning
+  - projects used LSTM architectures and trained character-specific models
+
+** Introduction to RNN
+
+**While MLPs are great for tabular data and CNNs are great for grid-like data**
+- Many problems involve sequences...
+  - values over time; there is a need for models that can understand order and context across time or sequence steps
+
+    _RNNS (Recurrent Neural Networks)_ and their advanced variants like LSTM units (Long Short-Term Memory) come into play
+    - Unlike feedforward networks, RNNs have *loops*, allowing information to persist from one step of the sequence to the next
+      - this *memory* is what enables them to learn dependencies across a sequence
+
+        /Core Idea/ Processing Sequences with Memory
+        - There is a *recurrent cell* this cell processes an input at the current time step/sequence position
+          - and combines it with a hidden state from the previous time step
+          - the *hidden state* acts as the network's memory
+            - carries information from earlier parts of the sequence
+        - The cell produces an output for the current time step
+          - and updates its hidden state to be passed to the next time step...
+
+                ***An RNN cell processes the current input & the previous hidden state to produce an output and an update hidden state***
+
+                #+begin_src julia
+        using Flux
+
+        #input feature size & hidden state size
+        inputsize = 10
+        hiddensize = 20
+
+        #basic RNN layer
+        rnnlayer = Flux.RNN(inputsize, hiddensize, σ) # σ activation fn
+
+        # e.g. 5-item sequence, each w/ 10 features, for a batch of 1
+        sampleseqbatch = [rand(Float32, inputsize) for _ in 1:5]# vector of matrices
+        # For a batch of 3 sequences, each of length 5 and 10 features:
+        # sample_sequence_batch = [rand(Float32, input_size, 3) for _ in 1:5]
+        # To process a single step given `RNNCell`
+        rnncell = Flux.RNNCell(inputsize, hiddensize, tanh)
+        initialhidden = rnncell.state0(1) # batch size 1
+        outputstep1, nexthidden = rnncell(initialhidden, sampleseqbatch[1])
+
+
+        # Lets process the whole sequence w/ RNN Layer
+        outputseq = rnnlayer(sampleseqbatch)
+        finalhidden = rnnlayer.state
+        Flux.reset!(rnnlayer) # reset for new seq batch
+
+        println("Output of the last step (for the first item in batch): ", output_sequence[end][:, 1])
+        println("Final hidden state shape: ", size(final_hidden_state))
+                #+end_src
+- In Flux you can define a basic RNN cell using `RNNCell`
+  - for processing an entire sequence, you typically wrap this cell with `Recur`
+- Flux expects *features, length(sequence), batchsize* for sequence layers
+  - for step-by-step features, batchsize
+- Note: RNN Layer handles hidden state internally when processing a sequence
+  - to get a hidden states at each step, you'd iterate manually or use a different approach
+
+- A common way to structure input for Flux's recurrent layers like `RNN, LSTM, or GRU`
+  - when processing entire sequences is a vector of matrices
+    - each matrix in the vector represents one time step across all batches
+      - with dimensions (features, batchsize)
+    - the vector itself has a length equal to the sequence length
+      - alternatively for some layers or custom loops you might use a 3D array of shape (features, length(sequence), batchsize)
+
+_Long-term Dependencies_
+- Simple RNNs struggle w/ learning dependencies over long sequences
+  - *vanishing or exploding gradient problem*
+- During *backpropagation*, gradients shrink exponentially (vanish) or grow exponentially (explode) as they are propagated back through many time steps
+- /Vanishing/ gradients make it difficult for the network to learn connections between distant elements in a sequence
+- /Exploding/ gradients can make training unstable
+
+
+*** Long Short-term Memory Networks LSTM
+
+- LSTMS are designed specifically to address vanishing gradient
+  - and better capture long-range dependencies
+
+  - they achieve this w/ more complex cell structure that includes several gates controlling the flow of information
+
+    An LSTM cell maintains a /cell state/ $c_{t}$ in addition to the /hidden state/ $h_{t}$
+    "the cell acts like a conveyor belt, allowing information to flow through relatively unchanged, which helps preserve gradients over long durations"
+    1. *Forget Gate* $f_{t}$ decides what info to discard from the cell state
+       - it looks at $h_{t-1}$ and $x_{t}$
+         - and outputs a number between 0 and 1
+           - for each number in the cell state $c_{t-1}$
+             - a 1 represents "completely keep this"
+             - while 0 represents "completely get rid of this"
+
+               $f_{t}=\sigma(W_{f}*[h_{t-1},x_{t}]+b_{f}$
+
+    2. *Input Gate* $i_{t}$ decides which new info to store in cell state
+       - the input gate layer $i_{t}$ decides which values will be updated
+         $i_{t}=\sigma(W_{i}*[h_{t-1},x_{t}]+b_{i})$
+       - A tanh layer creates a vector of new candidate values $\tilde{C}_{t}$ that could be add to the state.
+         $\tilde{C}_{t}=tanh(W_{C}*[h_{t-1},x_{t}]+b_{C})$
+         these two combined to update the cell state
+         $c_{t}=f_{t}*c_{t-1}+i_{t}*\tilde{C}_{t}$
+    3. *Output Gate* $o_{t}$ decides what to output as the hidden state $h_{t}$
+       - the output is based on the cell state but is a filtered version
+
+         - _First_ a sigmoid layer decides which parts of the cell state to output
+           $o_{t}=\sigma(W_{o}*[h_{t-1},x_{t}]+b_{o})$
+         - _Then_ the cell state goes through tanh
+           - to push values to be between -1 and 1
+         - _And_ this multiplied by the output of the sigmoid gate
+           - only the parts decided earlier are outputted
+             $h_{t}=o_{t}*tanh(c_{t}$)
+
+/Simplified strucutre of an LSTM cell showing gates and cell state interactions/
+- the cell state acts as a conveyor belt
+  - modified by the forget and input gates
+  - the output gate filters the cell state to produce the hidden state
+
+    #+begin_src julia
+using Flux
+
+inputsize = 10
+hiddensize = 20
+
+lstmlayer = Flux.LSTM(inputsize, hiddensize)
+
+sampleseq = [rand(Float32, inputsize, 1) for _ in 1:5]
+
+outputlstmseq = lstmlayer.(sampleseq)
+
+# LSTM layer contains a tuple (H, C) for hidden and cell state
+h,c = lstmlayer.state
+
+
+println("Output of LSTM at last step: ", size(output_lstm_sequence[end]))
+println("Final hidden state (h) shape: ", size(final_hidden_state_h))
+println("Final cell state (c) shape: ", size(final_cell_state_c))
+Flux.reset!(lstmlayer)
+    #+end_src
+
+
+*** Gated Recurrent Units (GRU)
+
+- GRUs are a newgen recurrent units (2014)
+  - similar to LSTM but simpler architecture
+    - combining forget and input gates into a single *update* gate
+      - and merging the cell state and hidden state
+  - despite being simple it will peform comparably faster
+
+    1. *Reset Gate* $r_{t}$ determines how much of the previous hidden state to forget
+    2. *Update Gate* $z_{t}$ determines how much of the previous hidden state to keep and how much of the new candidate hidden state to incorporate
+
+#+begin_src julia
+using Flux
+
+inputsize = 10
+hiddensize = 20
+
+grulayer = Flux.GRU(inputsize, hiddensize)
+sampleseq = [rand(Float32, inputsize, 1) for _ in 1:5] #batchsize 1
+outputgruseq = grulayer.(sampleseq)
+finalhidden = grulayer.state
+
+println("Output of GRU at last step: ", size(output_gru_sequence[end]))
+println("Final hidden state shape: ", size(final_hidden_state))
+
+# Reset for next batch/sequence
+Flux.reset!(gru_layer)
+#+end_src
+
+** Structuring Sequential Models
+
+**RNNs, LSTMs, GRUs** form the core of models designed for sequential data
+
+Often combined with...
+- **Embedding Layers** for textual or categorical sequence data, an *Flux.Embedding* layer (covered in the "working with embeddings for sequential data section")
+  - used for to convert discrete tokens into dense vector representations
+- **Dense Layers** after recurrent layers have processes the sequence, one or more `Flux.Dense` layers are often used to transform the final hidden state into the desired output format
+- **Stacking Recurrent Layers** stack multiple recurrent layers (e.g. LSTM on top of LSTM)
+  - to create deeper models capable of learning more complex hierarchial features from sequences
+    - the output sequence of one recurrent layer becomes the input sequence for the  next
+
+      #+begin_src julia
+using Flux
+
+vocabsize = 1000 # num of unique words
+embedsize = 50 # dim of word embeddings
+hiddensize = 64 # LSTm hidden state
+outputsize = 1 # single for regression (classification)
+
+model = Chain(
+    Embedding(vocabsize, embedsize), # integer word indices
+    LSTM(embedsize, hiddensize),
+    # output of last time step only for next layer
+    x -> x[end] # selecst last hidden state from sequence of hidden states
+    Dense(hiddensize, outputsize),
+)
+
+sampleinputindices = [rand(1:vocabsize) for  _ in 1:10]
+
+
+# adjust LSTM input expectations
+embeddedseq = [model[1]([idx]) for idx in sampleinputindices]
+# pass thru LSTM
+lstmoutputseq = model[2].(embeddedseq)
+Flux.reset!(model[2])
+
+lastoutput = model[3](lstmoutputseq)
+finaloutput = model[4](lastoutput)
+
+# To train this, you'd typically have batches of sequences.
+# DataLoaders from MLUtils.jl (discussed in "Handling Datasets") are essential here.
+
+println("Output shape: ", size(final_output)) # Should be (output_size, 1)
+      #+end_src
+- Flux's `Embedding` layer expects a vector or matrix of integers
+  - if passing a single sequence
+  - for a batch of sequences, it should be a matrix (vocabindices, batchsize) for each step
+  - or if feeding directly to Chain, it should handle it as one batch item
+- `Embedding` layer needs special handling for sequences
+  - you'd applying embedding to each element of sequence
+
+  - This is one way to piece things togethre
+    - the handling of sequence inputs and outputs depends on task
+  - For Seq2Seq tasks, the architecture would be more complex
+    - encoder-decoder structre
+
+- Working with recurrent layers in Flux remember:
+  *input shape*, when processing full sequences, input is often a vector where each element is a matrix of size *features, batchsize* repersenting one time step
+
+  *state mgmt* /Flux.reset!/ is used to clear hidden state between processing independent sequences btwn batches
+
+  *data iteration* batching and iterating over sequence data efficiently

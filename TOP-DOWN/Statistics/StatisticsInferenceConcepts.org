@@ -1,0 +1,361 @@
+#+title: Statistics Inference Concepts
+
+_The action of statistical inferences involves using mathematical techniques_
+/to make conclusions about unknown population parameters based on collected data/
+
+- statistical inference employs a variety of stochastic models
+  - to analyze and put forward efficient methods for carrying out analyses
+
+
+**Analysis and Methods of Statistical Inference**
+- can be categorized as either /classical/ or /Bayesian/
+
+  1. In the bayesian case, its assumed there is a prior distribution of the parameters
+  2. In the classical case, it involves analyzing a posterior distribution of the parameter--an outcome of the inference process
+
+
+_A statistical process involves data a model, and analysis_
+- data is to be comprised of random samples from the model
+  - the goal of the analysis is then to make _informed statements_ about population parameters of the model based on the data
+
+    **Informed Statements**
+    1. _Point Estimation_: Determination of a single value or vector of values
+       - representing a best estimate of the parameter(s)
+    2. _Confidence Intervals_: Determination of a range of values
+       - where the parameter lies
+         - under the model and the statistical process used, it is guaranteed that the parameter lies within this range with a pre-specified probability
+    3. _Hypothesis tests_: The process of determining if the parameter
+       - lies in a given region, in the complement of that region, or fails to take on a specific value
+         - often represents a scientific hypothesis in a natural way
+
+
+
+
+* A Random Sample
+- we assume there is some underlying distribution:
+
+$F(x;\theta)$
+
+...from which we are sampling, where $\theta$ is the scalar or vector-valued unknown parameter we want to know...
+
+- we assume each observation is statistically independent and identically distributed as the rest.
+  - _from a probabilistic perspective_, the observations are taken as /independent and identically distributed/ (i.i.d) random variables
+    **In mathematical statistics language, this is called a random sample**
+
+    - we denote the random variables of the observations by:
+      $X_1,...,X_n$ and their respective values by $x_1,...,x_n$
+
+  **We compute statistics from the random sample**
+- the _sample mean_ and _sample variance_
+  - we can model these stats as random variables:
+
+    $\bar{X} = \frac{1}{n} \sum\limits_{i=1}^{n}{X_i,}$  AND   $S^{2} = \frac{1}{n-1}\sum\limits_{i=1}^{n}(X_i - \bar{X})^{2}$
+
+    - Note that for $S^2$, the denominator is $n-1$ ( as opposed to $n$ as one might expect )
+    - this make $S^2$ an **unbiased estimator**
+
+
+"In general, a statistic implies a quantity calculated based on the sample"
+_We look at properties of statistics and see how they play role in estimating the unknown underlying distribution paramter $\theta$._
+
+
+* Distributions of the sample mean and sample variance
+#+begin_src julia
+using Random, Distributions, Plots; pyplot()
+Random.seed!(1)
+
+lambda = 1/4.5
+expDist = Exponential(1/lambda)
+n, N = 10, 10^6
+##############
+# INITIALIZE EMPTY ARRAYS
+means = Array{Float64}(undef, N)
+variances = Array{Float64}(undef, N)
+
+##############
+# CREATE N RANDOM SAMPLES,
+# EACH OF LENGTH N
+for i in 1:N
+    data = rand(expDist, N)
+    means[i] = mean(data)
+    variances[i] = var(data)
+end
+
+##############
+# CALC MEANS AND VARIANCES
+println("actual mean: ", mean(expDist),
+        "\nMean of sample means: ", mean(means))
+println("actual variance: ", var(expDist),
+        "\nMean of sample variances: ", mean(variances))
+
+stephist(means, bins=200, c=:blue, normed=true,
+         label="Histograms of Sample Means")
+stephist!(variances, bins=600, c=:red, normed=true,
+          label="Histograms of Sample Variances", xlims=(0,40), ylims=(0,0.4),
+          xlabel = "Statistic Value", ylabel = "Density")
+#+end_src
+
+**an exponential distribution with rate $\lambda$, the mean is $\lambda^{-1}$, the variance is $\lambda^{-2}$**
+
+
+
+
+* Sampling from a Normal Population
+
+- it is assumed that the distribution $F(x;\theta)$ is a normal distribution, and hence $\theta = (\mu, \sigma^{2})$
+
+  _this is called the normality assumption_, the distribution of the random variables $\bar{X}$ and $S^{2}$ as well as transformations of them are well-known
+
+  - the follow distributional relationships play a keyrole
+
+                               $\bar{X}$ ~ $Normal(\mu,\sigma^{2}/n$
+    $(n-1)S^{2}/ \sigma^{2}$ ~ $X^{2}_{n-1}$ ,
+    $T := \frac{\bar{X}-\mu}{S \sqrt{n}}$ ~ $t_{n-1}$  .
+
+    **~ denotes "distributed as", and implies that the statistics om the left hand side of the ~ symbols are distributed according to the distributions on the right hand side**
+    - $X^{2}_{n-1}$ and $t_{n-1}$ denotes a /chi-squared/ and /student T-distribution/
+      - respectively, each with $n-1$ degrees of freedom
+        - with parameters $\lambda = 1/2$ and $/alpha = n/2$
+* Friends of the normal distribution
+#+begin_src julia
+using Distributions, Plots; pyplot()
+
+mu, sigma = 10, 4
+n, N = 10, 10^6
+####  WE SPECIFY THE NUMBER OF SAMPLES IN EACH GROUP N
+####  AND THE TOTAL NUMBER OF MONTE CARLO REPETITIONS N
+
+####  INITIALIZE ARRAYS FOR SAMPLE MEANS, SAMPLE VARS, AND T STATS
+sMeans = Array{Float64}(undef, N)
+sVars  = Array{Float64}(undef, N)
+tStats = Array{Float64}(undef, N)
+
+#### CONDUCT SIMULATION
+## by taking n sample obs from the normal distribution
+## and calculating the sample mean, sample variance, and T-statistic
+# repeated N times
+for i in 1:N
+    data = rand(Normal(mu, sigma),n)
+    samplemean = mean(data)
+    samplevars = var(data)
+    sMeans[i] = samplemean
+    sVars[i] = samplevars
+    tStats[i] = (samplemean - mu)/(sqrt(sampleVars/n))
+end
+# stored in the initialized arrays
+
+xRangeMean = 5:0.1:15
+xRangeVar = 0:0.1:60
+xRangeTStat = -5:0.1:5
+
+p1 = stephist(sMeans, bins=50, c=:blue, normed=true, legend=false)
+p1 = plot!(xRangeMean, pdf.(Normal(mu, sigma/sqrt(n)), xRangeMean),
+           c=:red, xlims=(5,15), ylims=(0,0.35), xlabel="Sample mean", ylabel="Density")
+
+p2 = stephist(sVars, bins=50, c=:blue, normed=true, label="Simulated")
+p2 = plot!(xRangeVar, (n-1)/sigma^2*pdf.(Chisq(n-1), xRangeVar*(n-1)/sigma^2),
+           c=:red, label="Analytic", xlims=(0,60), ylims=(0,0.06),
+           xlabel="Sample Variance", ylabel="Density")
+
+p3 = stephist(tStats, bins=100, c=:blue, normed=true, legend=false)
+p3 = plot!(xRangeTStat, pdf.(TDist(n-1), xRangeTStat),
+           c=:red, xlims=(-5,5), ylims=(0,0.4), xlabel="t-statistics", ylabel="Density")
+plot(p1, p2, p3, layout= (1,3), size=(1200, 400))
+#+end_src
+
+
+* Independence of the Sample mean and Sample Variance
+- consider a random sample $X_{1},...,X_{n}$.
+  - the sample mean $\bar{X}$  and the sample variance $S^{2}$ to be independent random variables is not generally expected.
+e.g.
+random sample where n = 2, and let each $X_{i}$ be /Bernoulli distributed/, with parameters p
+- the joint distribution of $\bar{X}$ and $S^{2}$ can then be computed as follows:
+
+  **If both $X_{i}$'s are 0, which happens with probability $(1-p)^{2}$, then,**
+                                $\bar{X}=0$ and $S^{2}=0$
+  **If both $X_{i}$'s are 1, which happens with probability $p^{2}$ then,**
+                                $\bar{X}=1$ and $S^{2}=0$
+  **If one of the $X_{i}$'s is 0, and the other is 1, which happens with probability $2p(1-p)$, then,**
+                                $\bar{X}=\frac{1}{2}$ and $S^{2}=1-2(\frac{1}{2})^{2}=\frac{1}{2}$
+
+_We can see that $\bar{X}$ and $S^{2}$ are not independent because the joint distribution_
+
+- if the sample mean and variance are calculated from the same sample group, then all pairs of $\bar{X}$ and $S^{2}$ are not independent, but rather the outcome of one imposes some restriction on the outcome of the other.
+  - the case of the _standard normal distribution_, regardless of how the pair are calculated, the same scattering of points is observed
+
+* Are the sample mean and variance independent?
+    #+begin_src julia
+using Distributions, Plots, LaTeXStrings; pyplot()
+
+function statPair(dist,n)
+    sample = rand(dist,n)
+    [mean(sample), var(sample)]
+end
+
+stdUni = Uniform(-sqrt(3),sqrt(3))
+n, N = 3, 10^5
+
+dataUni = [statPair(stdUni,n) for _ in 1:N]
+dataUniInd = [[mean(rand(stdUni,n)),var(rand(stdUni,n))] for _ in 1:N]
+dataNorm = [statPair(Normal(),n)),var(rand(stdUni,n)) for _ in 1:N]
+dataNormInd = [[mean(rand(Normal(),n)), var(rand(Normal(),n))] for _ in 1:N]
+
+p1 = scatter(first.(dataUni), last.(dataUni),
+    c=:blue, ms=1, msw=0, label="Same group")
+p1 = scatter!(first.(dataUniInd), last.(dataUniInd),
+    c=:red, ms=0.8, msw=0, label="Separate group", xlabel=L"\overline{X}", ylabel=L"S^2")
+
+p2 = scatter(first.(dataNorm), last.(dataNorm),
+    c=:blue, ms=1, msw=0, label="Same group")
+p2 = scatter!(first.(dataNormInd), last.(dataNormInd),
+    c=:red, ms=0.8, msw=0, label="Separate group", xlabel=L"\overline{X}", ylabel=L"$S^2$")
+
+plot(p1, p2, ylims=(0,5), size=(800, 400))
+
+    #+end_src
+
+
+
+* More on the T-Distribution
+
+the elaboration on the /Student T-distribution/ and the distribution of the /T-statistic/
+
+The random variable given as:
+tt$T=\frac{\bar{X}-\mu}{S/\sqrt{n}}$
+Denoting the mean and variance of the normally distributed observations by $\mu$ and $\sigma^{2}$, respectively
+
+The T-statistic is represented as:
+$T=\frac{\sqrt{n}(\bar{X}-\mu)/\sigma}{\sqrt{(n-1)S^{2}/\sigma^{2}(n-1)}}$ = $\frac{Z}{\sqrt{\frac{X^{2}_{n-1}}{n-1}}}$
+- $Z$ is a **standard normal random variable** in the numerator
+- $X^{2}_{n-1} = (n-1)S^{2}/\sigma^{2}$ is **chi-squared distributed with $n-1$ degrees of freedom** in the denominator
+  _the numerator and the denominator are independent based on the sample mean and sample variance_
+
+
+- One can show that a ratio of a standard normal random variable
+  - and the square root of a scaled independent chi-squared random variable
+    - (scaled by its degrees of freedom parameter)
+  - the ratio is distributed according to a T-distribution
+    - with the same number of degrees of freedom as the chi-squared random variable
+
+      "T-distribution with n - 1 degrees of freedom" is a symmetric distribution with a 'bell-curved' shape similar to the normal distribution, with 'heavier' tails for trivial n"
+
+     _a t-distribution with k degrees of freedom can be shown to have a density function_
+
+     $f(x)=\frac{\Gamma(\frac{k+1}{2})}{\sqrt{k\pi}\Gamma(\frac{k}{2})}(1+\frac{x^{2}}{k})^{-\frac{k+1}{2}}$
+
+
+**For non-trivial $n$ , one may expect the distribution of $T$ to be similar to the distribution of $Z$, which is indeed the case, this behavior plays a role in the confidence intervals and hypothesis tests.**
+
+* Student's T-distribution
+#+begin_src julia
+using Distributions, Random, Plots; pyplot()
+Random.seed!(0)
+
+n, N, alpha = 3, 10^7, 0.1
+###
+# GENERATES A T-DISTRIBUTED RANDOM VARIBLE BY USING A STANDARD NORMAL
+# AND A CHI-SQUARED RANDOM VARIABLE
+myT(nObs) = rand(Normal())/sqrt(rand(Chisq(nObs-1))/(nObs-1))
+# N REPLICATIONS OF MYT() TO ESTIMATE ALPHA QUANTILE
+mcQuantile = quantile([myT(n) for _ in 1:N], alpha)
+# COMPUTE QUANTILE ANALYTICALLY FOR A T-DISTRIBUTION REPRESENTED BY TDIST(N-1)
+analyticsQuantile = quantile(TDist(n-1), alpha)
+
+println("Quantile from Monte Carlo: ", mcQuantile)
+println("Analytic qunatile: ", analyticQuantile)
+
+xGrid = -5:0.1:5
+plot(xGrid, pdf.(Normal(), xGrid), c=:black, label="Normal Distribution")
+scatter!(xGrid, pdf.(TDist(1) ,xGrid),
+c=:blue, msw=0, label="DOF = 1")
+scatter!(xGrid, pdf.(TDist(3), xGrid),
+c=:red, msw=0, label="DOF = 3")
+scatter!(xGrid, pdf.(TDist(100),xGrid),
+c=:green, msw=0, label="DOF = 100",
+xlims=(-4,4), ylims=(0,0.5), xlabel="X", ylabel="Density")
+#+end_src
+
+
+* Two Samples and the F-Distribution
+
+_statistical procedures involves the ratio of sample variances, or similar quantities, for two or more samples_
+        e.g. if $X_{1},...,X_{n}$ is one sample
+        And $Y_{1},...,Y_{n}$, is another samples
+        Both samples are distributed normally w/
+        the same parameters, one can look at the
+        _ratio of the two sample variances_:
+
+        $F_{statistic}=\frac{S^{2}_{X}}{S^{2}_{Y}}$
+        is distributed according to the /F-distribution/, with density given by:
+        $f(x) = K(a,b)\frac{x^{a/2-1}}{(b+ax)^{(a+b)/2}}$ with $K(a,b)=\frac{\Gamma(\frac{(a+b)}{2})a^{a/2}b^{b/2}}{\Gamma(\frac{a}{2})\Gamma(\frac{b}{2})}$
+
+- parameters a and b are the numerator degrees of freedom and denominator degrees of freedom, respectively
+- an alternative view is that the random variable F is obtained by the ratio of two independent chi-squared random variables normalized by their degrees of freedom
+- The F-distribution plays a role in the popular _Analysis of Variance (ANOVA)_ procedures
+
+
+* Ratio of Varianaces and the F-distribution
+Exploring _F-distribution_ by simulation two sample sets of data w/ $n_1$ and $n_2$ observations, respectively, from a normal distribution.
+- the _ratio of sample variances_ from the two distributions is compared to the PDF of an F-distribution with parameters $n_{1}-1$ and $n_{2}-1$
+
+  #+begin_src julia
+using Distributions, Plots; pyplot()
+
+n1, n2 = 10, 15 # two sample groups n1 and n2
+N = 10^6 # total 3 of F-stats to generate
+mu, sigma = 10, 4
+normDist = Normal(mu, sigma)
+
+fValues = Array(Float64)(undef, N)
+
+for i in 1:N # simulate two separate sample groups data1 and data2
+    data1 = rand(normDist, n1) # by randomly sampling from
+    data2 = rand(normDist, n2) # the same underlying normal distributions
+    fValues[i] = var(data1)/var(data2) # single F-stat is calculated from
+end                          # the ratio of sample variance of the two groups
+fRange = 0:0.1:5
+stephist!(fValues, bins=400, c=:blue, label="Simulated", normed=true)
+plot!(fRange, pdf.(FDist(n1-1, n2-1), fRange),
+      c=:red, label="Analytic", xlims(0,5), ylims=(0,0.8),
+      xlabel="F", ylabel="Density")
+  #+end_src
+
+
+* The Central Limit Theorem
+
+the /Central Limit Theorem (CLT)/ has several versions and many generalizations, they all have one thing in common:
+        1. summations of a large number of random quantities, each with finite variance, yield a sum that is approximately normally distributed
+
+           "this is why the normal distribution is _ubiquitous_ in nature and present throughout the observed universe"
+
+Consider an i.i.d. sequence $X_{1},X_{2}$ ... where all $X_i$ are distributed according to some distribution $F(x_{i}; \theta)$ with mean $\mu$ and finite variance $\sigma^{2}$
+
+        consider the random variable:
+        $Y_{n}:= \sum\limits_{i=1}^{n}X_{i}$
+
+ the CLT states _the sample means from i.i.d. samples with finite variance are asymptotically distributed according to a normal distribution as the sample size grows_
+
+
+* The central limit theorem
+
+- Generating a histogram of N sample means for each of the three different distributions
+  - Each of the underlying distributions is different
+    - i.e. uniform, exponential, and normal
+  - the sample distribution of the sample means all approach that of the normal distribution centered about 1 with standard deviation $1/\sqrt{n}$
+    #+begin_src julia
+using Distributions, Plots; pyplot()
+n, N = 30, 10^6
+
+dist1 = Uniform(1-sqrt(3), 1+sqrt(3))
+dist2 = Exponential(1)
+dist3 = Normal(1,1)
+
+data1 = [mean(rand(dist1,n)) for _ in 1:N]
+data2 = [mean(rand(dist2,n)) for _ in 1:N]
+data3 = [mean(rand(dist3,n)) for _ in 1:N]
+
+ stephist([data1 data2 data3], bins=100,
+          c=[:blue :red :green], xlabel = "x", ylabel = "Density",
+          label=["Average of Uniforms" "Average of Exponentials" "Average of Normals"],
+          normed=true, xlims=(0,2), ylims=(0,2.5))
+    #+end_src

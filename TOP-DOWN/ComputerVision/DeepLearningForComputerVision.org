@@ -1,0 +1,565 @@
+#+title: Deep Learning For Computer Vision
+
+
+* Introduction
+- Hubel and Wiesel, 1959
+
+  _The study of the visual pathways of mammals_
+
+  electrodes in anesthized live cats
+  - studied the receptive field of neurons
+    - that are in the primary visual cortex
+    - receptive field is the part of the space it actually sees
+      - usually confined patch of space
+      - sees specialized, simple patterns
+  - In the primary visual cortex
+    - its moving oriented edges
+      - every neuron will be seeing edges
+    - visual pathways are _hierarchical_
+      - neurons in higher layers of the visual hierarchy
+        - have more complex receptive fields
+
+        _neurons feed into each other and create a network of computation_
+
+
+- Larry Roberts, 1963
+
+  _Machine perception of three-dimensional solids_
+
+  milestone of the first PhD thesis CV just studying shape
+
+  - the idea is we take a shape and understand the surfaces, corners, and features
+    - intuitive human understanding
+
+
+- Summer MIT Project, 1960s
+
+  Computiver Vision project
+
+- Stages of Visual Representation, David Marr, 1970s
+
+  Studying vision systematically and how vision processing happens
+  - neuro-science and cognitive science
+    - 'primal sketch'
+    - Input image -> Edge image -> 2.5D sketch -> 3-D Model
+
+
+
+   "Nature has solved Computer Vision, but we have not yet"
+   - language doesn't exist in nature
+     - language is purely generated thing
+       - it is sequential, 1-D
+       - vision is not generated!
+         - vision has very different tasks
+
+
+   - Recognition via Parts, 1970s
+
+     _Generalized Cylinders_, Brooks and Binford 1979
+
+     Founder of Roomba, /compositional/ models of human body and objects
+
+     _Pictorial Structures_, Fischier and Elshlager 1973
+
+
+   - Recognition via Edge Dectection 1980s
+
+     John Canny, 1986
+     David Lower 189
+
+
+ - AI Winter
+   - enthusiasm for AI dwindled
+   - subfields formed... computer visoin, NLP, robotics, compbio
+
+
+ - Perceiving Real-World Scenes, Irviing Biedermann
+   - the scene tells a lot about objects
+
+- Rapid Serial Visual Perception RSVP
+  Potter, etc. 1970s
+
+
+- Speed of processing in the human visual system
+  Simon Thorpe, Denise, Fize, Catherine Mariot
+  _after 150 ms of seeing a photo_
+  - your brain already has a differential that categorizes the animal
+
+
+- Neural correlates of object and scene recogntion
+
+
+_Visual recognition is a fundamental task for visual intelligence_
+- object recognition
+
+
+- Recognition via Grouping 1990s
+- Recognition via Matching
+- Face Detection 2001
+- CalTech Datset...
+
+
+
+
+** Deep Learning
+
+- Learning representations by back-propogating errors
+1958 - Perceptron, early study of neural netoworks
+ - small # of ANNs of how they process and learn
+1969 - Minsky and Papert,
+ - Showed that Perceptrons could not learn the XOR function
+   - a lot of disillusionment...
+1980 - Neocognitron, Fukushima,
+ - Computational model the visual system directly inspired by /Hubel & Wiesel/
+   - interleaved simple cells (convolution)
+   - complex cells (pooling)
+   - no practical training algo
+   - every parameter is hand-designed
+1986 - Backprop: Rumelhart, Hinton, and Williams
+ - introduced error correcting objective function
+   - if you put in some input and you know the correct output
+     - what is the difference between the NN output and actual output
+       - propagates the information back
+         - so you can improve the parameters along the NN
+*backpropagation*
+
+1998 - Convolutional Networks: LeCun et al,
+- Applied backpropagation algorithms to a slightly bigger network
+  - ~ 7 layers
+  - good enough to recognize letters
+2000s - Deep Learning
+- People trying to train neural networks that were deeper
+
+
+_Data is first class citizen for ML and DL_
+
+*AlexNet, 2012*
+
+Deep Learning goes Mainstream
+
+- Not that different from fukushimas
+  - backpropagation happened to get parameters instead of by hand
+  - recognition of data driving high-capacity models
+
+_Birth of Deep Learning_
+
+
+
+* Image Classfication w/ Linear Classifiers
+
+
+_Image Classification_
+- the task of assigning an input image one label from a fixed set of categories
+  - most other distinct computer vision tasks can be reduced to image classifcation
+
+    **A task in image classifcation is to predict a single label (or a distribution to indicate confidence)**
+
+
+e.g. an image classifcation model takes a single image and assigns probabilties *4 labels* {cat dog hat mug}
+- an image is represented as one large 3-D array of numbers
+  - i.e. dog image is 248 pixels wide, 400 pixels tall, and has three color channels (RGB)
+    - 248 x 400 x 3 numbers OR 297,600 numbers
+      - each number is an integer that ranges from 0 black to 255 white
+        - task is to turn this quarter of a million numbers into a single label, such as "Cat" or "Dog"
+
+
+_Challenges_:
+1. *Viewpoint variation*
+   - a single instance of an object can be oriented in many ways with respect to the camera.
+2. *Scale variation*
+   - visual classes often exhibit variation in their size (size in the real world, not only in terms of their extent in the image)
+3. *Deformation*
+   - many objects of interest are not rigid bodies and can be deformed in extreme ways
+4. *Occlusion*
+   - the objects of interest can be occluded, somtimes only a small portion of an object could be visible
+5. *Illumination conditions*
+   - the effects of illumination are drastic on the pixel level
+6. *Background cluster*
+   - the objects of interest may blend into their environment, hard to i.d.
+7. *Intra-class variation*
+   - The classes of interest often are relatively broad
+     - there are many types of these objects, each with their own distinctness
+
+**A good image classification model must be invariant to the cross product of all these variation, while simulataneously retaining sensitivity to the inter-class variations**
+
+
+_Data-driven approach_
+- What does the algorithm that can classify images into categories look like?
+  - Instead of specifying what every one of the categories of interest look like directly in code
+    1. we provide the computer with many examples
+    2. then develop learning algorithms
+       - that look at examples and learn
+    3. learn the visual appearance of each class
+
+       *relies on first accumulating a training dataset of labeled images*
+
+
+_Image classification pipeline_
+- the task in image classifcation is to take *an array of pixels* that represents a single image and assign a label to it
+
+  1. *Input*
+     - consists of a /set of N images/ each labeled
+       - w/ one of /K different classes/
+         _the training dataset_
+
+  2. *Learning*
+     - the training set to recognize what every one fo the classes look like
+       _training a classifier_ OR _learning a model_
+
+  3. *Evaluation*
+     - of the quality of the classifier
+       - by asking it to predict labels for a *new set of images* that it has never seen before (novel)
+         - compare the actual labels of these images to the ones predicted by the classifier
+           _ground truth_
+
+** Nearest Neighbor Classifier
+
+- Nothing to do with CNN and rarely used in practice
+
+  e.g. image classifcation dataset CIFAR-10
+  - 60k tiny images that 32x32
+    - labeled w/ 1/10 classes
+      i.e. 50k training set
+           10k test set
+
+  - given the 50k images, the nearest neighbor classifier will take a test image, compare it to every single of the training images
+    - And predict the label of the closest training image
+  - the images are compared as two blocks of 32 x 32 x 3
+    - compare the images pixel by pixel and add up all the differences
+
+      e.g. given two images as vectors $I_{1},I_{2}$
+
+      a reasonable choice for comparing them might be *L1 Distance*:
+
+      $d_{1}(I_{1},I_{2})=\sum\limits_{p}|I_{1}^{p}-I_{2}^{p}|$
+      *pixel-wise absolute value differences*
+      - if two images are identical the result will be zero
+        - otherwise very different then the result will be large
+
+
+_Lets load the CIFAR-10 data into memory as 4 arrays_
+- the training data/labels, and testing data/labels
+  #+begin_src python
+Xtr, Ytr, Xte, Yte = load_CIFAR10('data/cifar10/') # a magic function we provide
+# flatten out all images to be one-dimensional
+Xtr_rows = Xtr.reshape(Xtr.shape[0], 32 * 32 * 3) # Xtr_rows becomes 50000 x 3072
+Xte_rows = Xte.reshape(Xte.shape[0], 32 * 32 * 3) # Xte_rows becomes 10000 x 3072
+
+nn = NearestNeighbor() # create a neighbor classifier class
+nn.train(Xtr_rows, Ytr) # train the classifier on the training images and labels
+Yte_predict = nn.predict(Xte_rows) # predict labels on the test images
+# and now print the classification accuracy, which is the average number
+# of examples that are correctly predicted (i.e. label matches)
+print 'accuracy: %f' % ( np.mean(Yte_predict == Yte) )
+  #+end_src
+
+  - As an evaluation criterion, its common to use *accuracy*
+    - which measures the fraction of predicitons that were correct
+
+
+** Nearest Neighbor classifier w/ the L1 distance
+
+#+begin_src python
+import numpy as np
+
+class NearestNeighbor(object):
+    def __init__(self):
+        pass
+
+    def train(self, X, y):
+        self.Xtr = X
+        self.ytr = y
+
+    def predict(self, X):
+        num_test = X.shape[0]
+        Ypred = np.zeros(num_test, dtype = self.ytr.dtype)
+
+        for i in range(num_test):
+            distances = np.sum(np.abs(self.Xtr - X[i, :]), axis = 1)
+            min_index = np.argmin(distances)
+            Ypred[i] = self.ytr[min_index]
+        return Ypred
+#+end_src
+
+- this implementation achieves 38% where as random guessing is closer to 10%
+
+- _The choice of distance_
+  - there are many ways of computing distances between vectors
+    e.g. *L2 distance*
+    - has the geometric interpretatino of computing the euclidean distance between two vectors:
+      $d_{2}(I_{1},I_{2})=\sqrt{\sum\limits_{p}(I_{1}^{p}-I_{2}^{p})^{2}}$
+    - the squared pixel-wise difference
+      - squared them all, add them up, and take square root
+
+        #+begin_src python
+distances = np.sqrt(np.sum(np.square(self.Xtr - X[i,:]), axis = 1))
+        #+end_src
+
+        - we can leave out the `np.sqrt` operation because square root is a /monotonic function/
+          - it scales the absolute sizes of the distances but it preserves the ordering
+            - so w/ or w/o it, the nearest neighbors are identical
+
+              _L1 vs. L2_
+              - L2 is more unforgiving than L1 when it comes to differences between two vectors
+                - L2 prefers many medium disagreements to one big one
+                - L1 and L2 are the most commonly used special cases of a *p-norm*
+
+
+
+** k-Nearest Neighbor Classifier
+
+- instead of finding the single closeset image in the the training set, we will find top /k/ closest images, and have them vote on the label of the test image
+  - when /k = 1/
+    - we recover the Nearest Neighbor classifier
+    - higher values of *k* have a smooth effect that makes the classifier more resistant outliers
+
+
+
+** Validation sets for Hyperparameter tuning
+- what /k/ number works best?
+  - there are many other distance functions (L1, L2, dot products)
+  - these are called *hyperparameters* and they come up very often in the design of many ML algos that learn fro data
+
+    *we cannot use the test set for the purpose of tweaking hyperparameters*
+    - a test is a precious resource that should not be touched until the model is well fitted
+      - if you _overfit_ to the test set, if you tune your hyperparameters on the test
+        - you effectively used the test set as the training data
+          - performance evaluation will be optimistic
+
+      - using the test set at the end
+        - ir remains a good proxy for measuring the *generalization* of your classifier
+
+
+** Validation set to tune hyper-parameters
+e.g. 49k training images
+     1k validation images
+#+begin_src python
+# assume we have Xtr_rows, Ytr, Xte_rows, Yte as before
+# recall Xtr_rows is 50,000 x 3072 matrix
+Xval_rows = Xtr_rows[:1000, :] # take first 1000 for validation
+Yval = Ytr[:1000]
+Xtr_rows = Xtr_rows[1000:, :] # keep last 49,000 for train
+Ytr = Ytr[1000:]
+
+# find hyperparameters that work best on the validation set
+validation_accuracies = []
+for k in [1, 3, 5, 10, 20, 50, 100]:
+
+  # use a particular value of k and evaluation on validation data
+  nn = NearestNeighbor()
+  nn.train(Xtr_rows, Ytr)
+  # here we assume a modified NearestNeighbor class that can take a k as input
+  Yval_predict = nn.predict(Xval_rows, k = k)
+  acc = np.mean(Yval_predict == Yval)
+  print 'accuracy: %f' % (acc,)
+
+  # keep track of what works on the validation set
+  validation_accuracies.append((k, acc))
+#+end_src
+
+- plot a graph that shows which values of /k/ work best
+
+  *Split your training set and into training and validation set. Use validation set to tune all hyperparameters. At the end, run a single time on the test set*
+
+  - In cases where the size of your training data might be small
+    - one would use *cross-validation* for hyper-parameter tuning
+
+      "iterating over the different validation sets and averaging the performance across these..."
+
+      i.e. _5-fold cross validation_
+      - we split the training data into 5 equal folds
+      - use 4 of them for training
+      - 1 for validation
+
+        iterate over which folder is the validation
+        evaluate performance...
+        average the performance across the different folds
+
+_one should prefer to avoid cross-validation in favor of having a single validation split_, since *cross-validation is expensive*
+- splits tend to be 50%-90% of the training data for training and the rest for validation
+  - depends on multiple factors:
+    1. if the # of hyper-parameters is large you may prefer to use bigger validation splits
+    2. if the # of hyper-parameters is small (<500), its safer to use cross-validation (3-fold, 5-fold, 10-fold)
+
+
+
+* Linear Classification
+
+- image classifcation, which is the task of assigning a single label to an image from a fixed set of categories
+  - k-Nearest Neighbor classifier labels images by comparing them to annotated images from the training set
+    _the classifier must remember al the training data and store for future comparisons_
+    - this is space inefficient b/c datasets may easily by gigabytes in size
+    - classifying a test image is expensive b/c it requires a comparison to all training images
+
+*Linear Classification is a more powerful approach, also extends to ANN/CNNs, with two major components*
+1. the _score function_ maps the raw data to class scores
+2. the _loss function_ quantifies the agreement between the predicted scores and the ground truth labels
+
+   - optimization involves...
+     - minimizing the loss function w.r.t. the parameters of the score function
+
+
+** Parmaterized Mapping from images to label scores
+- *score function* maps pixel values of an image to _confidence scores_ for each class.
+
+  e.g. assume a training dataset of images $x_{i} \epsilon R^{D}$, each associated with a label $y_{i}$.
+  - here $i = 1...N$ and $y_{i} \epsilon 1...K$
+    - *N* examples
+      - each w/ a dimensionality *D*
+    - *K* distinct categories
+
+      i.e. "in CIFAR-10 there is a training set of
+      *N* =50,000 images, each with *D* = 32 x 32 x 3 = 3072 pixels,
+      and *K* = 10 for 10 distinct classes"
+
+      _the score function_: $f : R^{D} -> R^{K}$ that maps raw image pixels to class scores
+
+
+*Linear classifier* "simplest possible function" a linear mapping
+
+$f(x_{i},W,b)=Wx_{i}+b$
+
+assume image $x_{i}$ has all of its pixels flattened to a one vector of shape [D x 1]
+- the matrix *W* (size [K x D]) and the vector *b* (size [K x 1]) are *parameters* of the linear classifier
+
+  e.g.
+  "In CIFAR-10 $x_{i}$ contains all pixels of the i-th image flattened to single vector [3072 x 1], *W* is [10 x 3072] and *b* [10 x 1],
+  so 3072 numbers (raw data) input into function and 10 numbers (class scores) output"
+  - *W* are _weights_ and *b* is _bias vector_
+    - or weights and parameters
+
+
+/A single matrix multiplcation is evaluating 10 separate classifiers in parallel (one for each class)/
+- where each classifier is a row of weights
+
+/The input data as given and fixed but we have control over the weights and parameters/
+- the goal is to optimize these
+
+/linear mapping uses training to learn the parameters, but once learning is complete we can discard the entire training set and keep learned parameters/
+- new test images are forwarded throught the function
+  - then classified based on class scores
+
+
+
+** Interpreting a linear classifier
+- a linear classifier computes the score of a class as a weighted sum of all its pixel values across all 3 of its color channels
+
+- images are stretched into high-dimensional column vectors
+  - we can interpret each image as a single point in this space
+    - the entire dataset is a labeled set of points
+    e.g. each image in CIFAR-10 is a point in 3072-dimensional space of 32x32x3 pixels
+
+
+_the score of each class as a weighted sum of all image pixels, also means each class score is a linear function over this space_
+
+- every row of *W* is a classifier for one of the classes
+  - the geometric interpretation of these numbers is that as we change one of the rows of *W*, the corresponding line in the pixel space will rotate in different directions
+    - the bias vector *b* allows our classifiers to translate the lines
+      - w/o *b*, $x_{i}=0$ would always give a score of zero regardless of weights
+        - all lines would be force to cross the origin
+
+*Interpretation of linear classifiers as template matching*
+- each row of *W* can correspond to /template/ or /prototype/ for one of the classes
+  - the score of each class for an image is then obtained by comparing each template w/ the image using an /inner product/ or /dot product/ one by one
+    - to find the one that "fits" best
+
+      _linear classifier does template matching where templates are learned_
+      - like k-NN except instead of 1000+ training images, we use a single image per class
+        - and use the inner product as the distance instead of L2 OR L1
+
+_linear classifier is too weak to account for so many precise details in images, hidden layers come in as intermediate neurons that detect specific classes and can further using weighted-sum of individual class-detectors_
+
+
+**Bias trick**
+a trick to representing parameters, $W, b$ as one...
+
+score function defined as:
+
+$f(x_{i},W,b)=Wx_{i}+b$
+
+the trick is to combine the parameters into a single matrix
+- extend the vector $x_{i}$ w/ one additional dimension
+  - that always holds the constant $1$ - a default /bias dimension/
+- the new score cunction will simplify to a single matrix mutliplication:
+
+  $f(x_{i},W)=Wx_{i}$
+
+  e.g. *W* is now [10 x 3073]
+
+
+**Image data pre-procesing** is very important practice in machine learning
+- normalization/uniformization of input features (pixel as a feature)
+  - it is important to *center your data*
+    - by subtracting the mean from every feature
+    - this corresponds to computing a /mean image/ across the training images
+- further preprocessing is to scale each input feature so that its values range from [-1, 1]
+
+  more on dynamics of gradient descent later...
+
+
+** Loss function
+
+the loss function is a measure of our unhappiness w/ outcomes
+- somtimes called cost function or objective
+
+_Multiclass Support Vector Machine Loss_ is a common loss function set up so the SVM wants the correct class for each image to have a score higher than the inccorect classes by some fixed margin $\Delta$
+
+e.g. given the pixels of image $x_{i}$ and the label $y_{i}$ that specifies the index of the correct class
+- the score function takes pixels and computes the vector $f(x_{i},W)$ of class scores
+  abbreviated as $s$
+the score for the j-th class, the j-th element $s_{j}=f(x_{i},W)_{j}$
+  _the multiclass SVM loss for the i-th example_:
+
+  $L_{i}=\sum\limits_{j \neq y_{i}}max(0,s_{j}-s_{y_{i}}+\Delta)$
+The softmax classifier is minimizing the cor
+
+**  the loss function (without regularization) in both unvectorized and half-vectorized form
+
+#+begin_src python
+def L_i(x, y, W):
+  """
+  unvectorized version. Compute the multiclass svm loss for a single example (x,y)
+  - x is a column vector representing an image (e.g. 3073 x 1 in CIFAR-10)
+    with an appended bias dimension in the 3073-rd position (i.e. bias trick)
+  - y is an integer giving index of correct class (e.g. between 0 and 9 in CIFAR-10)
+  - W is the weight matrix (e.g. 10 x 3073 in CIFAR-10)
+  """
+  delta = 1.0 # see notes about delta later in this section
+  scores = W.dot(x) # scores becomes of size 10 x 1, the scores for each class
+  correct_class_score = scores[y]
+  D = W.shape[0] # number of classes, e.g. 10
+  loss_i = 0.0
+  for j in range(D): # iterate over all wrong classes
+    if j == y:
+      # skip for the true class to only loop over incorrect classes
+      continue
+    # accumulate loss for the i-th example
+    loss_i += max(0, scores[j] - correct_class_score + delta)
+  return loss_i
+
+def L_i_vectorized(x, y, W):
+  """
+  A faster half-vectorized implementation. half-vectorized
+  refers to the fact that for a single example the implementation contains
+  no for loops, but there is still one loop over the examples (outside this function)
+  """
+  delta = 1.0
+  scores = W.dot(x)
+  # compute the margins for all classes in one vector operation
+  margins = np.maximum(0, scores - scores[y] + delta)
+  # on y-th position scores[y] - scores[y] canceled and gave delta. We want
+  # to ignore the y-th position and only consider margin on max wrong class
+  margins[y] = 0
+  loss_i = np.sum(margins)
+  return loss_i
+
+def L(X, y, W):
+  """
+  fully-vectorized implementation :
+  - X holds all the training examples as columns (e.g. 3073 x 50,000 in CIFAR-10)
+  - y is array of integers specifying correct class (e.g. 50,000-D array)
+  - W are weights (e.g. 10 x 3073)
+  """
+  # evaluate loss over all examples in X without using any for loops
+  # left as exercise to reader in the assignment
+#+end_src

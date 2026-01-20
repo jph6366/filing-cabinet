@@ -1,0 +1,102 @@
+#+title: Peppi Julia Bindings
+
+Original Peppi-Py is python bindings for Rust library Peppi
+- Peppi written in Rust, Clojure
+
+  - Uses PyO3 and Apache Arrow PyArrow
+
+
+Goal is to write Julia bindings equivalent
+- Use jlrs library and Arrow.jl
+
+
+
+Ok so now getting into the nitty gritty
+****JULIA CAN ONLY BE INITIALIZED ONCE PER PROCESS****
+_AND CANT BE REINITIALIZED AFTER IT HAS SHUTDOWN_
+
+***ROOTED DATA IN A FRAME CONSUMES ONE SLOT***
+- THE # OF SLOTS IS EXPRESSED BY THE CONSTANT GENERIC INTEGER
+
+  #+begin_src rust
+|mut frame| {
+    unsafe{ Value::eval_string(&mut frame, "hey world") }
+       .expect("...")
+}
+  #+end_src
+
+- We are using _jlrs_ and we set up *Cargo* w/ jlrs-launcher
+  dep: arrow2, peppi, serde, serde_json
+  - serde JSON uses human-readble txt to transmit data objs consisting of kv pairs (STRONGLY TYPED JSON)
+  - crate_Type: 'cdylib', corresponds to exporting a C interface from a Rust dynamic lib
+    - _Cargo Library_: the library target [lib] can be used and linked by other libs and executables
+  - profile _opt_level_: controls `-C opt-level flags`
+    - which controls the level of optimization
+  - [profile] _lto_: setting controls `rustc` linker-plugin-lto
+    - which controls LLVM's link time optimization
+      - LTO produces better optimization using whole-program analysis
+  - [profile] _incremental_ = rustc will save disk space when recompiliing
+
+  _its important to set the `-rdynamic` linker flag when we embed Julia_
+  **Julia will perform badly otherwise**
+  (thread-local data Julia uses constantly...to access it setting the linker flag, libjulia can find and make use of the definition in our app, otherwise falling back to slow TLS model)
+  - this flag can be set on the command line with `RUSTFLAGS` env var
+    RUSTFLAGS="-Clink-args=-rdynamic" cargo build
+
+    _its possible to set the flag with a `config.toml`_ in 1 of the supported dirs or supported platforms...
+
+    #+begin_src toml
+[target.x86_64-unknown-linux-gnu]
+rustflags = [ "-C", "link-args=-rdynamic" ]
+
+[target.aarch64-unknown-linux-musl]
+rustflags = [ "-C", "link-args=-rdynamic" ]
+
+# ...etc
+    #+end_src
+
+
+- we prompted *Claude Haiku 4.5* and referred it to the jlrs docs
+  _error.rs_
+  1. PyO3ArrowError => JlrsArrowError
+     2. PythonError => JlrsResult<T> internally manages julia exceptions
+        3. PeppiPyError => PeppiJlError
+           4. jlrs handles julia exception conversion automatically through jlrsResult so python-specific error wrapper not needed...
+              `jlrs::error::JlrsResult`
+
+_lib.rs_
+- once again `JlrsError` does exception handling
+  - propagated through `JlrsResult<T>`
+- julia_module! instead $[pymodule]   ... for module export
+- JSON.parse()
+- *game struct* simplified rust struct from [#pyclass]
+- *returns JSON strings instead of Python Dicts
+
+
+
+now lets try our hand at it...
+
+#+begin_src rust
+let handle= Builder::new().start_local().expect("cannot init Julia");
+handle.local_scope::<_,1>(|mut frame| {/*snip*/})
+|mut frame| {
+    // Safety: we only call print with a string, which is perfectly safe.
+    unsafe { Value::eval_string(&mut frame, "println(\"Hello, world!\")") }
+        .expect("an exception occurred");
+}
+#+end_src
+- this line inits Julia and returns a `LocalHandle` to the runtime
+  - the `Builder` lets us configure the runtime
+    - options include setting the # of threads Julia can use
+    - and using custom system image
+- When runtime is started...
+  - JlrsCore.jl package is auto-loaded
+
+- We have to create a scope by calling LocalHandle::local_scope
+  - this method takes a generic integer and a closure that provides access to a frame
+    - the other generic is the return type of the closure
+  - we prevent data from getting garbage collected
+    - this is called *rooting*
+
+- functions provided by jlrs that return managed data are called w/ mutable reference to a frame
+  - can only be called inside a scope and result is rooted in frame

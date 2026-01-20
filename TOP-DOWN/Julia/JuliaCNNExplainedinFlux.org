@@ -1,0 +1,92 @@
+#+title: Julia Cnn Explainedin Flux
+
+- Working with _Flux Model Zoo_
+- Paying attention to the CNN model skipping the data preparation and training code
+
+* CNN explained
+- ANN has some type of specialization of pattern detection
+
+- Basis of CNN is convolutional layers
+  - receives input, transforms input, ands outputs the transformed inputs to next layer
+  - Convolutional layers need to specify the filters the layers have
+    - filters are what detects patterns
+      - patterns can be edge detectors, corners, circles, squares, etc.
+      - detect objects like fur nose tail eyes mouth
+        - detect class of animals like dog cat bird
+
+  - A filter can be thought of as a matrix for which we decide the number of rows and number of columns the matrix has
+    - values within the matrix are intialized with random numbers
+  - The filter will slide over each 3x3 set of pixels from the input itself until it slid over every 3x3 block of pixels from the entire image
+    - this sliding is called _convolving_.
+
+
+* Zero Padding in CNNs explained
+
+- the convolved values actually reduce the dimensions of the input image
+
+  *n x n image*
+  *f x f filter*
+  output size = (n - f + 1) x (n - f + 1)
+
+        e.g. n=4 f=3 output size = 4-3+1 = 2 x 2
+
+- the image is convolved it will get smaller and smaller
+
+
+_Zero Padding_ allows us to preserve the original input size specified on a per convolutional layer basis
+        - we add a border of pixels with the values of zeros around the image
+
+        _valid padding means no padding_, will decrease output shape
+        _same padding means input size is same as output size_
+
+        #+begin_src python
+from keras.models import Sequential
+model = Sequential([
+    Dense(16, activation='relu', input_shape=(20,20,3)),
+    Conv2D(32, kernel_size=(3,3), activation='relu', padding='valid'),
+    Conv2D(64, kernel_size=(5,5), activation='relu', padding='valid'),
+    Conv2D(128, kernel_size=(7,7), activation='relu', padding='valid'),
+    Flatten(),
+    Dense(2, activation='softmax'),
+])
+
+model = Sequential([
+    Dense(16, activation='relu', input_shape=(20,20,3)),
+    Conv2D(32, kernel_size=(3,3), activation='relu', padding='same'),
+    Conv2D(64, kernel_size=(5,5), activation='relu', padding='same'),
+    Conv2D(128, kernel_size=(7,7), activation='relu', padding='same'),
+    Flatten(),
+    Dense(2, activation='softmax'),
+])
+        #+end_src
+
+
+* Max Pooling in CNNs explained
+
+_Max Pooling_ is a type of operation added to following convolutional layers
+- When added,reduces the dimensionality of images by reducing the number of pixels in the output from the previous layer input
+
+  - we define a n x n region as a corresponding filter the max pooling operation
+    - we then define a stride, how many pixels do we want our filter to move as it slides across the image
+
+        _Think of the n x n regions/blocks as /"pools"/ of numbers, since were taking the max value of each pool_... you get it.
+
+
+- the network will be looking at larger areas, which _reduces the amount of parameters in the network_ and _reduces computational load_
+  - **will also help to reduce overfitting**
+
+
+1. Average pooling: take the average instead of the max (not used)
+2....
+
+
+* Batch size in CNNs explained
+
+The batch size is the number of samples that will be passed through to the network at one.
+
+- an epoch is one single pass all the way through a network
+
+  larger batch size  === faster training
+
+  - quality of model may degrade
+    - test and tune batch size

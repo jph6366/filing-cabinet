@@ -1,0 +1,250 @@
+#+title: Rnn
+
+* Intro to RNN
+
+- One great thing about RNNs is they offer flexibility on how we wire up the NN architecture
+
+  e.g.
+
+  Normally, working w/ NNs...
+  - we are given:
+    - a fixed size input vector
+    - then process it w/ hidden layers
+    - and produce a fixed sized output vector
+
+      _Vanilla NN_ recieve a single input and produce one label for that image
+      - there are tasks where the model produces a sequence of outputs
+
+*Recurrent Neural Networks* allow us to operate over sequences of input, output, or both at the same time
+1. *one-to-many* model
+   - given a fixed sized image
+     - and produce a sequence of words that describe the content of that image through RNN
+2. *many-to-one* task is action prediction where we look at a sequence of video frames instead of a single image
+   - and produce a label of what action was happening in the video
+     ... another example
+   sentiment classification in NLP
+   - where we are given a sequence of words of a sentence
+     - and then classify what sentiment (e.g. positive or negative)that sentence is
+3. *many-to-many* task is video-captioning where the input is a sequence of video frames
+   - and the output is caption that describes what was in the video
+     ... another example
+   machine translation in NLP
+   - where we can have an RNN
+     - that takes a sequence of words of a sentence in English
+       - and then this RNN is asked to produce a sequence of words of a sentence in French
+4. *variation of many-to-many* task where the model generates an output at every timestep
+   Video classification on a frame-level
+   - where the model classifies every single frame of video w/ some numbers of classes
+     Note: we don't want this prediction to only be a function of the current timestep
+     (current frame of the video), but also all the timesteps (frames) that have come before this video.
+
+
+_RNNs allows us to wire up an architecture, where the prediction at every single timestep is a function of all the timesteps that have come before_
+
+/What about convnets/?
+
+- the existing convnets are insufficient to deal with tasks that have inputs and outputs w/ variable sequence lengths
+  - i.e. video captioning => inputs have varible number of frames (e.g. 10-min and 10-hr long video) and outputs are captions of variable length
+    - _ConvNets_ can only take in *inputs w/ a fixed size of width and height* and cannot generalize over inputs w/ differents sizes
+
+
+* Recurrent Neural Network
+- RNN is basically a blackbox
+  - where it has an internal state
+    - that is updated as a sequence is processed
+
+- At every timestep
+  - we feed in an input vector into RNN
+    - where it modifies that state
+      - as a function of what it receieves
+
+- When we tune RNN weights
+  - RNN will show different behaviors
+    - in terms of how its state
+      - evolves as it receives these inputs
+
+- We are interested in producing an output
+  - based on the RNN state
+    - so we produce these output vectors
+      - on top of the RNN (see Unrolled RNN)
+
+_if we unroll an RNN model_
+- there are inputs (e.g. video frame)
+  - at diff timesteps shown as:
+    $x_{1},...,x_{t}$
+- RNN at each timestep
+  - takes in two inputs
+    1. input frame $x_{i}$
+       1. and previous representation of what it seems so far (i.e. history)
+- To generate an output $y_{i}$
+  - and update it history
+    - which will get forward propagated over time
+- All the RNN blocks are the same blcok that share the same parameter
+  - but have different inputs and history at each timestep
+
+    _more precisely, RNN can be represented as a recurrence formula of some function $f_{W}$ w/ parameters W:_
+
+    $h_{t}=f_{W}(h_{t-1},x_{t})$
+
+- where every timestep recieves some prev state as a vector $h_{t-1}$ of prev iteration timestep t-1 and current input vector $x_{t}$
+  - to produce the current state as a vector $h_{t}$
+
+- fixed function $f_{W}$ w/ weights $W$ is applied at every single timestep and that allows us to use the RNN on sequences without having to commit to the size and the sequences because we apply the exact same function at every single timestep
+  - no matter how long the input or output sequences are
+
+- Vanilla RNN
+  - the network is a single hidden state *h*
+    - where we use a recurrence formula that basically tells us how we should update our hidden state as a function of prev hidden state $h_{t-1}$
+      - and the current input $x_{t}$
+    - we have weight matrices $W_{hh}$and$W_{xh}$
+      - where they will project both the hidden state $h_{t-1}$ from the prev timestep
+        - and current input $x_{t}$
+          - and then those are going to be summed and squished w/ tanh function
+            - to update the hidden state $h_{t}$ at timestep t
+
+          - This recurrence is telling us how *h* will change as a function of its history also the current input at this timestep
+
+        _predictions based on top of $h_{t}$ by using another matrix projection on top of the hidden state_
+
+
+
+* RNN example as a character-level language model
+
+- we will feed a sequence of characters into the RNN
+  - at every timestep
+    - we ask the RNN to predict the enxt character in the sequence
+    - The prediction of RNN will be in the form of score prediction of the characters
+      - in the vocabular for what RNN thinks should come next in the sequence that it has seen so far
+
+suppose training sequence of one string "hello"
+
+we have vocab $V \Epsilon {"h","e","l","l","o"}$
+of 4 characters in the entire dataset
+
+we attempt to get an RNN to learn to predict the next character in the sequence on this training data
+1. we feed in one character at a time into the RNN
+   /first "h" then "e" ... etc./
+2. all characters are encoded in a *one-hot vec*
+   - where only one unique bit of the vector is turned on for each unique character in the vocab
+3. Now use the recurrence formula at every timestep
+   /start with *h* as a vec of size 3 with all zeros/
+   /we end up with a 3-d reprsentation of the next hidden state *h* that basically at any point in time summarizes all the chars that come until then/
+
+4. as we apply recurrence at every timestep, were going to predict what should be the next char in the seqeunce at every timestep
+   - we have 4 chars in vocab V
+     - were going to _predict 4-d vec of logits_ at every timestep
+   /where RNN thinks that the next charcater is "h" is 1.0 likely to come next/
+   /"e" is 2.2 likely, "e" is --3.0 likely/
+   /"o" is 4.1 likely to come next/
+   /RNN incorrectly suggests "o" should come next/
+
+   _at every timestep we have a target for what next character should come in the sequence_
+   - therefore the error signal is backpropagated as a gradient of the loss function
+     - thru the connections
+   - As a loss fn we could choose to have a softmax classifier
+     - example, we just get all those losses flowing down from the top backwards
+       - to calculate the gradients on all the weight matrices
+         - to figure out how to shift the matrices so that the correct probabilities are coming out of the RNN
+Similar we can imagine how to scale up the training of the model over larger training dataset
+
+* Multilayer RNNs
+RNNs can be stacked together in multiple layers
+- gives more depth and empirically deeper architectures tend to work better
+
+example: 3 separate RNNs each with their own set of weights
+- 3 RNNs are stacked on top of each other
+  - so the input of the 2nd RNN is the vec of the hidden state vec of the 1st RNN
+- All stacked RNNs are trained jointly
+
+
+* Long-Short Term Memory LSTM
+we normally use LSTM over vanilla RNN
+
+** Vanilla RNN Gradient Flow and Vanishing Gradient problem
+an RNN block takes in input $x_{t}$
+- and prev hidden represenation $h_{t-1}$
+  - and learn a transformation
+    - which is passed thru *tanh*
+      - to produce the hidden representation $h_{t}$
+        - for the next time step and output $y_{t}$
+
+          $h_{t}=tanh(W_{hh}h_{t-1}+W_{xh}x_{t}$)
+
+        for backpropagation
+        - the output at the very last timestep
+          - affects the weights at very first time step
+        _the partial derivative of $h_{t}$ with respect to $h_{t-1}$ is written as:_
+
+        $\frac{\partial h_{t}}{\partial h_{t-1}}$ = $tanh(W_{hh}h_{t-1}+W_{xh}x_{t})W_{hh}$
+
+        we update the weights prev weights by getting the derivative of the loss at very last timestep $L_{t}$ w.r.t. to $W_{hh}$
+
+*Vanishing Gradient*: we see the right-hand side of the partial derivative of $h_{t}$ w.r.t. $h_{t-1}$
+- will almost always be less than 1 bc *tanh* is always between negative one and one
+  - thus as t gets larger (longer timesteps)
+    - the gradient will decrease in value and get close to zero
+_gradients at future time steps rarely impact gradients at the very first time step_
+ - problematic when modeling long sequence of inputs bc updates will be very slow
+
+*Removing non-linearity (tanh)*
+- if we remove non-linearity to solve vanishing gradient, we are left with ... see formula
+
+  - *exploding gradients*: if the largest singular value of W_{hh} is greater than 1
+    - then the gradients will blow up and the model will get very large gradients coming back from future timesteps
+      _often leads to getting gradients that NaNs_
+  - *Vanishing gradients* if the largest singular value of W_{hh} is smaller than 1
+    - then we will have siginficantly slow down learning
+
+
+**We can treat the exploding gradient problem through gradient clipping**, which is clipping large gradient values to *max threshold*
+
+LSTM was designed to avoid this problem where largest singular value of W_{hh} matrix is less than one
+
+** LSTM formulation
+- on step $t$, there is a hidden state $h_{t}$
+  - and a cell state $c_{t}$
+    - both $h_{t} c_{t}$ are vecs of size $n$
+- one distinction of LSTM is that it has an additional cell state
+  - and intuitively it can be thought as $c_{t}$ stores long-term information
+    /LSTM can read, erase, and write info to and from this $c_{t}$ cell/
+- LSTM alters $c_{t}$ cell is thru 3 special gates $i,f,o$
+  - input, forget, and output
+    - these values of these gates vary from close (0) to open (1)
+      - all vecs of size $n$
+- at every timestep, we have input vec $x_{t}$
+  - prev hidden state $h_{t-1}$
+  - prev cell state $c_{t-1}$
+  - and LSTM computes the next hidden state $h_{t}$, and next cell state $c_{t}$ at timestep t
+
+- Since all $f,i,o$ gate vec values range from 0 to 1
+  - bc they were squashed by sigmoid
+    - when multiplied element-wise
+      1. *forget gate* $f_{t}$ at time step t controls how much info needs to be removed from prev cell state $c_{t-1}$
+         - learns to discard hidden reprs from prev time steps
+           - which is why LSTM has 2 hidden reprs
+             - this $c_{t}$ will get propagated over time
+               - and learn whehter to forget the prev cell or not
+
+      2. *input gate* $i_{t}$ at time step t controls how much info needs to be added to the next cell state $c_{t}$ from prev hidden state $h_{t-1}$ and input $x_{t}$
+         - instead of *tanh*, the input of gate i has a sigmoid fn
+           - this serves as a switchm where values are either almost always zero or always one
+             - this input gate decides whether to take the RNN output
+               - that is produced by the gate g
+                 - and multiplies the output with input gate i
+
+      3. *output gate* $o_{t}$ at time step t controls how much infor needs to be shown as output in the current hidden state $h_{t}$
+
+
+_The key idea of LSTM is the cell state, the horizontal line running thru betwen recurrent timesteps_
+- you can imagine the cell state to be some kind of highway of info passing thru straight down the entire chain
+  - with some minor linear interactions
+
+- We can stack LSTMs together and get an unintterupted gradient flow
+  - where gradients flow back thru cell states instead of hidden states *h*
+    - without vanishing in every time step
+
+
+*This fixes the gradient vanish/explode problem*
+- gradient contains a vec of activations of "forget" gate
+  - allowing control of gradient values
+    - by using suitable parameter updates of "forget" gate

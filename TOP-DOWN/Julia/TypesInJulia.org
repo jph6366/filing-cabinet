@@ -1,0 +1,183 @@
+#+title: Types In Julia
+
+_static_ types where every program expression must have a type computable before the execution of the program.
+
+_dynamic_ types where nothing is known about types until run time, when the actual values manipulated by the program are available.
+
+- when types are omitted they are `Any` type
+
+- adding annotations serves three primary purposes
+  1. to take advantage of Juli'a powerful multiple dispatch
+     2. to improve human readability
+        3. to catch programmer errors
+
+
+**Julia's type system is dynamic, nominative, and parametric**
+
+- generic types can be parameterized
+- hierarchial relationships btwn types are explicitly declared
+  - rather than implied by compatible structure
+- concrete types may not subtype each other
+  - abstract types can be their supertype
+
+
+_All nodes are equally first-class as types_, that belongs to a single, fully connected type graph
+
+_There is no compile time type_, the only time a value has is its actual type when the program is running, this is called _run-time type_ where the combination of static compilation w/ polymorphism makes this distinction significant.
+
+_variables are bound to values_, values have types
+
+_abstract and concrete types can be parameterized by other types_
+- this can be parameterized by values of any type for which `isbits` returns true
+
+
+* Abstract Types
+
+Abstract types cannot be instantiated, and serve only as nodes in the type graph
+
+#+begin_src julia
+abstract type <<name>> end
+abstract type <<name>> <: <<supertype>> end
+#+end_src
+
+the `abstract type` keyword introduces a new abstract type, whose name is given
+-  the name is optionally followed `<:` and an already existing type, indicating that the newly declared abstract type is a subtype of this `parent` type
+  - the default supertype is `Any`
+
+- Julia has a predefined abstract "bottom" type, at the nadir of the type graph, the opposite of the Any is `Union{}`
+  - no object is an instance of Union{}
+    - and all types are supertypes of `Union{}`
+
+* Primitive Types
+
+"""
+it is always preferable to _wrap an existing primitive type in a new composite type_ than to define your own primitive type.
+
+this functionality exists to allow Julia to bootstrap the standard primitive types that LLVM supports. Once they are defined, there is very little reason to define more.
+"""
+
+A Primitive type is a concrete type whose data consists of plain old bits.
+- Julia lets you declare your own primitive types
+
+  #+begin_src julia
+primitive type <<name>> <<bits>> end
+primitive type <<name>> <: <<supertype>> <<bits>> end
+  #+end_src
+- the number of bits indicates the storage the type requires and the name gives the new type a name
+  - A primitive type can optionally be declared to be a subtype of some supertype
+    - supertype defaults to `Any`
+- Only sizes that are multiples of 8 bits are supported
+  - you will experience LLVM bugs with sizes other than that
+  - booleans cannot be smaller than 8 bits
+
+
+
+* Composite Types
+
+Composite types are called records, structs, or objects in various languages
+- A composite type is a collection of named fields
+  - an instance of which can be treated as a single value
+    - most commonly used user-defined type in Julia
+
+      "in C++ and Python composite types also have named functions associated with them, and the combination is called an object. In SmallTalk, all values are objects whether they are composites or not. In C++ and Java, some values, such as integers and floating-point values, are not objects, while instances of user-defined composite types are true objects with associated methods."
+
+      _In Julia, all values are objects, but functions are not bundled with the objects they operate on_
+      - this is necessary since Julia chooses which method of a function to use by _multiple dispatch_
+        - meaning that the types of all of a function's arguments are considerd when selecting a method, rather than just the first one
+          - it would be inappropiate for functions to belong only to their first argument
+            - organizing methods into function objects
+              - rather than having named bags of methods "inside" each object
+                - ends up being a highly beneficial aspect of the language design
+#+begin_src julia
+struct Foo
+    bar
+    baz::Int
+    qux::Float64
+end
+foo = Foo("Hello, world.", 23, 1.5)
+typeof(foo) # Foo
+fieldnames(Foo)
+# (:bar, :baz, :qux)
+foo.bar # "Hello, world"
+#+end_src
+
+**when a type is applied like a function, two constructors are generated automatically**
+- these are default constructors
+  1. One accepts `Any` arguments can calls `convert` to convert them to the types of the fields
+  2. The other accepts arguments that match the field types exactly
+
+
+_Composite objects declared with struct are /immutable/; they cannot be modified after construction_
+1. some structs can be packed efficiently into arrays
+   - compiler can avoid allocating immutable objects entirely
+2. it is not possible to violate invariants provided by the type's constructor
+3. code using immutable objects can be easier to reason about
+
+   - immutable object might contain mutable objects
+     - contained objects will remain mutable
+     - only the fields of the immutable object itself cannot be changed to point to different objects
+
+_if all fields of an immutable struct are indistinguishable `===` then 2 immutable values containing those fields are also indistinguishable_
+#+begin_src julia
+struct X
+    a::Int
+    b::Float64
+end
+
+X(1, 2) === X(1, 2)
+true
+#+end_src
+
+For many user-defined types X, _you may want to define a method /Base.broadcastable(x::X) = Ref(x)/ so that instances of that type act as 0-dimensional "scalars" for broadcasting_
+
+
+* Parametric Types
+
+Types can take parameters, so that _type declarations actually introduce a whole family of new types - one for each possible combination of parameter values_
+
+**Generic Programming in ML, Haskell, C++, Java, C#, Scala**
+- ML Haskell Scala support true parametric polymorphism
+  - others support ad-hoc, template-based styles like C++ and Java
+
+    _Julia is dynamically-typed language and doesn't need to make all type decisions at compile time_
+    - All declared types `DataType` can be parameterized
+      - parametric composite types
+        #+begin_src julia
+struct Point{T}
+    x::T
+    Y::T
+end
+
+Point{Float64} <: Point{Int64}
+# false
+Float64 <: Real
+# true
+Point{Float64} <: Point{Int64}
+# false
+        #+end_src
+      - parametric abstract types
+        #+begin_src julia
+abstract type Pointy{T} end
+Pointy{Int64} <: Pointy
+# true
+ Pointy{Real} <: Pointy{Float64}
+# false
+ Pointy{Float64} <: Pointy{<:Real}
+# true
+struct Point{T} <: Pointy{T}
+    x::T
+    y::T
+end
+
+Point{Float64} <: Pointy{Float64}
+Point{Float64} <: Pointy{<:Real}
+
+abstract type Pointy{T<:Real} end
+
+struct Point{T<:Real} <: Pointy{T}
+    x::T
+    y::T
+end
+# true
+        #+end_src
+      - parametric primitive types

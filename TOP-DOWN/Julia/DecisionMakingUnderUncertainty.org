@@ -1,0 +1,57 @@
+#+title: Decision Making Under Uncertainty
+
+* POMDPs.jl
+_What are POMDPs_?
+- a problem formulation that enable optimal sequential decisions to be made in uncertain environments
+
+Were covering...
+- Sequential Decision Making
+  - /Markov decision processes/ (MDPs)
+  - /partially observable markov decision processes/ (POMDPs)
+- Solution Method === algos to solve MDP/POMDP
+  - /online and offline solvers/
+  - /value function approximation/
+- Simulations
+- State Estimation using Particle Filters
+- Deep Reinforcement Learning
+- Imitation Learning
+- Black-box Validation
+
+_Common problems_
+- MDP: Grid World -- Agent moving around a grid world, looking for rewards
+- POMDP: Crying Baby -- when to feed baby based on crying observations
+- MDP: 1D Random Walk -- Agent moves around number line
+- POMDP: 2D Random Walk -- estimating state of a moving agent based on observations
+- MDP: Mountain Car -- Reach a goal up a hill, starting in a valley
+- MDP: Swinging Pendulum -- Balance a swinging pendulum upright
+
+
+** Markov decision process
+MDP is a /problem formulation/ that defines how an agent takes /sequential actions/ from /states/ in its environment, guided by /rewards/--using uncertainty in how it /transitions/ from state to state
+
+- formally is defined by:
+
+  $S, A, T, R, \gamma$
+  S - State Space - `POMDPs.states`
+  A - Action Space - `POMDPs.actions`
+  T(s'|s,a) - Transition function - `POMDPs.transition`
+  R(s,a) - Reward function - `POMDPs.reward`
+  $\gamma \epsilon [0,1]$ - Discount factor - `POMDPs.discount`
+
+_Note: Remember! a MDP is problem formulation and not an algo_
+- an MDP formulation enables the use of solution methods, i.e. algos
+
+*** MDP Example: Grid World
+ - In grid world, an agent moves around a grid attempting to collect as much reward as possible, avoiding negative rewards
+ _Defn_: State space *S*
+ - a set of all possible /states/ an agent can be in (discrete or continuous)
+   e.g. all possible (x,y) cells in a 10x10 grid (i.e. 100 discrete states)
+_Defn_: Action space *A*
+ - four (discrete) cardinal directions [up, down, left, right]
+_Defn_: Transition function/model *T(s'|s,a)*
+ - defines hwo the agent /transitions/ from the current state *s* to the next state *s'* when taking action *a*
+   - returns a /probability distribution/ over all possible next states *s'* given (s,a)
+     e.g. Stochastic transition (incorporates randomness/uncertainty)
+     - Action a = up from state s
+       70% chance of transitioning correctly
+       30% chances (10% x 3) of transitioning incorrectly

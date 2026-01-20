@@ -1,0 +1,103 @@
+#+title: Modern Julia Workflows
+
+* Principles
+- the compiler's job is to optimize and translate Julia code into runnable machine code
+
+ **If a variable's type cannot be deduced before the code is run, then the compiler won't generate efficient code to handle that variable**
+
+ - enabling type inference means making sure that every variable's type in every function can be deduced from the types of the function inputs alone
+
+ **An allocation occurs when we create a new variable without knowing how much space it will require**
+
+ - Julia has a mark-and-sweep garbage collector, which runs periodically during code execution to free up space on the heap
+   - execution of code is stopped while the gc runs, _so minimising its usage is important_
+
+
+* Measurements
+- the simplest way to measure code is to use `@time` macro
+#+begin_src julia
+sumabs(vec) = sum(abs(x) for x in vec)
+v = rand(100)
+
+using BenchmarkTools
+@time sumabs(v)
+@time sumbas(v) # JIT
+#+end_src
+- it only measures your function once
+* Chairmarks
+-  fast benchmarking toolkit
+  #+begin_src julia
+using Chairmarks
+@b sumabs(v) # benchmark, runs code multiple times and provides min execution time
+@be sumabs(v) # also runs benchmark and outputs stats
+#supports pipeline syntax
+@be v sumabs
+
+my_matmul(A, b) = A * b;
+@be (A=rand(1000,1000), b=rand(1000)) my_matmul(_.A, _.b) seconds=1
+  #+end_src
+- PrettyChairmarks.jl shows performance histograms alongside numerical results
+* Profiling
+- Profiling identifies performance bottlenecks at function level
+** Sampling
+- sampling-based profilers periodically ask the program which line it is currently executing, and aggregate results by line or func.
+  1. Profile (runtime)
+  2. Profile.Allocs (memory)
+- ProfileView and PProf both use flame graphs
+  - ProfileSVG or ProfileCanvas for Jupyter Notebook
+
+* Type Stability
+- the simplest way to detect an instability is with `@code_warntype`
+  - the output is hard to parse, but `Body` is the main takeaway
+    #+begin_src julia
+@code_warntype sumabs(v)
+MethodInstance for sumabs(::Vector{Float64})
+  from sumabs(vec) @ Main REPL[4]:1
+Arguments
+  #self#::Core.Const(Main.sumabs)
+  vec::Vector{Float64}
+Locals
+  #1::var"#1#2"
+Body::Float64
+1 ─ %1 = Main.sum::Core.Const(sum)
+│   %2 = Main.:(var"#1#2")::Core.Const(var"#1#2")
+│        (#1 = %new(%2))
+│   %4 = #1::Core.Const(var"#1#2"())
+│   %5 = Base.Generator(%4, vec)::Base.Generator{Vector{Float64}, var"#1#2"}
+│   %6 = (%1)(%5)::Float64
+└──      return %6
+
+    #+end_src
+   **@code_warntype is limited to one func body: calls to other funcs are not expanded**
+
+   _JET.jl provides optimization analysis aimed primarily at finding type instabilities_
+
+   #+begin_src julia
+  using JET
+
+  @report_opt sumabs(v)
+   #+end_src
+- Cthulhu.jl exposes `@descend` macro which can be used to step through lines of typed code, and particular line if needed
+
+- DispatchDoctor.jl allows an approach to error whenever type instability occurs
+  - the macro `@stable`
+
+* Memory Management
+- modify existing arrays instead allocating new objects and try to access arrays in the right order (column major).
+  - AllocCheck.jl annotates a function with `@check_allocs`
+    - compiler detects that it might allocate, it will throw error
+
+* Compilation
+
+- _PrecompileTools_ reduces amount of time taken to run funcs loaded from a package or local module that you wrote
+  - to see if intended calls were compiled correctly or diagnose other problems
+    - use _SnoopCompile.jl_
+- To reduce the time that package take to load
+  - use _PackageCompiler.jl_ to generate custom version of Julia, called a sysimage
+    - with its own standard library
+      - filetype of sysimage_path differs by OS
+       #+begin_src julia
+packages_to_compile = ["Makie", "DifferentialEquations"]
+create_sysimage(packages_to_compile; sysimage_path="MySysimage.so")
+       #+end_src
+       - Once a sysimage is generated, it can be used with the command line flag: julia --sysimage=path/to/sysimage.

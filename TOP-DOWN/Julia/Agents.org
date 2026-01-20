@@ -1,0 +1,15 @@
+#+title: Agents
+
+** Guide w/ examples of multi AI agent systems
+
+Agent ~= Performs specific tasks and makes decisions based on its environment
+
+Agents are focused on taking action, navigating and interacting with objects, and making decisions based on perception
+
+An agent framework offers a structured environment that allows for orchestration of agent activities, defining roles and policies, and collaboration
+
+Multi-agent systems is the efficient allocation of tasks to the most suitable agents and managing shared resources effectively
+- providing dynamic procedures for task allocation, resource allocation, and troubleshooting
+
+
+There is component-based structures and role-based structure for the reuse of agent modules across various projects
