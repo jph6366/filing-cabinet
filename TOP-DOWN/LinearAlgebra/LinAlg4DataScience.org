@@ -1,0 +1,106 @@
+#+title: Lin Alg4data Science
+
+* Linear Algebra in R
+
+** Vectors
+- use the rep() command to create vectors
+  - that repeats the same element a specified number of times
+- use seq() command to create vector that follow a specified pattern
+- vectors are also manually created by c() command (cocatenate)
+- vectors can be scaled via multiplication, and more
+  - matrices can be created using the matrix() command
+#+begin_src r
+# Creating three 3's and four 4's, respectively
+rep(3, 3)
+rep(4, 4)
+
+# Creating a vector with the first three even numbers and the first three odd numbers
+seq(2, 6, by = 2)
+seq(1, 5, by = 2)
+
+# Re-creating the previous four vectors using the 'c' command
+c(3, 3, 3)
+c(4, 4, 4, 4)
+
+c(2, 4, 6)
+c(1, 3, 5)
+
+# Add x to y and print
+print(x + y)
+
+# Multiply z by 2 and print
+print(2 / z)
+
+# Multiply x and y by each other and print
+print(x * y)
+
+# Add x to z, if possible, and print
+print(x + z)
+#+end_src
+* Linear Algebra in Julia
+
+** Vectors
+- vectors in julia are represented by one-dimensional `Array` objects
+  - constructed by giving the list of elements`[ x, y, z ]`
+    - assignment operator `=` is used to give a name to the array
+- specific elements are retrieved by the expressions x[i]
+  - special index `end` refers to the last index
+_assignment versus copying_
+- this expression `y = x` gives a new name `y`
+  - to the same array already referenced by `x`
+  - it does not create a new copy of `x`
+- to create a new copy of an array use `copy`
+- equality of vectors is checked using relation operator `==`
+_scalars versus 1-vectors_
+- we consider a 1-vector to be the same as a number
+  - in Julia 1-vectors are not the same as scalars/numbers
+_block or stacked vectors_
+- construct a block using `vcat` or the semicolon operator
+_subvectors and slicing_
+- expression `r:s` denotes the index range $r,r+1,...s$
+  - we use $x_{r:s}$ to denote the slice of vector x from index r to s
+- one can use a third argument to specify the stride, which is the increment/pattern
+  - see example representing below mathematical notation for _vector of first diffs_
+    $d_{i} = x_{i+1} - x_{i}$ for $i=1,...,n-1$
+_list of vectors_
+- an ordered list of n-vecs can be denoted:
+  $a_{1},...a_{k}$ or $a^{1},...,a^{k}$
+
+$e_i$ the ith unit vector of length n
+$1_{n}$ or just 1
+
+_random vectors_
+- it is useful to genrate random vecs to test an identity or some algo
+  - `rand(n)` generates a random vector of length n with entries that are between 0 and 1
+  - `randn(n)` the extra `n` is for normal, gives an n-vector with entries that come from a *Gaussian distribution*, can be positive or negative
+    - with typical values on the order of one
+      #+begin_src julia
+  x = [-1.0, 0.0, 3.6, -7.2]
+  length(x)
+  y = [-1.1; 0.0; 3.5; -7.2]
+  length(y)
+  x[end]
+  x[1] = 4.0;
+  y = x
+  y[1] = 2.0;
+  y = copy(x);
+  y == x # true
+  x = [ 1.3 ] # 1-vector
+  x = [1, -2]; y = [1, 1, 0];
+  z = [x;y] # concatenate
+  z = vcat(x,y)
+  y = x[2:4]
+  x[4:5] = [2,3]
+  x[1:3:5]
+  y[end:-1:1] # index range runs backwards
+  d = x[2:end] - x[1:end-1] # (n-1)-vector
+  [x, y, z] # array of arrays
+  [x;y;z]# array of numbers obtained thru concatenation
+  zeros(3) # zero vector length 3
+  ei = zeros(4)
+  ei[2] = 1
+  unitvec(i,n) = [zeros(i-1); 1 ; zeros(n-i)]
+  ones(2) # ones vectors
+  rand(2)
+  randn(2)
+       #+end_src

@@ -1,0 +1,274 @@
+#+title: Statistics For Research
+
+* _Basic Statistical Procedure_
+- **data analysis or descriptive statistics**
+  - using statistics to describes the output of an experiment
+- **inferential statistics**
+  - using statistics to sample a population
+- _Inferential Statistics_: the science of using /probability/ to make decisions
+
+  ⚠ reviewing four probability rules
+  1. simple probability
+  2. mutually exclusive events
+  3. independent events
+  4. conditional probability
+
+- the probability of a success is found by the follow probability rule:
+     $probability of success = \frac{number of successful outcomes}{total number of outcomes}$
+
+     In symbols
+     $P(success)=P(S)=\frac{n_{s}}{N}$
+     where $n_{s}$ is the number of outcomes in the event designated as success and $N$ is the total number of possible outcomes
+
+_Simple Probability Rule for Equally Likely Outcomes_
+
+There is a similarity between **simple probability** experimenting with a _discrete number of equally likely outcomes_ and computing probabilities for _continuous variables_ for which there is a distribution curve for measures of this variables:
+
+$P(success)=$ _area under the curve where the measure is called a success_
+                   total area under the curve
+
+e.g.
+
+$P(success)=$ _area in the third quadrant_ = _90_ = _1_
+                   total area                     360    4
+
+- geometry is needed to calculate probabilities for a /uniform distribution/
+
+**mutually exclusive events** exclude the possibility of another
+
+if a success is any of $k$ mutually exclusive events $E_{1},E_{2},...,E_{k}$ ,then the addition rule for /mutually exclusive events/ is $P(success)=P(E_{1})+P(E_{2})+...+P(E_{k})$
+
+e.g.
+$P(success)=(\frac{1}{36})+(\frac{1}{36})+(\frac{1}{36})+(\frac{1}{36})+(\frac{1}{36})+(\frac{1}{36}) = \frac{6}{36} = \frac{1}{6}$
+
+
+_Addition Rule for Mutually Exclusive Events_
+....
+
+
+
+* Distribution of Two Variables
+
+** Simple Linear Regression
+It is possible to consider more than one random variable associated with a given population.
+
+given a pair of variables x and y.
+"How do changes in 'x' affect the value of 'y'?"
+
+- the simplest model of a relationship is a straight line
+  - if a straight-line model is appropriate...
+    - the line is called the _regression line_
+      - and we say that we are regressing 'y' on 'x'
+    - this _type of regression_ is called **simple linear regression**
+      - simple indicates the model is a straight-line
+
+When dealing with pairs of variables...
+- one is usually unable to measure all possible members of the population
+  - given single-variable case, this is resolved by using a random sample
+    - to make inference about the population
+  - the same can be done for pairs of variables
+    - see if the straight-line fits the data
+_Regression is used to fit a straight-line to such data in a unique way so that the line can be used to predict trends between pairs of variables_
+- simple linear regression must include a method for determining whether or not a straight-line is the appropriate model for a given a set of data
+  - it is natural to use this model as a preliminary analysis which may be close enough to a true relationship with a more complex analysis
+    - sometimes it will be a very poor model of the relationship
+
+Investigator taking a random sample...
+1. graph the scatter diagram
+   - used to identify a model for the relationship between variables, if there is one
+- Even if the relationship is linear, not all the points will lie exactly on the line.
+  _the model is of the form_:
+  $f(x)=\alpha+\beta x+\varepsilon$
+
+  _the regression line is given by the function_:
+  $f(x)=\alpha+\beta x$
+
+  in which $\alpha$ is the $y$ intercept and $\beta$ is the slope
+  - the change in 'y' per unit increase in 'x'
+the term $\varepsilon$ indicates the vertical deviation of a particular point from the line
+- the line represents the mean 'y' response at a given 'x' value
+  - individuals will deviate form the mean response due to _random variability_
+
+- if the relationship is linear, now one must find the equation of the line.
+
+  Approximating the true regression line is solved using the /least-squares trend line/, also called the **sample regression line**
+  - the least-squares trend line is that unique line
+    - for which the sum of the squares of the vertical distances of the sample points from the line is as small as possible
+      _Assume the least-squares lie is of the form_:
+
+      $\hat{y}=a+bx$
+
+      in which $a$ is the $y$ intercept and $b$ is the slope.
+      _Minimize the function_:
+
+      $f(a,b)=\sum(y-\hat{y})^{2}$
+
+      in which $y$ is an observed value and $\hat{y}$ is the value predicted by the line for corresponding $x$.
+      - we find $a$ and $b$ such that this sum is as small as possible
+        - using calculus and leads to two simultaneous equations called the **normal equations**:
+
+          $an + b \sum x = \sum y$
+
+          $a\sum x+b\sum x^{2}= \sum xy$
+
+          Solving these two equations simultaneously, the slope is
+
+          $b=\frac{\sum xy - (\sum x)(\sum y)/n}{\sum x^{2} - (\sum x)^{2}/n}$
+          and
+
+          $a=\bar{y}-b\bar{x}$
+
+          the denominator of the slope should be familiar;
+          - it is similar to the comptutational form for the sum of squared deviations that appears in a sample variance
+
+             $\sum (x-\bar{x})^{2} = \sum x^{2} - (\sum x)^{2} / n$
+
+            the numerator of the slope can be shown to be a sum of products:
+
+            $\sum (x-\bar{x})(y-\bar{y})=\sum xy - (\sum x)(\sum y)/n$
+
+            because expressions of this type are used so frequently in regression, it is convenient to use some brief symbols to represent them...
+
+            $S_{xx}=\sum (x-\bar{x})^{2} = \sum x^{2} - (\sum x)^{2} / n$
+            and
+            $S_{xy}=\sum (x-\bar{x})(y-\bar{y})=\sum xy - (\sum x)(\sum y)/n$
+
+            for the sum of the squared $x$ deviations and for the sum of the products of deviations.
+            Then the estimated slope is
+
+            $b = \frac{S_{xy}}{S_{xx}}$
+
+            the least squares line has the property containin the point $(\bar{x}\bar{y})$ in which $\bar{x}$ is the sample average of the $x$ values and $\bar{y}$ is the sample average of the $y$ values
+
+            - the line can be determined once we know its slope...
+
+              e.g.
+
+              $\hat{y}=3.6+0.8x$
+
+              - the slope indicates that as x increases one unit y increases 0.8 units
+
+                since two points determine a unique straight line,
+                - the least-squares trend line can now be drawn...
+                  - the y intercept can be found from the formula:
+
+                  $a = \bar{y}-b\bar{x}$
+                     $= 6-0.8(3)$
+                     $=3.6$
+
+
+                Thus the equation of the line
+
+                $\hat{y}=3.6+0.8x$
+                This is the sample regression line, and assuming that its a proper model for the investigation/experiment
+                _it is used to predict y for a given x_
+                - extrapolation outside the range of the x variable is not reliable since the relationship may not be a linear in other regions
+
+                - If $b$ is close to zero; it may be approximating a true slope of
+                $\beta = 0$
+                 - _A slope of $\beta = 0$ indicates that..._
+                   - there is no relationship between x and y
+                     - OR
+                   - that the y means have a constant value
+                     - OR
+                   - it could indicate a non-linear relationship
+                     - not all nonlinear relationships have $\beta = 0$
+                 - _If x and y are linearly related and increase together_
+                   - then $b$ approximates $\beta > 0$
+                 - _If y decreases as x increases_
+                   - then $b$ approximates $\beta <0$
+
+                _the magnitude of the slope cannot be used as a measure of the strength of the linear relationship_
+                - A measurement used to express the degree of association between x and y is the **correlation coefficient**
+
+** Model Testing
+
+- the **least-squares line** can always be computed for any set of two or more points with $x$ values
+
+        For reasonable prediction:
+  1. the straight-line model fits the data
+  2. the straight line being estimated is not horizontal ($\beta \ne 0$)
+     - that is the regression line is a better predictor of $y$ than $\bar{y}$
+
+
+- To be more precise as one speaks of a regression line being a model for certain research situation.
+  - Two variables x, y meet the conditions for the _regression of y on x if_:
+
+    1. the $x$ values are fixed by the experimenter and are measured with negligible error.
+    2. for each $x$ value there is a normal distribution of $y$ values
+    3. the distribution of $y$ for each $x$ has the same variance, symbolized as $\sigma^{2}_{y-x}$
+       - and read as the _variance of y independent of x_ to indicate that the variance around the trend line is the same irrespective of the value $x$
+    4. the expected values of $y$ for each $x$ lie on a straight line.
+
+       _The variables satisfy the model_:
+
+       $y=\alpha+\beta x+ \varepsilon$
+
+        in which the $\varepsilon$'s are normally distributed with a mean of zero and a variance of $\sigma^{2}_{y-x}$ and the $\varepsilon$'s are independent of the $x$'s and independent of each other.
+
+       - One way to test for violations of these assumptions is by an examination of the residuals $y-\hat{y}=e$ that result from fitting the least-squares line to the sample data
+
+         - Since the $e$'s estimate the $\varepsilon$'s in the model, to check for normality, an overall plot of the residuals can be drawn as a dot diagram
+         - Linearity can be checked by plotting the residuals $e$ against the predicted values $\hat{y}$
+           - _A linear relationship_ is reflected in a random scatter about a horizontal line $e = 0$
+           - _If the relationship is nonlinear_, it usually results in systematic plot that has the some pattern
+             - a systematic pattern could also indicate that another independent variables is affecting $y$
+
+        **the regression model assumes independence of the $\varepsilon$'s. This means that the random error in one observation does not affect the random error in another observation.**
+        - when this assumption is violated
+          _if the observations have a natural sequence in time or space, the lack of independence is called /autocorrelation/ ._
+
+
+        *Autocorrelation* may occur for several reasons
+        - the dependent variable may follow... e,g, economic trends, uncalibrated instrument, ... etc.
+        - Diagnosis is difficult
+          - but this type of dependence can sometimes be detected by plotting the residuals against the time order or the spatial order of the observations
+
+        _Important steps for regression analysis_
+        1. visual inspection of the original scatter diagram and varous residual plots.
+           1. if the diagrams reveal any departures from the assumptions required for regression
+              - a different model may be necessary, or a transformation can be used on the data before the analysis
+        2. if inspection meets assumptions, there is a statistical test
+           - that can be performed to see if there is a significant lack of fit with a straight line
+             - repeated observations are necessary at each x value to carry out such a test
+
+        3. if a straight line seems to be a reasonable model, then determine that the line is not horizontal
+           - a horizontal line indicates that x does not make a significant contribution to the prediction of y
+             - there is no linear relationship
+
+               $H_{0}:\beta = 0$
+               in which $\beta$ is the slope of the population regression line
+               - rejection of this hypothesis is evidence
+                 - that the line explains a significant portion of the variability in y
+               - acceptance of this hypothesis means that there is no advantage to considering the values of x as we attempt to predict y
+
+        the test statistic _t-statistic_ in which b is the estimator of the parameter $\beta$
+        - To estimate the standard error of the estimator b for the denominator of the t test, we first must consider the variance of the y values about _sample regression line_
+
+          - We use the residuals and compute the sum of the squared residuals
+            - and then we divide this sum by the degrees of freedom that are n - 2
+              - for _simple linear regression_
+                - thus a minimum of 3 points is required for this test
+
+        _why n - 2 rather than then n -1 when computing the variance around the sample mean_?
+
+        the sample trend line:
+
+        $\hat{y}=a+bx$
+
+        the sum of squared deviations around the trend line:
+
+        $\sum(y-\hat{y})^{2}=\sum(y-a-bx)^{2}$
+
+        a and b, are estimates of $\alpha$ and $\beta$ , the two parameters of the straight line
+        - we subtracts a degrees of freedom for each parameter we estimate
+
+        the variance of the data points about $\bar{y}$ in contrast to $s^{2}_{y-x}$, the variance about the trend line and is the variance in y independent of x
+        - the standard error of $b$ is shown to be:
+
+          $\frac{S_{y-x}}{\sqrt{S_{xx}}}$
+
+          and the /t-statistic/ for a test of $H_{0}: \beta = 0$ is
+
+          $t = \frac{b-\beta_{0}}{S_{y-x}/\sqrt{S_{xx}}}$
+          with n - 2 degrees of freedom

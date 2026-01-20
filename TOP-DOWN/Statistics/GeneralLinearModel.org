@@ -1,0 +1,122 @@
+#+title: General Linear Model
+
+* Intro to GLM
+- the "workhorse of statistical methods"
+  - we start with models that use
+    - single quantitative predictors
+    - two quantitative predictors
+    - single categorical predictors
+    - predictor sets of a single categorical
+    - predictor sets of a single quantitative predictor
+
+_objective_
+- the **least-squares** principle for estimation
+- structure data into *matrix/vector* formulation for computation of estimate
+- differentiate structure and philosophy of means, baseline, and effects parameterization for categorical predictors
+- interpret parameter estimates in the following scenarios:
+  - single quantitative predictor
+  - single categorical predictor
+  - additive structure for predictor set of two quantitative predictors
+  - interaction structure for predictor set of two quantitative predictors
+  - additive structure for predictor set of one quantitative and one categorical predictor
+  - interaction structure for predictor set of one quantitative and one categorical predictor
+- Construct model estimates using *PROC GLM* and *PROC REG*
+
+
+
+
+* Bivariate Linear Regression Models
+
+*Bivariate Linear Regression*: one quantitative value is modeled as a linear function of another quanitative value, allowing for random error to be included.
+- if $y$ represents the response variable to be modeled, and $x$ the predictor variable, the bivariate linear model is:
+
+  $y=\beta_{0}+\beta_{1}x+\varepsilon$
+
+  - here $\varepsilon$ is a random error term and, under standard assumptions, is taken to be _normally distributed_ with a _mean of 0_, and a _standard deviation of $\sigma_{\varepsilon}$ (constant for all $x$ and $y$).
+    - since $\varepsilon$ has mean zero, it follows that $\beta_{0}+\beta_{1}x$ model mean of $y$ for any $x$
+      - the parameters then represent variations on their usual role in linear equations
+      - $\beta_{0}$, the intercept, is the mean value of $y$ when $x$ is zero
+      - $\beta_{1}$, the slope, is the average change in $y$ for a unit change in $x$
+
+Given sample data of the form $(x_{i},y_{i}), i = 1,2,...,n$,
+- the goal is to use the data to produce an estimate of the linear relationship
+
+  $\hat{y}_{i}=\hat{\beta}_{0} + \hat{\beta}_{1}x_{i}$
+
+No error term is included in the model estimate, here we are using the fact that the error term in the bivariate linear model equation has a zero mean to model $\hat{y}_{i}$, as the mean value of $y$ at $x_{i}$.
+- in order to produce estimates for the parameters
+  - a criterion must be chosen for what determines a good estimator
+
+
+
+
+
+
+* The Least-Squares Principle
+
+the equation of the estimate of the linear relationship is expected to be close to the actual values...  $y_{i} - \hat{y}_{i}$ is small
+
+- this is a set of $n$ errors,
+  - and the mean of the error term of the bivariate linear model is zero,
+    - it seems reasonable to want to choose the estimator so that...
+      $\frac{1}{n}\sum\limits_{i=1}^{n}(y_{i} - \hat{y}_{i})=0$ ... this is not a sufficient condition to produce a good estimator, consider:
+
+   $\frac{1}{n}\sum\limits_{i=1}^{n}(y_{i} - \hat{y}_{i})=0$ ->
+      $\frac{1}{n}\sum\limits_{i=1}^{n}(y_{i} - (\hat{\beta_{0}}+\hat{\beta_{1}}x_{i}))=0$ ->
+        $\frac{1}{n}\sum\limits_{i=1}^{n}(y_{i} - (n\hat{\beta_{0}}+\hat{\beta_{1}}\sum\limits_{i=1}^{n}x_{i}))=0$ ->
+         $\frac{1}{n}\sum\limits_{i=1}^{n}(y_{i} = \frac{1}{n}n\hat{\beta_{0}}+\hat{\beta_{1}}\frac{1}{n}\sum\limits_{i=1}^{n}x_{i}$ ->
+                $\bar{y}=\hat{\beta_{0}}+\hat{\beta_{1}}\bar{x}$
+
+      so if $(\bar{x},\bar{y})$ is on the estimated line, the average error is zero
+      - this can include _very poor fits to the data_
+
+
+
+
+*The Least-Squares principle says:*
+- choose $\hat{\beta_{0}}$ and $\hat{\beta_{1}}$ to minimize:
+  $\sum\limits_{i=1}^{n}(y_{i}-\bar{y})^{2}$
+
+- This quantity can only be zero if the fit is exact
+  - all other cases produce a value greater than zero
+    - to derive the estimators, make a substitution for $\hat{y_{i}}$ estimate for the linear relationship and the estimator
+      - set partial derivatives with respect to $\hat{\beta_{0}}$ and $\hat{\beta_{1}}$
+        _the resulting estimators are_:
+
+        $\hat{\beta_{1}} = \frac{\sum\limits_{i=1}^{n}(x_{i}-\bar{x})(y_{i}-\bar{y})}{\sum\limits_{i=1}^{n}(x_{i}-\bar{x})^{2}}$
+        $\hat{\beta_{0}}=\bar{y}-\hat{\beta_{1}}\bar{x}$
+
+
+- the estimate for the slope is related to two general estimates
+  - of linear association
+  - of covariance
+  - of correlation
+
+    _the sample covariance_ $s_{xy}$, is given by:
+
+    $s_{xy}=\frac{\sum\limits_{i=1}{n}(x_{i}-\bar{x})(y_{i}-\bar{y})}{n-1}$
+
+    - and the correlation $r_{xy}$, scales the covariance by the standard devations in each of $x$ and $y$
+      ( restricts it to values between -1 and 1 ):
+
+      $r_{xy} = \frac{s_{xy}}{s_{x}s_{y}}$
+
+      - Also the least-squares slope estimate can also be written in terms of covariance, scaled by the variance of $x$:
+
+                $\hat{\beta_{1}}=\frac{s_{xy}}{s_{x}^{2}}$
+
+_Quandrants based on (x,y) centroid_
+- both positive (*I*)  $(x_{i}-\bar{x})$ and $(y_{i}-\bar{y})$ are both positive
+  - both negative (*III*) $(x_{i}-\bar{x})(y_{i}-\bar{y})$ is positive
+- if most of the points are in quandrants *II* and *IV*
+  - one of  $(x_{i}-\bar{x})$ and $(y_{i}-\bar{y})$ is positive and the other is negative
+  - $(x_{i}-\bar{x})(y_{i}-\bar{y})$ is negative and $s_{xy}$  has a non-trivial value
+    - And either of those two caes, more points farther away from the centroid increase the size of $s_{xy}$
+
+- if the points are more equally distributed among the four quadrants $s_{xy}$ will be close to zero
+  - $s_{xy}$ is a crude estimate of the linear relationship in the data
+    - because it is not independent of the units of measure for x and y
+
+        **Correlation scales by the variability of both $x$ and $y$, and thus has no units, remaining unchanged after unit conversions in  $x$ or $y$ or both**
+
+the least squares slope esitmate $\hat{\beta_{1}}$, scales $s_{xy}$ so that its units are ratio of the y and x units (slope). When its multiplied by a value of x in the equation, the units of y are produced, also if $s_{xy}$ is thought of as measuring how much the data rises or falls in a linear fashion, and $s_{x}^{2}$ measures the spread on x, then this estimate has a link to typical rise/run heuristic for the slope.
