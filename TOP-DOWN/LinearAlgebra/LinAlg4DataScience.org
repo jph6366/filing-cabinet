@@ -1,4 +1,5 @@
 #+title: Lin Alg4data Science
+* Linear Algebra 4 Data Science
 
 * Linear Algebra in R
 
@@ -9,6 +10,8 @@
 - vectors are also manually created by c() command (cocatenate)
 - vectors can be scaled via multiplication, and more
   - matrices can be created using the matrix() command
+- matrices can be viewed as a way to transform collections of vectors into other vectors
+  - Multiplication of a vector by a matrix is accomplished using the %*% command
 #+begin_src r
 # Creating three 3's and four 4's, respectively
 rep(3, 3)
@@ -36,6 +39,24 @@ print(x * y)
 
 # Add x to z, if possible, and print
 print(x + z)
+
+# Multiply A by b
+A %*% b
+
+# Multiply B by b
+B %*% b
+
+# Multiply A by B
+A%*%B
+
+# Multiply A on the right of B
+B%*%A
+
+# Multiply the product of A and B by the vector b
+A%*%B%*%b
+
+# Multiply A on the right of B, and then by the vector b
+B%*%A%*%b
 #+end_src
 * Linear Algebra in Julia
 
@@ -74,33 +95,137 @@ _random vectors_
   - `rand(n)` generates a random vector of length n with entries that are between 0 and 1
   - `randn(n)` the extra `n` is for normal, gives an n-vector with entries that come from a *Gaussian distribution*, can be positive or negative
     - with typical values on the order of one
-      #+begin_src julia
-  x = [-1.0, 0.0, 3.6, -7.2]
-  length(x)
-  y = [-1.1; 0.0; 3.5; -7.2]
-  length(y)
-  x[end]
-  x[1] = 4.0;
-  y = x
-  y[1] = 2.0;
-  y = copy(x);
-  y == x # true
-  x = [ 1.3 ] # 1-vector
-  x = [1, -2]; y = [1, 1, 0];
-  z = [x;y] # concatenate
-  z = vcat(x,y)
-  y = x[2:4]
-  x[4:5] = [2,3]
-  x[1:3:5]
-  y[end:-1:1] # index range runs backwards
-  d = x[2:end] - x[1:end-1] # (n-1)-vector
-  [x, y, z] # array of arrays
-  [x;y;z]# array of numbers obtained thru concatenation
-  zeros(3) # zero vector length 3
-  ei = zeros(4)
-  ei[2] = 1
-  unitvec(i,n) = [zeros(i-1); 1 ; zeros(n-i)]
-  ones(2) # ones vectors
-  rand(2)
-  randn(2)
-       #+end_src
+
+_scalar vector multiplication_: if a is a number and x is a vector...
+- you express the scalar-vector product either as a*x or x*a
+  - also for scalar-vec divsion a/x or x\a
+  **Julia actually allows to write `2.0x` fir `2.0*x`**
+  - because variable names cannot start with a number
+_scalar vector addition_: you can add a scalar a and a vector x using `x .+ a`
+- the dot precedes the plus symbol tells julia to operate elementwise
+
+_elementwise operations with a scalar_
+- We can also use the period notation with a function that has a name, to let
+Julia know that the function should be applied elementwise
+- You can combine this with Julia’s slicing to extract the subvector of entries that
+satisfy some logical condition
+- Dot notation works with assignment too, allowing you to assign multiple entries
+of a vector to a scalar value
+
+_inner product_ of n-vectors x and y is denoted as $x^{T}y$
+- denoted as `x'*y`
+
+_floating-point operations_
+- for any two numbers a and b we have $(a+b)(a-b)=a^{2}-b^{2}$
+  - a computer contains small rounding off floating point errors
+
+_complexity_ use `@time` to measure in microseconds
+- make sure to run the command a bunch of times for accurate measures
+  - also subsequent runs are faster
+
+_sparse vectors_ - the `SparseArrays` pkg is used for creating and manipulating sparse vectors
+- create a sparse vector from lists of indices and values using `sparsevec`
+  - or create zeros `spzeros(n)`
+  - sparse vec can be created using `sparse(x)`
+    - which returns a sparse version of x
+  - `nnz(x)` gives the number of nonzero elements of a sparse vector
+        #+begin_src julia
+    x = [-1.0, 0.0, 3.6, -7.2]
+    length(x)
+    y = [-1.1; 0.0; 3.5; -7.2]
+    length(y)
+    x[end]
+    x[1] = 4.0;
+    y = x
+    y[1] = 2.0;
+    y = copy(x);
+    y == x # true
+    x = [ 1.3 ] # 1-vector
+    x = [1, -2]; y = [1, 1, 0];
+    z = [x;y] # concatenate
+    z = vcat(x,y)
+    y = x[2:4]
+    x[4:5] = [2,3]
+    x[1:3:5]
+    y[end:-1:1] # index range runs backwards
+    d = x[2:end] - x[1:end-1] # (n-1)-vector
+    [x, y, z] # array of arrays
+    [x;y;z]# array of numbers obtained thru concatenation
+    zeros(3) # zero vector length 3
+    ei = zeros(4)
+    ei[2] = 1
+    unitvec(i,n) = [zeros(i-1); 1 ; zeros(n-i)]
+    ones(2) # ones vectors
+    rand(2)
+    randn(2)
+  # if x and y are vectors of the same size...
+  #    `x+y` or `x-y` give their sum of difference, respectively
+  [ 0, 7, 3 ] + [ 1, 2, 0 ] # Vector addition
+
+  x = [ 0, 2, -1 ]
+  2.2 * x # Scalar-vector multiplication
+  3 \ x # Scalar-vector division
+  [ 1.1, -3.7, 0.3 ] .- 1.4 # Vector-scalar subtraction
+
+  p_initial = [ 22.15, 89.32, 56.77 ];
+  p_final = [ 23.05, 87.32, 57.13 ];
+  r = (p_final - p_initial) ./ p_initial
+
+  w = [1,2,2]; z = [1,2,3];
+  w == z
+  # false
+  w .== z
+  #3-element BitVector:
+  #1
+  #1
+  #0
+
+  x[abs.(x) .> 1] # gives subvector of x
+  # consisting of the entries larger than one in magnitude
+  x = rand(4)
+  x[1:2] = [-1,1]
+  x[2:3] .= 1.3;
+
+  a = [1,2]; b = [3,4];
+  α = -0.5; β = 1.5;
+  c = α*a + β*b
+
+  # function that takes a list of coeffs and a list of vecs as its arguments
+  function lincomb(coeff, vectors)
+      # returns the linear combintation as tuples or arrays
+      return sum( coeff[i] * vectors[i] for i = 1:length(vectors) )
+  end
+
+  a = rand(3); b = rand(n);
+  β = randn() # random scalar
+  lhs = β*(a+b)
+  rhs = β*a + β*b
+  # lhs and rhs might not be exactly the same
+  # small round-off errors in fp-computations
+
+  x = [ -1, 2, 2 ];
+  y = [ 1, 0, -3 ];
+  x'*y
+
+  # Net present value (NPV) of a cash flow vector `c`
+  # with per-period interest rate `r`
+  c = [ 0.1, 0.1, 0.1, 1.1 ]; # Cash flow vector
+  n = length(c);
+  r  = 0.05; # 5% per-period interest rate
+  d = (1+r) .^ -(0:n-1)
+  NPV = c'*d
+
+   a = randn(10^5); b = randn(10^5);
+  @time a'*b
+
+
+    a = sparsevec( [ 123456, 123457 ], [ 1.0, -1.0 ], 10^6 )
+    #1000000-element SparseVector{Float64,Int64} with 2 stored entries:
+    #[123456 ] = 1.0
+    #[123457 ] = -1.0
+    length(a)
+    #1000000
+    nnz(a)
+    #2
+    b = randn(10^6); # An ordinary (non-sparse) vector
+      #+end_src

@@ -4,9 +4,9 @@ This is a repository of notes filed in a hypertextual cabinet, also now as a wik
 
 To view notebooks view visit nbviewer.org at these urls:
 
-[IJulia Notebooks](https://github.com/jph6366/filing-cabinet/tree/master/TOP-DOWN/Julia/Notebooks)
-[IPython Notebooks](https://github.com/jph6366/filing-cabinet/tree/master/TOP-DOWN/Python/Notebooks)
-[LFortran Notebooks](https://github.com/jph6366/filing-cabinet/tree/master/TOP-DOWN/Fortran/Notebooks)
+[IJulia Notebooks](https://nbviewer.org/github.com/jph6366/filing-cabinet/tree/master/TOP-DOWN/Julia/Notebooks)
+[IPython Notebooks](https://nbviewer.org/jph6366/filing-cabinet/tree/master/TOP-DOWN/Python/Notebooks)
+[LFortran Notebooks](https://nbviewer.org/jph6366/filing-cabinet/tree/master/TOP-DOWN/Fortran/Notebooks)
 
 [Filing Cabinet]: https://jph6366.github.io/
 [Emanote]: https://emanote.srid.ca/

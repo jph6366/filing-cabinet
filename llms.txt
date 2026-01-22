@@ -1,0 +1,7 @@
+# Jackson Hardee's digitial filing cabinet
+
+> This is a repository of notes filed in a hypertextual cabinet, also now as a wiki, rendered using Emanote and hosted on GitHub Pages, while enabling Org Mode for editing in the likes of GNU Emacs. For details, see [Emanote](https://emanote.srid.ca/)
+
+Important notes:
+
+- This is a hypertextual filing cabinet for my various notes and to attribute them to different systems, frameworks, tools, and concepts.

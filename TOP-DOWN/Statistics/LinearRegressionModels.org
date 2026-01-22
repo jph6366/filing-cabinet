@@ -1,0 +1,234 @@
+#+title: Linear Regression Models
+
+
+
+* Logistic Regression Models
+
+GLM $y = x\beta+E$, use this if its categorical
+Generalized LM $\gamma(y) = x\beta$, if $\gamma(y)= y$
+
+
+
+
+
+the Kappa score (Kappa), sensitivity (SE), specificity (SP), precision (PR), accuracy (Acc), and F1-score metrics. The six metrics’ formulae are as follows:
+
+𝐾⁢𝑒=(T⁢N+F⁡N)×(T⁢N+F⁡P)+(T⁢P+F⁡P)×(T⁢P+F⁡N)(N×N)
+𝐾⁢𝑜=(T⁢P+T⁢N)𝑁
+
+where the 𝐾⁢𝑒 and Ko parameters are defined by using the data that have already been collected to figure out how likely it is that each observer is randomly perceived in each category.
+
+Therefore, the Ko parameter is the proportion of raters who agree, and the 𝐾⁢𝑜 parameter is the chance that they will agree.
+For 𝐾⁢𝑒 and 𝐾⁢𝑜,
+_the Kappa score is defined as follows:_
+𝐾⁢𝑎⁢𝑝⁢𝑝⁢𝑎=(𝐾⁢𝑜−𝐾⁢𝑒)(1−𝐾⁢𝑒)	(8)
+
+_The sensitivity is defined as:_
+𝑆⁢𝐸=𝑇⁢𝑃/(𝑇⁢𝑃+𝐹⁡𝑁)
+
+_The specificity is defined as:_
+𝑆⁢𝑃=𝑇⁢𝑁/(𝑇⁢𝑁+𝐹⁡𝑃)
+
+_Precision is defined as:_
+𝑃⁢𝑅=𝑇⁢𝑃/(𝑇⁢𝑃+𝐹⁡𝑃)
+
+_Accuracy is defined as:_
+𝐴⁢𝐶⁢𝐶=(𝑇⁢𝑃+𝑇⁢𝑁)/(𝑇⁢𝑃+𝑇⁢𝑁+𝐹⁡𝑃+𝐹⁡𝑁)
+
+_F1-score is defined as:_
+𝐹⁡1−𝑠⁢𝑐⁢𝑜⁢𝑟⁢𝑒=2×P⁢R×S⁢E/(P⁢R+S⁢E)
+
+
+
+** Logistic Regression for Binary Response
+
+_binary outcomes_
+
+
+_Bernoulli_ (p)
+
+$P(y)=p^{y}(1-p)^{1-y}$ $y=0,1$
+
+in the exponential arg, the func of the param \times the variable y is $log\frac{p}{1-p}$
+that factor is referred to as the /natural parameter/ and in this case it is the /logistic function/
+
+
+
+_generalized linear model_
+
+$g(Y)=X\beta$
+
+
+$g(p) = log(\frac{p}{1-p}) = X\beta$
+
+$\frac{p}{1-p} = e^{X\beta}$ referred to ass the odds of success
+$p = \frac{e^{X\beta}}{1+e^{X\beta}}$
+
+
+
+_REMEMBER_
+
+$\frac{x^{a}}{x^{b}} = x ^{a-b}$
+
+* Fitting Binary Logistics Models in SAS
+
+use either `PROC GENMOD` or `PROC LOGISTIC`
+- can be used to fit logistic regression models for binary responses
+
+  #+begin_src sas
+proc format;
+     value $type
+           'Sedan', 'Wagon'='Car'
+           'Truck', 'SUV'='Truck'
+        ;
+run;
+
+proc logistic data=cars;
+     where type not in ('Sports', 'Hybrid');
+     model type = weight enginesize;
+     format type $type.;
+run;
+
+
+proc genmod data=cars;
+     where type not in ('Sports', 'Hybrid');
+     format type $type.;
+     model type = weight enginesize / dist=binomial link=logit;
+run;
+  #+end_src
+
+$\delta_{1-3}$ for 3 categories...
+
+
+$log(\frac{p}{1-p}) = \beta_{0} + \beta_{1}\delta_{1} + \beta_{2}\delta_{2} + \beta_{3}\delta_{3}$
+                ^       ^^^^^^^^^^^^^^^^^^^^^
+          overall average    the ups and downs
+
+          restricted to: $\hat{\beta_{1}} + \hat{\beta_{2}} + \hat{\beta_{3}} = 0$
+          ^ _PROC LOGISTIC_ does this by default
+
+
+
+* Logistic Regression for Multi-Category Response
+
+
+
+$log\frac{p_{i}}{p_{k}}$ = x$\beta$
+
+- one category is (arbitrarily) chosen as a baseline
+  - and ratios of probabilities in other categories
+    - modelled as linear in the predictors
+
+      _any other log-ratio can be constructed from this set_
+
+
+
+- irrespective of which category is chosen as the baseline for the response
+  - models for other probability ratios are differences of models from above equation
+
+    _if we extend above equation and say_ $\beta_{0k} = \beta_{1k} = \beta_{2k} = ... = \beta_{pk} = 0$ then...
+      $p_{i} = \frac{e^{x\beta_{i}}}{\sum_{j=0}^{k} e^{x\beta_{j}}}$
+
+
+_if response is ordinal we have other choices to make_
+
+/Cumulative Logit/ -> /k response categories, $Y=1,2,3,...,k$ is an ordering/ranking
+
+$log(\frac{P(y \leq j)}{P(y > j)} = x \beta$ for $j=1,2,...,k-1$
+
+OR $log(\frac{P(y < j)}{P(y \geq j)} = x \beta$ for reverse inequalities $j=2,3,...,k$
+
+
+_commonly used link function for the ordinal case is the /Adjacent Categories/ link_
+- similar to the baseline link
+
+$log(\frac{P_{j}}{P_{j+1}}) = x \beta$ for $j=1,2,...,k-1$x
+
+
+* Fitting Multi-Category Logistic Models in SAS
+
+#+begin_src sas
+proc logistic data=cars;
+     model origin = horsepower weight mpg_city msrp length / link=glogit;
+     /* default link is cumulative link for multinomial responses
+       which is inappropriate for nominal variables
+      ,glogit chooses the generalized (baseline) logit link */
+     ods exclude ModelInfo Nobs ConvergenceStatus GlobalTests FitStatistics;
+run;
+#+end_src
+
+
+* using PROC logistic to model blood pressure status
+
+#+begin_src sas
+proc logistic data=heart;
+     /* takes bp_status as a multinomial case since response has more than two levels; link option requests cumulative logit link */
+     model bp_status = ageatstart weight / link=logit;
+     ods select ModelInfo ResponseProfile ParameterEstimates OddsRatio;
+run;
+#+end_src
+*for ordinal response, use LINK=ALOGIT; uses the adjacent category logit link*
+
+
+Most information criteria
+( like AIC, SBC, ... )
+ are of the form model error & penalty
+ - complexity penalty (more predictors == penalty)
+
+
+
+
+#+begin_src sas
+Title "No Proportional Odds";
+proc logistic data=sashelp.heart;
+    format chol_status $CholReOrder.;
+    model chol_status = AgeAtStart Weight / link=logit unequalslopes;
+    ods select FitStatistics;
+run;
+Title "Proportional Odds for Weight Only";
+proc logistic data=sashelp.heart;
+    format chol_status $CholReOrder.;
+    model chol_status = AgeAtStart Weight / link=logit unequalslopes=AgeAtStart;
+    ods select FitStatistics;
+run;
+Title "Proportional Odds for Age Only";
+proc logistic data=sashelp.heart;
+    format chol_status $CholReOrder.;
+    model chol_status = AgeAtStart Weight / link=logit unequalslopes=Weight;
+    ods select FitStatistics;
+run;
+#+end_src
+ - UNEQUALSLOPES option makes the parameter different across all models for every predictor-the same structure of the linear component as in the generalized logit
+ - Specific effects can be included with UNEQUALSLOPES=, if more than one effect is desired, they must be listed inside a set of parentheses. Here the age variable is not presumed to follow proportional odds. It is also possible to specify EQUALSLOPES, but this is for models where proportional odds are not assumed and you want to force this condition.
+
+
+
+ _AIC says do proportional odds for age (not weight)_
+
+ _SBC says do both as proportional odds for both (original model)_
+
+
+
+ #+begin_src sas
+proc format;
+     value poverty
+           10 - high = 'high poverty'
+                         other = 'low poverty';
+run;
+
+proc logistic data=cdi; descending;
+     format poverty poverty.;
+     class region / param=glm;
+     model poverty = region ba_bs over65;
+     lsmeans region / diff adjust=tukey exp cl;
+run;
+
+
+proc logistic data=cdi; descending;
+     format poverty poverty.;
+     class region / param=glm;
+     model poverty = region ba_bs over65;
+     lsmeans region / exp at (ba_bs over65) = (12 10);
+run;
+ #+end_src
+- exp translates log-odds and differences into odds and odds ratios

@@ -1,0 +1,135 @@
+#+title: Sql Style Guide
+
+* SQL Style Guide
+
+** Whitespace
+- to make code easy to read
+  - do not crowd code or remove natural language spacing
+
+    _spacing_
+    1. spaces should be used to line up the code
+       - so that root keywords all end on the same character boundary
+    2. this forms a river down the middle and clear downstream path
+       - dividing and conquering code and keywords from the implementation detail
+
+
+   _line_spacing_
+   1. always include newlines/vertical space
+      - before AND or OR
+      - after semicolons to separate queries
+      - after each keyword defn
+      - after a comma when separating multiple columns into logical groups
+      - to separate code into related sections
+
+    _indentation_
+    1. to ensure SQL is readable given proper indentation
+       *JOINS* should be moved to the other side of the river grouped with a newline
+       - an exception to this... when just using JOIN where it should be before the river
+
+    _subqueries_
+    1.  subqueries should be aligned rhs of the river then laid out using same style as any other query
+       - sometimes a newline is added before the closing parenthesis
+         - especially for *nested subqueries*
+** Create Syntax
+when declaring schema info, its important to maintain human-readable SQL
+
+_ensure the column defns are ordered and grouped together where it makes sense to do so_
+
+_layout and order_
+- specify primary key first
+- constraints are defined directly beneath corresponding column
+  - indent the constraint to right of column name
+- if multi-colunm constraint put near both names
+  - if a table-level constraint then should appear at end
+- use ABC order where ON DELETE comes before ON UPDATE
+- IF IT MAKES SENSE
+  - align each aspsect of the query on the same character position
+
+         #+begin_src sql
+(SELECT f.species_name,
+        AVG(f.height) AS average_height, AVG(f.diameter) AS average_diameter
+   FROM flora AS f
+  WHERE f.species_name = 'Banksia'
+     OR f.species_name = 'Sheoak'
+     OR f.species_name = 'Wattle'
+  GROUP BY f.species_name, f.observation_date)
+
+  UNION ALL
+
+(SELECT b.species_name,
+        AVG(b.height) AS average_height, AVG(b.diameter) AS average_diameter
+   FROM botanic_garden_flora AS b
+  WHERE b.species_name = 'Banksia'
+     OR b.species_name = 'Sheoak'
+     OR b.species_name = 'Wattle'
+  GROUP BY b.species_name, b.observation_date);
+
+SELECT a.title, a.release_date, a.recording_date
+  FROM albums AS a
+ WHERE a.title = 'Charcoal Lane'
+    OR a.title = 'The New Danger';
+
+INSERT INTO albums (title, release_date, recording_date)
+VALUES ('Charcoal Lane', '1990-01-01 01:01:01.00000', '1990-01-01 01:01:01.00000'),
+       ('The New Danger', '2008-01-01 01:01:01.00000', '1990-01-01 01:01:01.00000');
+
+UPDATE albums
+   SET release_date = '1990-01-01 01:01:01.00000'
+ WHERE title = 'The New Danger';
+
+ SELECT a.title,
+       a.release_date, a.recording_date, a.production_date -- grouped dates together
+  FROM albums AS a
+ WHERE a.title = 'Charcoal Lane'
+    OR a.title = 'The New Danger';
+
+SELECT r.last_name
+  FROM riders AS r
+       INNER JOIN bikes AS b
+       ON r.bike_vin_num = b.vin_num
+          AND b.engine_tally > 2
+
+       INNER JOIN crew AS c
+       ON r.crew_chief_last_name = c.last_name
+          AND c.chief = 'Y';
+
+SELECT r.last_name
+  FROM riders AS r
+  JOIN bikes AS b
+    ON r.bike_vin_num = b.vin_num
+
+SELECT r.last_name,
+       (SELECT MAX(YEAR(championship_date))
+          FROM champions AS c
+         WHERE c.last_name = r.last_name
+           AND c.confirmed = 'Y') AS last_championship_year
+  FROM riders AS r
+ WHERE r.last_name IN
+       (SELECT c.last_name
+          FROM champions AS c
+         WHERE YEAR(championship_date) > '2008'
+           AND c.confirmed = 'Y');
+
+
+CREATE TABLE staff (
+    PRIMARY KEY (staff_num),
+    staff_num      INT(5)       NOT NULL,
+    first_name     VARCHAR(100) NOT NULL,
+    pens_in_drawer INT(2)       NOT NULL,
+                   CONSTRAINT pens_in_drawer_range
+                   CHECK(pens_in_drawer BETWEEN 1 AND 99)
+);
+ #+end_src
+
+_notice KEYWORDS are right-aligned, while columns and impl details are left-aligned_
+
+_always include exhaustive spaces_
+  - before and after equals
+  - after commas
+  - surrounding apostrophes where not within parentheses or with a trailing comma or semicolon
+
+  _keeping all the keywords aligns to righthand side and values left aligned creates a uniform gap down the middle of the query_
+  - much easier to scan this way
+
+
+        _indent column defns by four spaces within the CREATE defn_
