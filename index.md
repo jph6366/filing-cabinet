@@ -2,11 +2,11 @@
 
 This is a repository of notes filed in a hypertextual cabinet, also now as a wiki, rendered using [Emanote] and hosted on [[GitHub Pages]], while enabling editing in the likes of [Visual Studio Code](https://emanote.srid.ca/start/resources/editors/vscode) and [Org Mode](https://emanote.srid.ca/guide/orgmode) for editing in the likes of GNU Emacs. For details, see [Emanote].
 
-To view notebooks view visit nbviewer.org (and paste the direct links below) or download them from github at these urls:
+To view my Jupyter Notebooks view visit https://github.com/jph6366/filing-cabinet
 
-[IJulia Notebooks](https://github.com/github.com/jph6366/filing-cabinet/tree/master/TOP-DOWN/Julia/Notebooks)
-[IPython Notebooks](https://github.com/jph6366/filing-cabinet/tree/master/TOP-DOWN/Python/Notebooks)
-[LFortran Notebooks](https://github.com/jph6366/filing-cabinet/tree/master/TOP-DOWN/Fortran/Notebooks)
+And click on the various directories/folders in `TOP-DOWN`
+
+You'll find that the directories named `Python` or `Julia`, etc. will have `Notebooks` folder
 
 [Filing Cabinet]: https://jph6366.github.io/
 [Emanote]: https://emanote.srid.ca/
