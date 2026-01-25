@@ -11,7 +11,9 @@ _There is even ChainRules.jl!_
 - an entire julia package dedicated to automatic differentiation independent set of rules, and a system for defining and testing rules.
 
   $\frac{\delta F}{\delta x} = 2(x-3y-2) + 2(x-4y-5)$
+
   $\frac{\delta F}{\delta y} = 2(x-3y-2)(-3)+2(x-4y-5)(-4)$
+
   $\Delta F(x,y) = [ \frac{\delta F}{\delta x} & \frac{\delta F}{\delta y}]$
 
 
@@ -148,7 +150,6 @@ plot(vec(x), vec(y), lw = 3, seriestype = :scatter, label = "", title = "Generat
 #+RESULTS:
 : Plot{Plots.GRBackend() n=1}
 
-*INSERT IMAGE*
 
 - make sure to see a graphical view of the dataset before building a model
   - this will help make a decision on what approach will be the best fit
