@@ -1,0 +1,137 @@
+#+title: Linked Lists
+
+
+https://blog.djhaskin.com/blog/common-data-structures-in-common-lisp/
+
+Lets pretend that the only things how to do in Common Lisp is...
+
+`struct S` - macro DEFSTRUCT
+_defstruct_ defines a structured type, named /structured-type/
+- with named slots specified by the /slot-options/
+- it defines _readers_ for the slots and arranges _setf_ to work properly on such reader funcs
+- unless overridden, it defines a predicate named /name-p/
+  - which defines a constructor for function named /make-constructor-name/
+    - and defines a copier function named /copy-constructor-name/
+
+
+_args and vals_
+conc-name---a string designator
+constructor-arglist---a boa lamdda list
+constructor-name---a symbol
+copier-name---a symbol
+included-structure-name---an already defined struct name
+inital-offset---a non-negative integer
+predicate-name---a symbol
+printer-name---a function name or lambda expr
+slot-name---a symbol
+slot-initform---a form
+slot-read-only-p---a generalized boolean
+structure-name---a symbol
+type---one of the type specifiers list, vector, or vector size, or some other type specifier defined by the implementation to be appropriate
+documentation---a string; not evaluated
+
+
+`simple-array S` - type SIMPLE-ARRAY
+- the _type_ of an _array_ that is not displaced to another array
+  - has not _fill pointer_, and is not _expressly adjustable_ is a _subtype_ of type simple-array
+
+    _simple-array_ exists to allow the implementation to use a specialized representation
+    - and to allow the user to declare that certain values will always be simple arrays
+
+** Linked Lists
+
+LinkedLists have boxes that point to other boxes
+
+  +----------+        +----------+           +----------+
+  | (data)   |------->| (data)   |...------->| (data)   x
+  +----------+        +----------+           +----------+
+
+
+  - a linked list is comprised of a series of nodes with 2 fields in them
+    1. one to point to data
+       2. one to point to more list
+
+   +---+---+        +---+---+           +---+---+
+   | O | O |------->| O | O |...------->| O | X |
+   +---+---+        +---+---+           +---+---+
+     |                |                   |
+     |                |                   |
+     v                v                   v
+   (data)           (data)              (data)
+
+- here we notice that its not the list thats special
+  - but the _pointer-pairs_
+   +---+---+
+   | O | O |------->
+   +---+---+
+     |
+     |
+     v
+   (data)
+
+_pair_
+  +---+---+
+  | O | O |
+  +---+---+
+    |   |
+    v   v
+  (data)(data)
+_tree_
+                     +---+---+
+                     | O | O |
+                     +-+-+-+-+
+                       |   |
+             +---------+   +---------+
+             |                       |
+             |                       |
+         +---v---+               +---v---+
+         | O | O |               | O | O |
+         +-+-+-+-+               +-+-+-+-+
+           |   |                   |   |
+       +---+   +---+           +---+   +---+
+       |           |           |           |
+       |           |           |           |
+   +---v---+   +---v---+   +---v---+   +---v---+
+   | O | O |   | O | O |   | O | O |   | O | O |
+   +-+-+-+-+   +-+-+-+-+   +-+-+-+-+   +-+-+-+-+
+     |   |       |   |       |   |       |   |
+     |   v       |   v       |   v       |   v
+     |   (data)  |   (data)  |   (data)  |   (data)
+     v           v           v           v
+     (data)      (data)      (data)      (data)
+
+
+
+** Implementation
+
+#+begin_src lisp
+;;; Define a node struct
+(defstruct cons ;; theres already a const in Common Lisp!
+  car
+  cdr)
+
+;; new list
+(defparameter my-list-nil)
+
+;; add to a list
+(setf my-list (make-pair :car 1 :cdr my-list))
+(setf my-list (make-pair :car 2 :cdr my-list))
+(setf my-list (make-pair :car 3 :cdr my-list))
+(setf my-list (make-pair :car 4 :cdr my-list))
+
+;; traverse a list
+(loop for node = my-list then (pair-cdr node)
+      while node
+      do (format t "~A " (pair-car node)))
+
+;; remove the front item from a list
+(setf my-list (pair-cdr my-list))
+
+;; remove a specific item (2) from a list
+(if (eql (pair-car my-list) 2)
+    (setf my-list (pair-cdr my-list))
+    (loop for node = my-list then (pair-cdr node)
+          while (pair-cdr node)
+          until (eql (pair-car (pair-cdr node)) 2)
+          finally (setf (pair-cdr node) (pair-cdr (pair-cdr node)))))
+#+end_src

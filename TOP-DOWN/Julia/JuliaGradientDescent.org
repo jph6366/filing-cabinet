@@ -1,0 +1,392 @@
+#+title: Julia Gradient Descent
+
+
+* Julia Machine Learning Models
+
+** Partial Derivatives and Gradient
+- Let $F(x,y)=(x-3y-2)^{2}+(x-4y-5)^{2}$
+  use the _Chain Rule_
+  - The chain rule is one of the key concepts in calculus, where it is a means to differentiate composite functions. Additionally, it is a basic component of several other calculus techniques and functions, such as implicit differentiation, differentiation of inverse functions, and integration by substitution
+_There is even ChainRules.jl!_
+- an entire julia package dedicated to automatic differentiation independent set of rules, and a system for defining and testing rules.
+
+  $\frac{\delta F}{\delta x} = 2(x-3y-2) + 2(x-4y-5)$
+  $\frac{\delta F}{\delta y} = 2(x-3y-2)(-3)+2(x-4y-5)(-4)$
+  $\Delta F(x,y) = [ \frac{\delta F}{\delta x} & \frac{\delta F}{\delta y}]$
+
+
+*** Chain Rule
+
+if $f(u)$ is differentiable at $u=g(x)$ and $g(x)$ is differentiable at $x$
+- then the composite function $(f \circ g)(x)=f(g(x))$ is differentiable at $x$
+  - and $(f \circ g)^{'}(x)=f^{'}(g(x))\cdot g^{'}(x)$
+
+the Leibniz notation is easier to understand
+
+        $\frac{dx}{dy}=\frac{dy}{du}\cdot\frac{du}{dx}$
+
+
+*** Chain Rule Practice
+1. Suppose that the carbon monoxide pollution in the air is changing at the rate of 0.02 ppm (parts per million) for each person in a city whose population is growing at the rate of 1000 people per year.
+
+   _Find the rate at which the level of pollution is increasing with respect to time_
+   - Remember that the symbol $\frac{dy}{dx}$ stands for...
+     - the derivative of $y$
+       - with respect to $x$
+         - and represents the rate of change of $y$ with respect to $x$
+
+
+let $\frac{dP}{dx} = 0.02$ ppm/person
+let $\frac{dx}{dt}=1000$ people/year
+
+_Chain rule:
+_the rate pollution increase w.r.t. time_
+$\frac{dP}{dt}=\frac{dP}{dx}\frac{dx}{dt} = 0.002 \times 1000$
+
+**the level of pollution is increasing at  a rate of 20 ppm/year**
+
+
+
+** Linear Regression
+
+- a linear model makes a prediction
+  - by simply computing a _weighted sum of the input features_
+    - plus a constant called the _bias term_ or _intercept term_
+
+_linear regression model prediction_
+      $\hat{y} = \theta_{0}+\theta_{1}x_{1} + \theta_{2}x_{2} + ... + \theta_{n}x_{n}$
+
+      - $\hat{y}$ is the predicted value
+      - $n$ is the number of features
+      - $x_{i}$ is the i-th feature value
+      - $\theta_{j}$ is the j-th model parameter
+        - including the intercept $\theta_{0}$ and the feature weights $\theta_{1},...,\theta_{n}$
+
+_linear regression model prediction (vectorized)_
+        $\hat{y}=h_{\theta}(x)= \theta \cdot x$
+
+        - $h_{\theta}$ is the hypothesis function using model parameters $\theta$
+        - $\theta$ is the model's parameter vector
+          - containing the intercept and feature weights
+        - $x$ is the instance's feature vector
+          - containing $x_{0},...,x_{n}$ with $x_{0}$ always equal to 1
+        - $\theta \cdot x$ is the dot product of the vectors $\theta$ and $x$
+          - which is equal to $\theta_{0}x_{0}+...+\theta_{n}x_{n}$
+
+
+_How do we train the model?_
+- we first need a measure of how well or poorly the model fits the training data
+  - the common performance measure is the _root mean square error_ (RMSE)
+
+    *To train a linear regression model, we need to find the value of theta that minimizes the RMSE*
+    - it is simpler to minimize _mean square error_ and it leads to the same result
+
+
+_MSE cost function for a linear regression model_
+
+$MSE(X,h_{\theta})= \frac{1}{m} \sum_{i=1}^{m}(\theta^{T}x^{i}-y^{i})^{2}$
+
+- to find the value of $\theta$ that minimizes the cost of MSE
+  - there is a closed-form solutions---a math equation
+
+    _the normal equation_
+
+        $\hat{\theta} = (X^{T}X)^{-1}X^{T} y$
+
+    - $\hat\theta$ is the value of theta that minimizes the cost function
+    - $y$ is the vector of target values containing $y^1$ to $y^m$
+
+
+*** FluxML Linear Regression
+
+**** Generate a Dataset
+_generate a matrix with numbers_
+- ranging from -3.0 to 3.0 w/ a gap of 0.1 between them
+  -
+#+begin_src julia
+using Flux
+x = hcat(collect(Float32,-3:0.1:3)...)
+summary(x)
+#+end_src
+
+
+
+#+RESULTS:
+: 1×61 Matrix{Float32}
+
+_generate the corresponding labels_
+- or the $y$s
+- the function $f$ maps each $x$ to a $y$
+  - and as $x$ is a `Matrix`
+    - the expression broadcasts the scalar values using `@.` macro
+
+/NOTE: these data points are too _perfect_ and real-world data is messy/
+#+begin_src julia
+using Flux
+x = hcat(collect(Float32,-3:0.1:3)...)
+f(x) = @. 3x + 2;
+y = f(x)
+first(y, 5)
+#+end_src
+
+#+RESULTS:
+|       -7.0 |
+|  -6.700001 |
+| -6.3999996 |
+| -6.1000004 |
+| -5.7999997 |
+
+#+begin_src julia
+using Flux, Plots
+x = hcat(collect(Float32,-3:0.1:3)...)
+x = x .* reshape(rand(Float32, 61), (1, 61));
+f(x) = @. 3x + 2;
+y = f(x)
+plot(vec(x), vec(y), lw = 3, seriestype = :scatter, label = "", title = "Generated data", xlabel = "x", ylabel= "y");
+#+end_src
+
+#+RESULTS:
+: Plot{Plots.GRBackend() n=1}
+
+*INSERT IMAGE*
+
+- make sure to see a graphical view of the dataset before building a model
+  - this will help make a decision on what approach will be the best fit
+
+**** Building a Model
+
+_linear regression in mathematical form_
+$model(W,b,x)= Wx+b$
+- where the W is the _weight matrix_
+  - which constitute only a single element for one a single feature
+- and b is the bias
+#+begin_src julia
+linregmodel(W, b, x) = @. W*x + b
+#+end_src
+
+#+RESULTS:
+: linregmodel
+
+**the `@.` macro allows you to perform the calculations by _broadcasting_ the scalar quantities**
+
+
+- next we initialize the model parameters
+  - the weight W and the bias b
+
+_lets pull out the weight from a uniform distribution
+and initialize the bias to 0_
+#+begin_src julia
+using Random
+
+x = hcat(collect(Float32,-3:0.1:3)...)
+x = x .* reshape(rand(Float32, 61), (1, 61));
+f(x) = @. 3x + 2;
+y = f(x)
+linregmodel(W, b, x) = @. W*x + b
+
+W = rand(Float32, 1, 1)
+
+b = [0.0f0]
+
+size(linregmodel(W,b,x)), first(linregmodel(W,b,x)), first(y)
+#+end_src
+
+the model works but the predictions are way off!
+
+- we need to train the mdoel to improve the predictions
+  - before that we need to define a loss function
+    - the loss function should output a quantity
+      - that we will try minimize during training
+
+_mean sum squared error loss function_
+#+begin_src julia
+using Random
+
+x = hcat(collect(Float32,-3:0.1:3)...)
+x = x .* reshape(rand(Float32, 61), (1, 61));
+f(x) = @. 3x + 2;
+y = f(x)
+linregmodel(W, b, x) = @. W*x + b
+
+W = rand(Float32, 1, 1)
+
+b = [0.0f0]
+
+function lossfunc(weights, biases, features, labels)
+    ŷ = linregmodel(weights, biases, features)
+    sum((labels .- ŷ).^2) / length(features)
+end
+
+lossfunc(W, b, x, y)
+#+end_src
+
+#+RESULTS:
+: 9.120609
+
+- the loss function is called on our $x$s and $y$s
+  - it shows how far our predictions(   $\hat{y}$ ) are from the real labels
+**it calculates the sum of squares of residuals and divides it by the total number of data points**
+
+
+_now lets start actually using Flux_
+ - under the hood Flux calculates the output using the same expression
+   - Flux will initialize the parameters for us
+#+begin_src julia
+using Flux
+using Random
+
+Random.seed!(47)
+
+x = hcat(collect(Float32,-3:0.1:3)...)
+x = x .* reshape(rand(Float32, 61), (1, 61));
+f(x) = @. 3x + 2;
+y = f(x)
+linregmodel(W, b, x) = @. W*x + b
+
+fluxmodel = Dense(1 => 1)
+W = fluxmodel.weight
+b = [0.0f0]
+
+function lossfunc(weights, biases, features, labels)
+    ŷ = linregmodel(weights, biases, features)
+    sum((labels .- ŷ).^2) / length(features)
+end
+
+function fluxloss(fluxmodel, features, labels)
+    ŷ = fluxmodel(features)
+    Flux.mse(ŷ, labels)
+end
+
+
+size(fluxmodel(x)), first(fluxmodel(x)), first(y), fluxloss(fluxmodel, x, y), lossfunc(W, b, x, y)
+
+#+end_src
+
+#+RESULTS:
+: ((1, 61), 0.48155975f0, -1.2756402f0, 16.781786f0, 16.781786f0)
+
+
+- the losses are identical!
+  - meaning the two models are identical on some level
+
+**** Training the Model
+
+Lets train the model using *Gradient Descent*
+
+- according to gradient descent algorithm
+  - the weights and biases should be iteratively updated using the the following mathematical equations
+
+    $W=W-\eta * \frac{dL}{dW}$
+
+         $b =  b - \eta * \frac{dL}{db}$
+
+         $W$ is the weight matrix
+
+         $b$ is the bias vector
+
+         $\eta$ is the learning rate
+
+         $\frac{dL}{dW}$ is derivative of the loss function w.r.t. weight
+
+         $\frac{dL}{db}$ is the derivative of the loss function w.r.t bias
+
+**derivatives (in Flux) are calculated using an Automatic Differentiation tool**
+- _Zygote.jl_
+
+_First step_
+1. obtain the gradient of the loss function
+   - with respect to the weights and the biases
+
+#+begin_src julia
+using Flux
+using Random
+
+Random.seed!(47)
+
+x = hcat(collect(Float32,-3:0.1:3)...)
+x = x .* reshape(rand(Float32, 61), (1, 61));
+f(x) = @. 3x + 2;
+y = f(x)
+linregmodel(W, b, x) = @. W*x + b
+
+fluxmodel = Dense(1 => 1)
+W = fluxmodel.weight
+b = [0.0f0]
+
+function lossfunc(weights, biases, features, labels)
+    ŷ = linregmodel(weights, biases, features)
+    sum((labels .- ŷ).^2) / length(features)
+end
+
+
+dLdW, dLdb, _, _ = gradient(lossfunc, W, b, x, y)
+
+W .= W .- 0.1 .* dLdW
+b .= b .- 0.1 .* dLdb
+
+W,b,lossfunc(W,b,x,y)
+#+end_src
+
+#+RESULTS:
+: (Float32[0.30634186;;], Float32[0.3922985], 10.414616f0)
+
+we can see the loss went down, meaning we have suceeded in training the model (for one epoch)
+- we should plug the training code above into a loop
+  - and train for more epochs
+    - either using a fixed number of epochs or stop loss
+
+      #+begin_src julia
+using Flux
+using Random
+
+Random.seed!(47)
+
+x = hcat(collect(Float32,-3:0.1:3)...)
+x = x .* reshape(rand(Float32, 61), (1, 61));
+f(x) = @. 3x + 2;
+y = f(x)
+linregmodel(W, b, x) = @. W*x + b
+
+fluxmodel = Dense(1 => 1)
+W = fluxmodel.weight
+b = [0.0f0]
+
+function lossfunc(weights, biases, features, labels)
+    ŷ = linregmodel(weights, biases, features)
+    sum((labels .- ŷ).^2) / length(features)
+end
+
+
+function train!(f_loss, weights, biases, features, labels)
+    dLdW, dLdb, _, _ = gradient(f_loss, weights, biases, features, labels)
+    @. weights = weights - 0.1 * dLdW
+    @. biases = biases - 0.1 * dLdb
+end
+for i ∈ 1:40 # epochs
+    train!(lossfunc, W, b, x, y)
+end
+
+W, b, lossfunc(W, b, x, y)
+      #+end_src
+
+      #+RESULTS:
+      : (Float32[2.9997993;;], Float32[1.9996992], 1.3315619f-7)
+
+
+*we minimized the loss from 16 --(1 epoch)--> 10 ---(40 epochs)--- 1.33*
+
+Go ahead and plot the the fitted line on top of the $x$s and $y$s with this code
+
+_Remember Wx + b is nothing more than a line's equation_
+- slope = W[1]
+- y-intercept = b[1]
+
+#+begin_src julia
+plot(reshape(x, (61, 1)), reshape(y, (61, 1)), lw = 3, seriestype = :scatter, label = "", title = "Simple Linear Regression", xlabel = "x", ylabel= "y");
+plot!((x) -> b[1] + W[1] * x, -3, 3, label="Custom model", lw=2);
+#+end_src
+
+
+Next to improve the model you can play with optimisers, # of epochs, learning rate, etc.
+
+Watch that loss go down!

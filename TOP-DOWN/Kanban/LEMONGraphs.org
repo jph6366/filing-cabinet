@@ -575,6 +575,20 @@ radiality_centrality(g)
 #+end_src
 
 ** Linear Algebra
+** Developing Alternate Graph Types
+- All graph functions rely on the _Graphs.jl_ API
+  - As long as your graph structure is a subtype of _AbstractGraph_
+    - and implements the following API functions given return values
+
+      _edges_ _Base.eltype_ _edgetype_ _has_edge_ _has_vertex_ _inneighbors_
+        _ne_ _nv_ _outneighbors_ _vertices_ _is_directed_ _zero_
+
+- if the graph is designed to represent weights on edges, the _weights_ function should also be defined
+
+**** Inheriting from AbstractSimpleGraph
+
+- every subtype of _AbstractSimpleGraph_ must have vertices forming a _UnitRange_
+  - starting from 1 and return _neighbors_ in ascending order
 
 /LinAlg/ is the pkg for using the type system to check types of graph matrices
 

@@ -1,1 +1,3 @@
 #+title: Julia Cruxjl
+
+*See Julia Academy for Intro Flux.jl*

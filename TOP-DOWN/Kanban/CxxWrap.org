@@ -172,7 +172,77 @@ greet(w::World) = ccall($fpointer, Any, (Ptr{Cvoid}, WorldRef), $thunk, cconvert
  ***WARNING: the ordering of C++ code matters!!!***
  *types used as function arguments or return types must be added before they are used in a function*
 
+*** Average, Sum, and Multiple Averages
 
+#+begin_src cpp
+#include <iostream>
+#include <vector>
+#include <string>
+
+#include "jlcxx/jlcxx.hpp"
+#include "jlcxx/functions.hpp"
+#include "jlcxx/stl.hpp"
+
+using namespace std;
+// primitive data passed and retrieved
+double cpp_avg(int a, int b) {
+  return (double) (a+b)/2;
+}
+
+string cpp_sum(std::vector< double > data) {
+  double total = 0.0;
+  double nelems = data.size();
+  for (int i = 0; i< nelems; i++){
+    total += data[i];
+  }
+  std::stringstream ss;
+  ss << "the sum is " << total << endl;
+  return ss.str();
+}
+
+
+std::vector< double > cpp_mult_avgs(std::vector < std::vector< double >> data) {
+  std::vector <double> avgs;
+  for (int i = 0; i < data.size(); i++){
+    double isum = 0.0;
+    double ni = data[i].size();
+    for (int j = 0; j < data[i].size(); j++){
+      isum += data[i][j];
+    }
+    avgs.push_back(isum/ni);
+  }
+  return avgs
+}
+
+JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
+  mod.method("cpp_avg", &cpp_avg);
+  mod.method("cpp_sum", &cpp_sum);
+  mod.method("cpp_mult_avgs", &cpp_mult_avgs);
+}
+#+end_src
+
+
+#+begin_src  julia
+# Compile
+cmd = `g++ --std=c++20 -shared -fPIC -o libcpp.so -I $julia_include_path -I $cxx_include_path  libcpp.cpp`
+run(cmd)
+# Generate the functions for Julia
+# Once the lib is wrappd you can't wrap it again nor modify the C++ code, you need to restart Julia
+@wrapmodule(() -> joinpath(pwd(),"libcpp"))
+# Call the functions
+cpp_hello() # Prints "Hello world from a C++ function"
+avg        = cpp_average(3,4) # 3.5
+data_julia = [1.5,2.0,2.5]
+data_sum   = cpp_sum(StdVector(data_julia)) # Returns "The sum is 6"
+typeof(data_sum)
+typeof(data_sum) <: AbstractString
+data_julia = [[1.5,2.0,2.5],[3.5,4.0,4.5]]
+data       = StdVector(StdVector.(data_julia))
+data_avgs  = cpp_multiple_averages(data) # [2.0, 4.0]
+typeof(data_avgs)
+typeof(data_avgs) <: AbstractArray
+data_avgs[1]
+#+end_src
 
 ** wrapping GeographicLib C++ for GeographicModels.jl
 

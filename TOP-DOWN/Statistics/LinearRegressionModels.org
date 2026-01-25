@@ -2,6 +2,55 @@
 
 
 
+_SUMMARY_
+
+- use and limitations of GLM for categorical respsonses
+
+- the general form of the binary logitstic regression model, including its formulation as a GzLM and its equivalent forms for modeling odds and probabilities
+
+- intepreting parameters estimates in terms of odds ratios
+
+- the form of the generalized logistics model
+  - its application to nominal responses
+    - and interpretation of parameter estimates
+
+- the form of cumulative logistic model
+  - its application to ordinal responses
+    - and interpretation of parameter estimates
+
+- the nature of proportional odds assumption and how it test its appropriateness
+
+
+_WARMUP_
+*Categorical or Nominal*
+- categorical or called nominal is one that has 2 or more  categories
+  - without instrinsic ordering to the categories
+
+/purely nominal variable is one that simply allows you to assign categories/
+/but you cannot clearly order the categories/
+
+*Ordinal*
+- ordinal variable is one that has two or more categories
+  - with clear ordering of the categories
+
+/if categories are equally spaced, then the variable would be an interval/
+
+
+
+* GLM applied to Categorical Analysis
+
+- when the response is categorical
+  - the assumptions for GLM would seem to render it inappropriate
+
+- modeling it would not have the assumption
+  - to have a qualitative, normally distributed response
+
+1. Modeling Binary Categories with a GLM
+2. Using GLM Results to Classify Binary Outcomes
+3. Modeling Multiple Classes with a GLM
+
+
+
 * Logistic Regression Models
 
 GLM $y = x\beta+E$, use this if its categorical
