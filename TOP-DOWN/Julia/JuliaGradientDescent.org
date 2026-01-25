@@ -115,7 +115,7 @@ summary(x)
 : 1×61 Matrix{Float32}
 
 _generate the corresponding labels_
-- or the $y$s
+- or the $y$ s
 - the function $f$ maps each $x$ to a $y$
   - and as $x$ is a `Matrix`
     - the expression broadcasts the scalar values using `@.` macro
@@ -223,7 +223,7 @@ lossfunc(W, b, x, y)
 #+RESULTS:
 : 9.120609
 
-- the loss function is called on our $x$s and $y$s
+- the loss function is called on our $x$ s and $y$ s
   - it shows how far our predictions(   $\hat{y}$ ) are from the real labels
 **it calculates the sum of squares of residuals and divides it by the total number of data points**
 
@@ -375,7 +375,7 @@ W, b, lossfunc(W, b, x, y)
 
 *we minimized the loss from 16 --(1 epoch)--> 10 ---(40 epochs)--- 1.33*
 
-Go ahead and plot the the fitted line on top of the $x$s and $y$s with this code
+Go ahead and plot the the fitted line on top of the $x$ s and $y$ src with this code
 
 _Remember Wx + b is nothing more than a line's equation_
 - slope = W[1]
