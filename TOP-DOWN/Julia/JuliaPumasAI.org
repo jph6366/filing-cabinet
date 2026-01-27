@@ -1,0 +1,32 @@
+#+title: Julia Pumas Ai
+
+* PumasAI
+A team of scientists and scientfic computing experts
+- helping pharmaceutical scientists, healthcare providers, biotechnology, and pharmaceutical companies
+  _deliver better treatments to patients faster_
+
+  _Products_
+
+  1. *Pumas*
+     Pharmaceutical Modeling And Simulation
+     - it is a suite of tools used to perform quantitative analytics of various kinds
+       - across pharmaceutical drug development
+
+     - provides efficient implementations of all aspects of the analytics
+       - in this domain under one cohesive package
+
+  2. *DeepPumas*
+     Neural-network infrastructure for SciML models (designed for the healthcare industry)
+     - of longitudinal data
+       - e.g. pharmaceutical modeling,
+         - while leveraging the non-linear mixed effects (NLME) functionality
+     _2 ways of enhancing Pumas models with ML_
+     1. Embedding Neural Networks directly in a `@model`
+     2. predicting a part of individual variability from baseline covariates via neural networks
+
+  3. *PumasCP*
+           Clinical Pharmacology Analysis & Reporting Tool
+     - Bioequivalence Analysis
+     - Toxicokinectic Analysis
+     - Non-compartmental Analysis
+     _Pumas is the only software that matches SAS for BE anaylsis_

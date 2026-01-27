@@ -1,0 +1,15 @@
+#+title: Julia Logistic Regression
+
+_defined mathematically as_
+
+$model(x) = \sigma(Wx + b)$
+
+
+_use an activation function to map our outputs to a probability value_
+
+_softmax activation function_
+
+$\sigma(\overrightarrow{x})= \frac{e^{z_{i}}}{sum_{j=1}^{k} e^{z_{i}}}$
+
+- softmax scales down the outputs ot probability values
+  - such that the sum of all final ouputs equals 1

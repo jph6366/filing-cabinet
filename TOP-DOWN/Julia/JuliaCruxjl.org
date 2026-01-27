@@ -1,3 +1,199 @@
 #+title: Julia Cruxjl
 
-*See Julia Academy for Intro Flux.jl*
+* Julia Crux.jl
+
+* Reinforcement Learning
+
+* Imitation Learning
+
+An approach to RL where a reward is not assumed to be known a priori
+- but rather it assumed the reward function is described implicitly through expert demonstrations
+
+  _The formulation of imitation learning_ given an implicit reward from demonstrations
+
+  $r_{t} = R(x_{t},u_{t})$
+
+  it is assumed that the system is a MDP
+  - with state $x$ and control input $u$
+    - and the set of admissable states and controls are denoted as X and U
+
+      _system dynamics are expressed by the probabilistic transition_
+
+      $p(x_{t}|x_{t-1}, u_{t-1})$
+        which is the conditional probability distribution over $x_{t}$
+        - given previous state and control
+        /goal is to define a policy $\pi$ that defines the closed-loop control law/
+                $u_{t} = \pi(x_{t})$
+
+        *we do not have access to the reward function*
+        - instead we have access to a set of expert demonstrations
+          - where each demonstration $\xi$ consists of a sequence of state-control pairs
+
+            $\xi = {(x_{0},u_{0}),(x_{1},u_{1}),...}$
+
+            drawn from expert policy $\pi^{*}$
+*** Definiton (Imitation Learning)
+
+For a system with transition model with states $x \in \mathcal{X}$ and controls $u \in \mathcal{U}$
+the imitation learning is to leverage a set of demonstrations
+                $\Xi = ( \xi_{1},...,\xi_{D} )$ from an expert policy $\pi^{*}$
+                to find a policy $\hat{\pi}^{*}$ that imitates the expert policy
+
+_Warmup_
+
+/notation for representing behavior and formulating problems/
+AS A DECISION-MAKING PROBLEM
+
+- state $s_{t}$ - the state of the world at time $t$
+- observation $o_{t}$ - what the agent observes at time $t$
+- action $a_{t}$ - the decision taken at time $t$
+- trajectory $\tau$ - sequence of states/observations and actions
+
+        $(s_{1},a_{1},s_{2},a_{2},...,s_{T},a_{T})$
+- reward function $r(s,a)$ - how good is a given $s,a$ ?
+- policy $\pi(a_{t}|s_{t})$ or $\pi(a_{t}|o_{t-m:t})$ behavior  (what we are trying to learn)
+  - either conditioned on the current state
+    - what actions do we want to take
+  - or conditioned on a history of observations
+    - what actions should we take
+
+*the goal of RL to maximize the expected sum of rewards*
+- the goal is to determine closed-loop control policies that result in the maxmization of an accumulated reward
+  /RL algorithms are either model-based or model-free/
+  - both rely on collecting system data
+  _model-based_: directly update a learned model
+  _model-free_: directly update a learned value function or policy
+
+_challenges_
+1. determine appropriate reward function
+   2. rewards may be sparse
+      3. large amounts of data needed
+         4. number of failures that may be experienced when exploring sub-optimal policies
+
+
+
+*how to represent distributions with neural networks?*
+- rather than deterministic functions
+
+*why expressive distributions matter for imitation learning*
+
+*how to address compounding errors and what are they?*
+
+
+
+_Generally there is two approaches to imitation learning_
+
+1. to directly learn how to imitate the expert's policy
+   - behavior cloning, DAgger algorithm
+
+2. indirectly imitate the policy by learning the expert's reward function
+   - inverse reinforcement learning
+
+*** Imitation Learning Basics
+
+- achieve high reward with a good policy that does the task well
+
+- given trajectories collected by an 'expert'
+  "demonstrations"
+  $\mathcal{D} := {(s_{1},a_{1},...,s_{T})}$  (sampled from policy $\pi_{expert}$ )
+
+  _GOAL:_ Learn a policy $\pi_{\theta}$
+  - that performs at the level of the expert policy, by mimicking it!
+
+0. Given demonstrations $\mathcal{D} :  { (s,a) }$
+1. Train $\pi_{\theta}$
+   predicted action $\hat{a} \thickapprox \pi_{\theta}(s)$ (Determinstic) $\hat{a} = \pi_{\theta}(s)$
+   /for deterministic policy, supervised regression to the expert's actions/
+   /for neural network policy, sample a mini batch, do a forward-pass on NN/
+   - compute the loss and backpropagate the loss into the parameters of the NN
+     - do that iteratively w/ your favorite optimiser, some form of stochastic gradient descent in order to optimize the policy
+        *essentially a form of supervised learning*
+    $min_{\theta}\frac{1}{|\mathcal{D}|}$ $\sum_{(s,a) \epsilon \mathcal{D}} ||\hat{a} - a||^{2}$  where $\hat{a} = \pi_{\theta}(s)$
+_once you traing a policy such that_
+_the predicted actions are as close as possible_
+- to the actions in your demonstration dataset
+
+2. deploy $\pi_{\theta}$
+
+
+*** Learning expressive policy distributions
+
+
+
+*** Learning from online interventions
+
+
+
+
+
+** Behavioral Cloning
+
+An approach that uses a set of expert demonstrations $\xi \in \Xi$
+to determine a policy $\pi$ that imitates the expert.
+Accomplished through supervised learning, where the difference between
+the learned policy and expert demonstrations are minimized
+with respect to some metric
+
+_Goal is to solve the optimization problem_
+
+$\hat{\pi^{*}} = arg_{\pi}min \sum_{\xi \in \Xi} \sum_{x \in \xi} L(\pi(x),\pi^{*}(x))$
+where L is the _cost function_, $\pi^{*}(x)$ is the expert's _action_ for at _state_ $x$
+- and $\hat{\pi}^{*}$ is the _approximated policy_
+
+  /expert demonstrations will not be uniformly sampled across the entire state space/
+  - it is likely that the learned policy will perform poorly when not close to states
+    - found in $\xi$
+      /particularly true when the expert demonstrations come from a trajectory of sequential states and actions/
+      - such that the distribution of the sampled states $x$ in the dataset is defined by the expert policy
+    - when an estimated policy $\hat\pi^{*}$ is used in practice it produces its own distribution of states that will be visited
+      - which will likely not be the same as in the expert demonstrations
+
+
+***Distributional mismatch leads to _compounding errors_!***
+
+**** Crux.jl Behavioral Cloning
+
+#+begin_src julia
+function BC(; π, state, demos)
+    loss = π isa ContinousNetwork ? mse_action_loss : logpdf_bc_loss
+    # if demos need to be normalized
+    demos = normalize!(deepcopy(demos), state, action_space(pi))
+    demos = demos |> device(π)
+
+    # split between train and val sets
+    shuffle!(demos)
+    dtrain, dvalidate = split(demos, [1-validation_fraction, validation_fraction])
+
+    P = (λe=λe,)
+    BatchSolver(;agent=PolicyParams(π),
+                state=state,
+                P=P,
+                dtrain=dtrain,
+                a_opt=TrainingParams(;
+                                     early_stopping=
+                                         stop_on_validation_increase(π, P, dvalidate, loss, window=window),
+                                     loss=loss,
+                                     opt...
+                                     )
+                log=LoggerParams(;dlr="log/bc", period=1, log...),
+                kwargs...)
+end
+#+end_src
+
+
+** Generative Adversarial Imitation Learning w/ On-Policy and Off-Policy Versions
+
+** Adversarial Value Momemt Imitation Learning
+
+** Adversarial Reward-moment Imitation Learning
+
+** Soft Q Imitation Learning
+
+** Adversarial Soft Advantage Fitting
+
+** Inverse Q-Learning
+* Batch RL
+
+* Adversarial RL
+
+* Continual Learning
