@@ -1,0 +1,458 @@
+#+title: Rasterio
+
+* Overview
+
+- GISs use GeoTIFF and other formats
+  - to organize and store gridded raster datasets
+    - satellite imagery, terrain models
+  - reads and writes these formats
+    - with Python API based on NumPy, Pandas and GeoJSON
+    - built on top of GDAL
+
+      _example: extract GeoJSON shapes of a raster's data footprint_
+#+begin_src python
+import rasterio
+import rasterio.features
+import rasterio.warp
+
+with rasterio.open('example.tif') as dataset:
+
+    # Read the dataset's valid data mask as a ndarray.
+    mask = dataset.dataset_mask()
+
+    # Extract feature shapes and values from the array.
+    for geom, val in rasterio.features.shapes(
+            mask, transform=dataset.transform):
+
+        # Transform shapes from the dataset's own coordinate
+        # reference system to CRS84 (EPSG:4326).
+        geom = rasterio.warp.transform_geom(
+            dataset.crs, 'EPSG:4326', geom, precision=6)
+
+        # Print GeoJSON shapes to stdout.
+        print(geom)
+#        {'type': 'Polygon', 'coordinates': [[(-77.730817, 25.282335), ...]]}
+
+#+end_src
+
+*** What are raster datasets?
+- Raster data is essentially a grid of pixels (cells)
+  - where each pixel contains a value representing some geographic information
+    - elevation, temperature, or reflectance
+  - provides easy way to handle these data types
+    - while preserving their georeferenced characteristics
+
+
+*** philosophy
+- Before rasterio there was one option in Python for accessing different raster data files
+  - GDAL, extends with Python bindings to GDAL's C API
+    - C has more potential to shoot yourself in the foot
+
+- what would geospatial data abstraction in python standard library be like?
+- Using Python features and idioms, a pythonic raster data library
+  - expressing GDAL's data model
+    - using idiomatic Python types
+      - but just as fast as GDAL Python Bindings
+* Basic
+
+** Getting Started
+#+begin_src python
+# pip install rasterio fiona
+
+import rasterio # main lib
+import rasterio.plot # plotting raster data
+import geopandas as gpd
+import numpy as np
+import matplotlib.pyplot as plt
+#+end_src
+
+** Reading Raster Data
+- create a connection to the file
+  - without loading the entire dataset into memory
+
+/particularly useful for large datasets like satellite imagery or high-resolution DEMs/
+
+#+begin_src python
+raster_path = (
+    "https://github.com/opengeos/datasets/releases/download/raster/dem_90m.tif"
+)
+src = rasterio.open(raster_path)
+# returns a DatasetReader Object
+# <open DatasetReader name='https://github.com/opengeos/datasets/releases/download/raster/dem_90m.tif' mode='r'>
+
+#+end_src
+
+** Basic Raster Information
+#+begin_src python
+src.name # File Name / File Path
+
+src.mode # File Mode 'r' / 'w'
+
+src.meta # Raster Metadata
+# width, height, crs, number of bands, and datatype
+{'driver': 'GTiff',
+ 'dtype': 'int16',
+ 'nodata': None,
+ 'width': 4269,
+ 'height': 3113,
+ 'count': 1,
+ 'crs': CRS.from_epsg(3857),
+ 'transform': Affine(90.0, 0.0, -13442488.3428,
+        0.0, -89.99579177642138, 4668371.5775)}
+
+########
+# Coordinate Reference System
+########
+
+src.crs # how 2D pixels value relate to real-world geographic coordinates
+# CRS.from_epsg(3857)
+
+#######
+# Spatial Resolution
+#######
+
+src.res # the resolution of a raster refers to the size of one pixel in real-world units
+
+######
+# Dimensions: width and height
+######
+
+src.width
+src.height
+
+######
+# Bounds
+######
+
+src.bounds # provides the geographical extent of the raster dataset
+# BoundingBox(left=-13442488.3428, bottom=4388214.6777, right=-13058278.3428, top=4668371.5775)
+
+#######
+# Data Types
+#######
+
+src.dtypes
+
+######
+# Affine Transform
+#####
+"""
+the affine transformation matrix maps pixel coordinates to geographic coordinates. the transformation matrix consists of six parameters that control the:
+- scaling
+- translation
+- rotation
+of the raster.
+"""
+src.transform
+# Affine(90.0, 0.0, -13442488.3428,
+#       0.0, -89.99579177642138, 4668371.5775)
+#+end_src
+- most rasters will have no rotation (/b/, /d/ are 0)
+  - but the transformation will include the pixel size (/a/, /e/)
+    - and the geographic coordinates of the top-left pixel (/c/, /f/)
+      - a: width of a pixel in the x-direction
+      - b: row rotation
+      - c: x-coordinate of the upper left corner of the upper left pixel
+      - d: column rotation (typically zero)
+      - e: height of a pixel in the y-direction (typically negative)
+      - f: y-coordinate of the upper-left corner of the upper-left pixel
+** Plotting Raster Data
+#+begin_src python
+rasterio.plot.show(src)
+# automatically handles the raster's georeferencing,
+# ensuring that the raster is displayed in its correct geographic position
+#+end_src
+*** Plotting a specific band
+#+begin_src python
+rasterio.plot.show((src, 1))
+# you can pass the band numbers as a tuple
+#+end_src
+*** Customizing Plots
+#+begin_src python
+fig, ax = plt.subplot(figsize=(8,8))
+
+rasterio.plot.show(src, cmap="terrain", ax=ax, title="DEM")
+plt.show()
+#+end_src
+*** Plotting a vector layer on top of a raster image
+#+begin_src python
+dem_bounds = (
+    "https://github.com/opengeos/datasets/releases/download/places/dem_bounds.geojson"
+)
+# load vector data
+gdf = gpd.read_file(dem_bounds)
+gdf = gdf.to_crs(src.crs) # ensures proper alignment between raster and vector
+
+########
+# Plotting the DEM raster and overlay vector data
+#######
+fig, ax = plt.subplots(figsize=(8, 8))
+rasterio.plot.show(src, cmap="terrain", ax=ax, title="Digital Elevation Model (DEM)")
+# terrain colormap to visualize elevation changes
+
+# sets boundary color to red
+# and ensures the interior boundary remains transparent
+gdf.plot(ax=ax, edgecolor="red", facecolor="none", lw=2)
+#+end_src
+
+*** Custom Colormap and Colorbar
+- colormaps help map pixel values to color
+- colorbars provide a scale reference
+  - for interpreting the pixel values
+#+begin_src python
+elev_band = src.read(1)
+plt.figure(figsize=(8, 8))
+plt.imshow(elev_band, cmap="terrain")
+plt.colorbar(label="Elevation (meters)", shrink=0.5)
+plt.title("DEM with Terrain Colormap")
+plt.show()
+#+end_src
+
+** Accessing and Manipulating Raster Bands
+*** Reading Multiple Bands
+#+begin_src python
+raster_path = "https://github.com/opengeos/datasets/releases/download/raster/LC09_039035_20240708_90m.tif"
+src = rasterio.open(raster_path)
+print(src)
+
+src.meta
+{'driver': 'GTiff',
+ 'dtype': 'float32',
+ 'nodata': -inf,
+ 'width': 2485,
+ 'height': 2563,
+ 'count': 7,
+ 'crs': CRS.from_epsg(32611),
+ 'transform': Affine(90.0, 0.0, 582390.0,
+        0.0, -90.0, 4105620.0)}
+
+
+# list of human-readable band names
+band_names = ["Coastal Aerosol", "Blue", "Green", "Red", "NIR", "SWIR1", "SWIR2"]
+# visualize individual band
+rasterio.plot.show((src, 5), cmap="Greys_r")
+
+#+end_src
+*** Visualizing Multiple Bands
+#+begin_src python
+fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(8, 10))
+axes = axes.flatten()  # Flatten the 2D array of axes to 1D for easy iteration
+
+for band in range(1, src.count):
+    data = src.read(band)
+    ax = axes[band - 1]
+    im = ax.imshow(data, cmap="gray", vmin=0, vmax=0.5)
+    ax.set_title(f"Band {band_names[band - 1]}")
+    fig.colorbar(im, ax=ax, label="Reflectance", shrink=0.5)
+
+plt.tight_layout()
+plt.show()
+#+end_src
+
+*** Stacking and Plotting Bands
+#+begin_src python
+nir_band = src.read(5)
+red_band = src.read(4)
+green_band = src.read(3)
+
+# Stack the bands into a single array
+rgb = np.dstack((nir_band, red_band, green_band)).clip(0, 1)
+
+# Plot the stacked array
+plt.figure(figsize=(8, 8))
+plt.imshow(rgb)
+plt.title("Bands NIR, Red, and Green combined")
+plt.show()
+#+end_src
+*** Basic Band Math(NDVI calc)
+- Band math enables us to perform computations across different bands
+
+- NDVI, normalized difference vegetation index
+  #+begin_src python
+# NDVI Calculation: NDVI = (NIR - Red) / (NIR + Red)
+ndvi = (nir_band - red_band) / (nir_band + red_band)
+ndvi = ndvi.clip(-1, 1)
+
+plt.figure(figsize=(8, 8))
+plt.imshow(ndvi, cmap="RdYlGn", vmin=-1, vmax=1)
+plt.colorbar(label="NDVI", shrink=0.5)
+plt.title("NDVI")
+plt.xlabel("Column #")
+plt.ylabel("Row #")
+plt.show()
+  #+end_src
+
+** Writing Raster Data
+#+begin_src python
+with rasterio.open(raster_path) as src:
+    profile = src.profile
+print(profile)
+#{'driver': 'GTiff', 'dtype': 'float32', 'nodata': -inf, 'width': 2485, 'height': 2563, 'count': 7, 'crs': CRS.from_epsg(32611), 'transform': #Affine(90.0, 0.0, 582390.0,
+#       0.0, -90.0, 4105620.0), 'blockxsize': 512, 'blockysize': 512, 'tiled': True, 'compress': 'deflate', 'interleave': 'pixel'}
+
+profile.update(dtype=rasterio.float32, count=1, compress="lzw")
+print(profile)
+#{'driver': 'GTiff', 'dtype': 'float32', 'nodata': -inf, 'width': 2485, 'height': 2563, 'count': 1, 'crs': CRS.from_epsg(32611), 'transform': #Affine(90.0, 0.0, 582390.0,
+#       0.0, -90.0, 4105620.0), 'blockxsize': 512, 'blockysize': 512, 'tiled': True, 'compress': 'lzw', 'interleave': 'pixel'}
+
+output_raster_path = "ndvi.tif"
+
+with rasterio.open(output_raster_path, "w", **profile) as dst:
+    dst.write(ndvi, 1)
+#+end_src
+
+** Clipping Raster Data
+#+begin_src python
+import fiona
+import rasterio.mask
+
+geojson_path = "https://github.com/opengeos/datasets/releases/download/places/las_vegas_bounds_utm.geojson"
+bounds = gpd.read_file(geojson_path)
+
+# visualize raster and vector data together
+fig, ax = plt.subplots()
+rasterio.plot.show(src, ax=ax)
+bounds.plot(ax=ax, edgecolor="red", facecolor="none")
+
+# apply the mask to extract only vector bounds
+with fiona.open(geojson_path, "r") as f:
+    shapes = [feature["geometry"] for feature in f]
+
+out_image, out_transform = rasterio.mask.mask(src, shapes, crop=True)
+
+# write the clipped raster data
+out_meta = src.meta
+out_meta.update(
+    {
+        "driver": "GTiff",
+        "height": out_image.shape[1],
+        "width": out_image.shape[2],
+        "transform": out_transform,
+    }
+)
+
+with rasterio.open("las_vegas_clip.tif", "w", **out_meta) as dst:
+    dst.write(out_image)
+#+end_src
+
+** Reprojecting Raster Data
+- _rasterio.wrap.reproject()_ is geospatial-specfic analog to SciPy's _scipy.ndimage.interpolation.geometric_transform()_
+  - when reprojecting with a dataset with gcps or rcps
+    - the src_crs parameter should be supplied with the CRS
+      - that the gcps or rpcs are referenced against
+        - by default referenced WGS84 ellipsoid (EPSG:4326)
+          #+begin_src python
+from rasterio.warp import calculate_default_transform, reproject, Resampling
+
+raster_path = "las_vegas.tif"
+dst_crs = "EPSG:3857"  # WGS 84
+output_reprojected_path = "reprojected_raster.tif"
+
+with rasterio.open(raster_path) as src:
+    transform, width, height = calculate_default_transform(
+        src.crs, dst_crs, src.width, src.height, *src.bounds
+    )
+
+    profile = src.profile
+    profile.update(crs=dst_crs, transform=transform, width=width, height=height)
+
+    with rasterio.open(output_reprojected_path, "w", **profile) as dst:
+        for i in range(1, src.count + 1):
+            reproject(
+                source=rasterio.band(src, i),
+                destination=rasterio.band(dst, i),
+                src_transform=src.transform,
+                src_crs=src.crs,
+                dst_transform=transform,
+                dst_crs=dst_crs,
+                resampling=Resampling.nearest,
+            )
+print(f"Reprojected raster saved at {output_reprojected_path}")
+          #+end_src
+
+** Creating Raster Data from scratch
+#+begin_src python
+x = np.linspace(-4.0, 4.0, 240)
+y = np.linspace(-3.0, 3.0, 180)
+X, Y = np.meshgrid(x, y)
+Z1 = np.exp(-2 * np.log(2) * ((X - 0.5) ** 2 + (Y - 0.5) ** 2) / 1**2)
+Z2 = np.exp(-3 * np.log(2) * ((X + 0.5) ** 2 + (Y + 0.5) ** 2) / 2.5**2)
+Z = 10.0 * (Z2 - Z1)
+
+####
+# 2D Contour Plot
+####
+
+fig = plt.figure(figsize=(5, 5))
+ax = fig.add_subplot(111)
+ax.contourf(X, Y, Z, cmap="RdYlBu")
+plt.show()
+
+####
+# 3D Surface Plot
+####
+
+# Create a 3D plot
+fig = plt.figure(figsize=(10, 7))
+ax = fig.add_subplot(111, projection="3d")
+
+# Plot the surface
+ax.plot_surface(X, Y, Z, cmap="viridis")
+
+# Add labels
+ax.set_xlabel("X axis")
+ax.set_ylabel("Y axis")
+ax.set_zlabel("Z axis")
+ax.set_title("3D Surface Plot")
+
+# Show the plot
+plt.show()
+
+####
+# 3D Surface Plot w/ Plotly
+####
+
+import plotly.graph_objects as go
+
+# Create a 3D surface plot
+fig = go.Figure(data=[go.Surface(z=Z, x=X, y=Y, colorscale="Viridis")])
+
+# Add labels and title
+fig.update_layout(
+    title="3D Surface Plot",
+    scene=dict(xaxis_title="X axis", yaxis_title="Y axis", zaxis_title="Z axis"),
+    autosize=False,
+    width=800,
+    height=800,
+    margin=dict(l=65, r=50, b=65, t=90),
+)
+
+# Show the plot
+fig.show()
+
+
+
+#######
+# Write to file
+########
+
+from rasterio.transform import Affine
+##
+# define a transform using Affine
+##
+res = (x[-1] - x[0]) / 240.0
+transform = Affine.translation(x[0] - res / 2, y[0] - res / 2) * Affine.scale(res, res)
+
+with rasterio.open(
+    "new_raster.tif",
+    "w",
+    driver="GTiff",
+    height=Z.shape[0],
+    width=Z.shape[1],
+    count=1,
+    dtype=Z.dtype,
+    crs="+proj=latlong",
+    transform=transform,
+) as dst:
+    dst.write(Z, 1)
+#+end_src

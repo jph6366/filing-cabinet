@@ -1,0 +1,223 @@
+#+title: X Array
+
+* Overview
+- Python library designed for working with multi-dimensional labeled datasets
+  - climate science, oceanography, remote sensing
+    - can be thought of as extensions of NumPy arrays
+    - supports labeled axes (dimensions), coordinates, and metadata
+      - for datasets varying across time and space, n-dimensions, etc.
+** Why xarray?
+- labels in the form of dimensions, coordinates, and attributes on top of raw NumPy-like multidimensional arrays, which allows for a more intuitive, more concise, and less error-prone DX
+
+** What labels enable
+- N-Dimensional arrays, sometimes called  tensors,
+  - essential part of computational science
+    - physics, astronomy, geoscience, bioinformatics, engineering, finance, deep learning, etc.
+  - NumPy provides ndarrays
+    - Xarray uses labels for concise interfacing
+      - some examples
+        1. apply operations over dimensions by name
+           /x.sum('time')/
+        2. select values by label instead of integer location
+           /x.loc['2014-01-01']/ /x.sel(time='2014-01-01')/
+        3. Mathematical operations vectorize across multiple dimensions-- **Array Broadcasting**
+        4. Use the _split-apply-combine_ paradigm with groupby
+           /x.groupby('time.dayofyear').mean()/
+        5. Database-like alignment based on coordinate labels that smoothly handles missing values
+           /x, y = xr.align(x, y, join='outer')/
+        6. Keep track of arbitrary metadata in the form of a Python dictionary
+           /x.attrs/
+
+** Core data structures
+ - _xarray.DataArray_: a labeled, ndarray w/ coordinates and dims
+   - generalization of a _pandas.Series_
+     - convert to a pandas Series
+       /x.to_series()/
+   - wrapper around numpy ndarrays
+   - objects can have any number of dimensions
+     - and their contents have fixed data types
+   - _parameters_:
+     1. **data** (array_like) must be numpy.ndarray-compatible
+        - a view of the array's data is used when possible instead of a copy
+     2. **coords** (sequence or dict of array_like or Coordinates)
+        /optional/
+        - tick labels to use for indexing along each dim
+     3. **dims** (Hashable or sequence of Hashable)
+        /optional/
+        - names of the data dimension(s)
+        - if argument name is omitted
+          - dimension names are taken from /coords/
+            - otherwise defaults to
+              /['dim_0', ... 'dim_n']/
+     4. **name** (str or None) - name of array
+        /optional/
+     5. **attrs** (dict-like or None) - attributes to assign to the new instance.
+        /optional/
+     6. **indexes** (Indexes or dict-like)
+        /optional/
+        - for internal use only
+          - use /coords/ instead to passing indexes objects to the new /DataArray/
+
+ - _xarray.Dataset_: a multi-dimensional, in-memory array database
+   - dict-like container of /DataArray/ objects
+     - aligned along any number of shared dimensions
+   - generalization of _pandas.DataFrame_
+   - resembles an in-memory representation of a NetCDF file
+     - consists of variables, coordinates, and attributes
+     - implements the mapping interface
+       - with keys given by variable names
+       - and values given by /DataArray/ objects
+         - for each variable name
+
+   - _parameters_:
+     1. **data_vars** (dict-like) /optional/
+        - a mapping from variable names to /DataArray/ objects, /Variable/ objects or to tuples of the form
+          /(dims, data[, attrs])/
+          - which can be used as args to create a new /Variable/
+
+            The following notations are accepted:
+
+                mapping {var name: DataArray}
+
+                mapping {var name: Variable}
+
+                mapping {var name: (dimension name, array-like)}
+
+                mapping {var name: (tuple of dimension names, array-like)}
+
+                mapping {dimension name: array-like} (if array-like is not a scalar it will be automatically moved to coords, see below)
+     2. **coords** (Coordinates or dict-like) /optional/
+        - a Coordinates object or another mapping  in similar form as the /data_vars/ arg
+          - except that each item is saved on the dataset as a "coordinate"
+        - These variables have associated meaning
+          - they describe constant/fixed/independent/ quantities
+            - unlike the varying/measured/dependent/ quantities that belong in variables
+
+              The following notations are accepted for arbitrary mappings:
+
+                mapping {coord name: DataArray}
+
+                mapping {coord name: Variable}
+
+                mapping {coord name: (dimension name, array-like)}
+
+                mapping {coord name: (tuple of dimension names, array-like)}
+
+                mapping {dimension name: array-like} (the dimension name is implicitly set to be the same as the coord name)
+     3. **attrs** (dict-like) /optional/
+        - global attributes to save on this dataset
+
+
+
+**  Installing and Importing Xarray
+#+begin_src python
+# pip install xarray pooch
+
+import matplotlib.pyplot as plt
+import numpy as np
+import xarray as xr
+
+xr.set_options(keep_attrs=True, display_expand_data=False)
+np.set_printoptions(threshold=10, edgeitems=2)
+
+#########
+# built-in access to tutorial datasets
+#########
+ds = xr.tutorial.open_dataset("air_temperature")
+# stored in the netCDF format
+
+# stored in a temporary cache directory
+# Linux: ~/.cache/xarray_tutorial_data
+# macOS: ~/Library/Caches/xarray_tutorial_data
+# Windows: ~/AppData/Local/xarray_tutorial_data
+
+#+end_src
+** Working with DataArrays
+#+begin_src python
+# Access a specific DataArray
+temperature = ds["air"] # ds.air # dot notation
+
+#####
+# DataArray Components
+#####
+
+# data stored in numpy array
+temperature.values
+# named axes of the data
+temperature.dims
+# labels for the values in each dimension
+temperature.coords
+# metadata associated with the data
+temperature.attrs
+
+########
+# Indexing and Selecting Data
+########
+
+# Select data for a specific time and location
+selected_data = temperature.sel(time="2013-01-01", lat=40.0, lon=260.0)
+# Slice data across a range of times
+time_slice = temperature.sel(time=slice("2013-01-01", "2013-01-31"))
+
+
+########
+# Performing Operations on DataArrays
+########
+
+# Calculate the mean temperature over time
+mean_temperature = temperature.mean(dim="time")
+# Subtract the mean temperature from the original data
+anomalies = temperature - mean_temperature
+
+#+end_src
+** Visualization with Xarray
+#+begin_src python
+# Plot the mean temperature
+mean_temperature.plot()
+plt.show()
+
+# customize appearance of plots by passing args
+mean_temperature.plot(cmap="jet", figsize=(10, 6))
+plt.xlabel("Longitude")
+plt.ylabel("Latitude")
+plt.title("Mean Temperature")
+
+# Plot a time series for a specific location
+temperature.sel(lat=40.0, lon=260.0).plot()
+plt.show()
+#+end_src
+
+** Working with Datasets
+#+begin_src python
+# List all variables in the dataset
+print(ds.data_vars)
+
+# Access a DataArray from the Dataset
+temperature = ds["air"]
+
+# Perform operations on the Dataset
+mean_temp_ds = ds.mean(dim="time")
+
+#+end_src
+
+** Reading and Writing files
+#+begin_src python
+xr.open_dataset("example.nc", engine="netcdf4")
+# netCDF format (recommended)
+#+end_src
+- the "engine" provides a set of instructions that  tell xarray how to read the data and pack them into a /Dataset/ ( or /DataArray/ )
+  - these are stored in an underlying "backend"
+  - xarray comes with several backends
+    - covering common data formats, many more backends are available via external libraries
+    - you can add a new backend for read support to xarray
+      1. create a class that inherits from xarray _BackendEntrypoint_
+         - implements _open_dataset()_
+      2. declare this class as an external plugin in project configuration
+         - define a entrypoint in pyproject.toml or setup.py
+           - group: /xarray.backends/
+           - name: the name to be passed to _open_dataset()_ as /engine/
+           - object reference: the reference of the class that you have implemented
+             #+begin_src python
+[project.entry-points."xarray.backends"]
+my_engine = "my_package.my_module:MyBackendEntrypoint"
+             #+end_src
