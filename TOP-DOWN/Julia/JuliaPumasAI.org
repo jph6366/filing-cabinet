@@ -30,3 +30,34 @@ A team of scientists and scientfic computing experts
      - Toxicokinectic Analysis
      - Non-compartmental Analysis
      _Pumas is the only software that matches SAS for BE anaylsis_
+
+_Competitors_
+
+- *Monolix*:
+  - most advanced and easy-to-use solution for non-linear mixed effects modeling (NLME) for pharmacometrics.
+  - It is based on the SAEM algorithm to provide robust, global convergence even for complex models,
+    - and is equipped with a user-friendly interface to ensure a simple and fast workflow.
+- *NONMEM*:
+  - non-linear mixed-effects modeling software package 1970s
+    - and expanded at Icon PLC. Its name is an acronym for nonlinear mixed effects modeling
+  - but it is especially powerful in the context of
+    - population
+    - pharmacokinetics,
+    - pharmacometrics,
+    - PK/PD models
+  - NONMEM models are written in NMTRAN,
+    - a dedicated model specification language that is translated into FORTRAN
+      - compiled on the fly
+        - and executed by a command-line script.
+- *Phoenix WinNonlin*:
+  - analysis of pharmacokinetic and pharmacodynamics
+  - integrated tools for
+    - data processing,
+    - non-compartmental analysis(NCA),
+    - PK/PD modeling,
+    - post-analysis statistics,
+    - table creation,
+    - graphics
+  - from early non-clinical research to large clinical trials
+    - the NCA engine, individual PK/PD modeling engine, and statistical analysis tools
+      - can be used for a wide-range of studies and analyses

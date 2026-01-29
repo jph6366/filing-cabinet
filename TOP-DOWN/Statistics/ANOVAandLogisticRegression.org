@@ -1,0 +1,236 @@
+#+title: Anov Aand Logistic Regression
+
+
+Assumptions:
+1. independent observations
+2. normality of populations -> sufficient sample sizez makes this _unimportant_
+3. equal variance for pooled $t$
+
+  _Independent observations_
+
+   _Dependent (differnces)_
+
+   $t = \frac{\bar{x}_{\delta} - \mu_{\delta}} {S_{\frac{\delta}{n}}}$
+
+
+   _F statistic_
+
+   $F=\frac{max(s_{1}^{2}, s_{2}^{2})}{min(s_{1}^{2}, s_{2}^{2})}$
+
+
+
+
+
+** Practice
+
+_using proc ttest to compare groups_
+
+- 30 selected students to recieve tutoring
+  - 15 received new type of training during tutorials
+    - other 15 received standard tutoring
+- 2 students moved away before completing the study
+  - scores on a standardized german grammar test were recorded immediately before the 12 week tutorials and again 12 weeks later at the end of the trial
+
+    1. using PROC TTEST, analyze `stat1.german` dataset
+       - assess whether the treatment group improved more than the control group
+    2. do the 2 groups seem to be approximately normally distributed?
+       /NO/NOT ENOUGH TO THE USE POOLED TTEST/
+    3. does the new teaching technique seem to result in _significantly_ different scores compared with the standard technique?
+        /P-VALUE FOR THE POOLED TTEST FOR THE DIFFERENCE BETWEEN THE TWO MEANS/
+        /SHOWS THAT THE TWO GROUPS ARE *NOT* STATISTICALLY SIGNIFICANTLY DIFFERENT/
+        /NOT STRONG ENOUGH EVIDENCE TO SAY THE NEW TECHNIQUE IS DIFFERENT FROM THE PRIOR/
+
+#+begin_src sas
+proc univariate data=stat1.german;
+     class group;
+     var change;
+     qqplot change / normal(mu=est sigma=est);
+run;
+
+proc ttest data=stat1.german;
+     class group;
+     var change;
+run;
+
+#+end_src
+
+** QUIZ
+
+1. sample from a population should be...
+   - representative
+
+2. predicitve modeling predicts future values of a response variable
+   - based on existing values of predictor variables
+     - you assess prediction's accuracy using a holdout or validation dataset
+       - and the model usually has many variables and a large sample size
+
+3. the standard error measures the variability associated with the sample mean
+   - -$\bar{x}$ is measured by the standard error
+
+4. for a 95% confidence interval (15.02, 15.04) for the population mean,
+   if the sample mean is 15.03 ounces...
+   - 95% confidence level means that 95% of theoretical inf number of intervals
+     - would contain the true population mean, but 5% would not
+       - any given sample, the calculated confidence CI might or might not
+         - contain the value of the true population mean
+
+5. Power is...
+   - the probability that you correctly reject the null hypothesis
+
+6. the location and spread of a normal distrbution depend on the value of...
+   - the mean $\mu$ and the standard deviation $\sigma$
+
+7. a bank manager noticed that a % of loans processed contain errors increased above 1%, A significance test is conducted to test his concern
+        $H_{0}$ loan error rate <= 0.01 $H_{a}$ loan error rate > 0.01
+        - Type I error (reject null hypothesis when its true)
+          - Type II error (fails to reject null hypothesis when its false)
+
+8. To reject a test a with student's $t$ statistic, the $t$ statistic should be far from zero and have a small corresponding p-value
+
+9. The confidence bounds can be changed using the ALPHA= option in PROC TTEST
+   - 99% confidence == ALPHA=0.01
+
+
+
+
+* ANOVA and Regression
+
+GLM: $Y = x \beta$
+
+1 quantitative predictor = simple linear regression (bivariate "" "")
+
+multiple quantitative predictors = mulitple regression
+
+x has 1 categorical predictors = 1-way ANOVA
+
+x has 2 categorical predictors = 2-way ANOVA
+
+mix of categorical and quantitative = ANOVA
+
+
+
+residual = $y_{i} - \hat{y}_{i}$
+SSError = $\sum_{i=1}^{n}(y_{i}-\hat{y}_{i})^{2}$
+- minimize this for the least-squares
+
+ANOVA = $y = \mu + \tau_{i} + \varepsilon$
+
+
+
+
+- Say check $y$ for normality in each group
+  - $\varepsilon$ assumed normal
+
+
+
+
+#+begin_src sas
+/* 2 sample t-test is also a GLM/ANOVA question */
+proc ttest data=german;
+     class group;
+     var change;
+run;
+
+
+
+#+end_src
+
+
+
+
+"post-hoc" after the intial tests...
+
+
+_Dunnett's Method_
+
+- Lower and Upper decision limits
+
+
+P( at lesat 1 type I error ) $\leq \alpha$
+
+
+
+
+
+** Using Correlation to measure relationships between continous variables
+
+
+
+- By defintion:
+  - 2 continous variables
+    - are correlated if there is a _linear association_ between them
+      /remember! it is possible to have strong associations that are.../
+       _nonlinear in nature_!
+
+- We use correlation statistics
+  - which measure the degree, or strength of linear association between two variables
+
+You can compute the Pearson correlation coefficient $r$
+- the closer to -1, the stronger the negative linear relationship between 2 variables
+- equal to 0 means no linear relationship exists between 2 variables (uncorrelated)
+- the closer to 1, the stronger the positive linear relationship between 2 variables
+
+- Lets consider Hypothesis Testing
+  - to determine whether the relationship between two variables
+    - is statistically different from zero
+  - the population parameter that represents a correlation is $p$
+    - and the correlation coefficient $r$ is the sample statistic
+      - that estimates $p$
+  - the null hypothesis for a test of a correlation coefficient is:
+    $H_{0}:p=0$
+  - alternative hypothesis for a test of a correlation coefficient is:
+    $H_{a}:p \neq 0$
+    /rejecting the null hypothesis suggests the true population correlation is.../
+    - statistically different from zero
+**REMEMBER! a p-value does NOT measure the magnitude of that association**
+ - To determine the strength of the association between 2 variables
+   - focus on $r$ , the sample correlation
+     - to see if its meaningfully large
+       /be cautious about the effect of sample sizes/
+       *very large sample sizes result in small p-values*
+       - you would almost always reject the hypothesis that $\rho$ is equal to zero
+         - even if it is small for practical purpose
+        /the proper sample sizes varies across industries/
+
+**VERY IMPORTANT: CORRELATION DOES NOT IMPLY CAUSATION**
+
+                      $I$    $II$  $III$  $IV$
+        $x_{i}-\bar{x}$              +     -     -    +
+        $y_{i}-\bar{y}$              +     +     -    -
+$(x_{i}-\bar{x})(y_{i}-\bar{y})$  +     -     +    -
+
+Covariance: $S_{xy}$ = $\sum_{i=1}^{n}(x_{i}-\bar{x})(y_{i}-\bar{y})$
+
+
+** Simple Linear Regression
+
+$y = \beta_{0} + \beta_{1}x + \varepsilon$
+                ^
+                quantitative
+
+_simple linear regression vs. baseline model_
+- baseline is what $\beta_{1}$ is without $x$
+  $H_{0}:\beta_{1}=0$
+
+
+*** Practice: using PROC REG to fit a simple linear regression model
+
+#+begin_src sas
+
+proc reg data=bodyfat2;
+     model pctbodyfat2=weight;
+run;
+#+end_src
+
+*** Quiz
+
+1. You can examine Levene's test for homogenity to more formally test
+   - the assumption of equal variances
+
+2. Dunnet's method is a multiple comparison of means
+   - Tukey method compares all possible pairs of means
+
+3. the model sums of squares (SSM), in one-way ANOVA
+   - is described as the variability between the groups
+
+4. $\beta_{1}$ represents the slope the parameter
