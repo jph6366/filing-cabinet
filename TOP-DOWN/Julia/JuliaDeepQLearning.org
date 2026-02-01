@@ -1,0 +1,285 @@
+#+title: Julia Deep Q Learning
+
+* PODMPs Deep Q Learning
+
+
+* Playing Atari with Deep RL
+
+_deep learning model to successfully learn control policies_
+- directly from high-dimensional sensory input using RL
+
+_CNN trained with a variant of Q-Learning_
+
+input: raw pixels whose output is a value function estimating future rewards
+
+experiment: seven Atari 2600 games (from arcade learning environment)
+- with no adjustment to architecture or learning algorithm
+
+
+
+** Learning to control agents from high-dimensional sensory inputs
+
+- most success is with hand-crafted features
+  - combined with linear value functions or policy representations
+
+- deep learning has breakthroughs utilising neural network architectures
+  - CNNs, MLPs, restricted Boltzmann machines, recurrent neural networks
+    - exploiting both supervised and unsupervised learning
+
+_challenges_
+1. RL algorithms must be able to learn from a scalar reward signal
+   - that is frequently sparse, noisy and delayed
+   - the delay between actions and resulting rewards
+     - which can be 1000s of timesteps long
+     - compared to supervised learning where direct association
+       - of inputs and targets
+2. Deep learning algorithms assume the data samples to be independent
+   - in RL one learning one typically encounters
+     - sequences of highly correlated states
+3. in RL the data distribution changes as the algorithm learns new behaviours
+   - which is problematic when assuming fixed underlying distribution
+
+_experiment_
+- implement a convolutional neural network
+  - to learn successful control policies from raw video data
+    - in complex RL environments
+- the network is trained with a variant of the Q-Learning algorithm
+  - with stochastic gradient descent to update the weights
+- to alleviate issues with correlated data and non-stationary distributions
+  - use an experience replay mechanism which randomly samples previous transitions
+    - smoothing the training distribution over many past behaviours
+- applied to a range of Atari games
+  - Atari 2600 as a testbed
+    - with visual input of 210x160 RGB video at 60GHz
+    - and diverse amount of tasks to tackle to mimic human level paly
+
+*goal* is to the create a single NN agent that is able to successfully play the games
+- the network will not be provided any game knowledge or hand-crafted features
+  - or privy to the internal state of the game
+- learning from nothing but...
+  - video input
+  - the reward and terminal signals
+  - the set of possible actions
+
+/network architecture and hyperparameters used for training/
+- are kept constant across games
+
+
+** Background on formulaic representations for Q-Learning
+
+Consider tasks in which an agent interacts with an environment $\varepsilon$
+- in this the Atari emulator, in a *sequence of actions, obseravations, and rewards*
+
+At each time step the agent selects an action $a_{t}$
+- from set of legal game actions $\mathcal{A} = \{1,...,\mathcal{K}\}$
+
+The action is passed to the emulator
+- and modifies its internal state and the game score
+
+/in general $\varepsilon$ may be stochastic/
+- the emulator's internal state is not observed by the agent
+  - instead it observes an image
+    $x_{t} \in \mathbb{R}^{d}$ from the emulator
+    - which is a vector of raw pixel values representing the current screen
+
+In addition it receives a reward $r_{t}$
+- it represents the change in game score
+  /note: general game score may depend on a prior sequence of actions and observations/
+  - feedback about an action may only be received after thousands of time steps are elapsed
+
+_the task is partially observed_ and many emulator _states are perceptually aliased_
+- i.e. its impossible to fully understand the current situation
+  - from only the current screen $x_{t}$
+- we therefore consider sequences of actions and observations,
+        $s_{t}=x_{1},a_{1},x_{2},..a_{t-1},x_{t}$
+  - and learn game strategies that depend upon these sequences
+- all sequences in the emulator are assumed to terminate
+  - in a finite number of timesteps
+    - giving rise to _a large but finite Markov Decision Process_
+  - in which each sequence is a distinct state
+
+    /apply standard RL methods for MDPs by using.../
+    - complete sequence $s_{t}$ as the state representation at time $t$
+
+- the goal of the agent is to interact with the emulator be selecting actions
+  - in a way that maximizes future rewards
+  - we make the standard assumption
+    - that future rewards are discounted by a factor of $\gamma$ per timestep
+    - and define the future discounted $return$ at time $t$ as:
+                                $R_{t}=\sum_{t^{'}=t}^{T}\gamma^{t^{'}-t}r_{t^{'}}$
+
+                                Where $T$ is the time step at which the game terminates
+- we define optimal action-value function  $Q^{*}(s,a)$ as the maximum expected return achievable by following any strategy
+  - after seeing some sequence $s$
+    - then taking some action $a$
+                        $Q^{*}(s,a) = max_{\pi}\mathbb{E}[R_{t}|s_{t} = s, a_{t}=a, \pi]$
+
+                        Where $\pi$ is a policy mapping sequences to actions
+                        (or distributions over actions)
+- the optimal action-value function obeys an identity known as the _Bellman Equation_
+  - if the optimal value $Q^{*}(s^{'},a^{'})$ of the sequence $s^{'}$
+    - at the next time step was known for all possible actions $a^{'}$
+      - then the optimal strategy is to select the action $a^{'}$
+        - maximizing the expected value of  $r + \gamma Q^{*}(s^{'},a^{'})$
+
+                        $Q^{*}(s,a) = \mathbb{E}_{s^{'}~\varepsilon}[r+\gamma max(a^{'})Q^{*}(s^{'},a^{'})|s,a]$
+
+/the basic idea behind RL is to estimate action-value function/
+- by using the *Bellman equation as an iterative update*
+                $Q_{i+1}(s,a) = \mathbb{E}_{s^{'} \sim \varepsilon}[r+\gamma max(a^{'})Q^{*}(s^{'},a^{'})|s,a]$
+  - such value iterations *converge to the optimal action-value function*
+                                $Q_{i} \rightarrow Q^{*}$ as $i \rightarrow \propto$
+                        /in practice this is totally impractical/
+    - the action-value function is estimated separately
+      - for each sequence, without any generalisation
+  - instead its common to use a function approximator to estimate action-value function
+        $Q(s,a;\theta)\approx Q^{*}(s,a)$
+    - in RL typically this is a linear function approximator
+      - sometimes non-linear is used like a neural network
+
+  - we refer to *a neural network function approximator
+    - with weights $\theta$  as a Q-network
+      - a _Q-network can be trained by minimizing a sequence of loss functions_ $L_{i}(\theta_{i})$
+        - that changes at each iteration $i$
+          $L_{i}(\theta_{i})=\mathbb{E}_{s,a \sim p(.)}[(y_{i}-Q(s,a;\theta_{i}))^{2}]$
+          Where $y_{i} = \mathbb{E}_{s,a \sim \varepsilon}[r+\gamma max_{a^{'}}Q(s,a;\theta_{i})| s,a]$
+          - is the target for iteration $i$ and $p(s,a)$
+            - is a probability distribution over sequences $s$ and actions $a$
+              - that we refer to as the *behaviour distribution*
+          - the parameters from the previous iteration $\theta_{i-1}$ are held fixed
+            - when optimising the loss function $L_{i}(\theta_{i})$
+              /note: the targets depend on the network weights/
+              - in contrast with the targets used for supervised learning
+                - which are fixed before learning begins
+        - _Differentiating the loss function with respect to the weights_
+          - we arrive at the following gradient
+                $\Delta_{\theta_{i}}L_{i}(\theta_{i}) = \mathbb{E}_{s,a \sim p(.);s^{'} \sim \varepsilon}[(r+\gamma max_{a^{i}}Q(s^{'},a^{'};\theta_{i-1})-Q(s,a;\theta_{i}))\Delta_{\theta_{i}}Q(s,a;\theta_{i})]$
+        /rather than computing the full expectations in the above gradient/
+        - it is often computationally expedient to optimize the loss function by stochastic gradient descent
+          - if the weights are updated after every time-step
+            - and the expectations are replaced by a single samples
+              - from the behavior distribution $\rho$ and the emulator $\varepsilon$ respectively
+                - then we arrive at the familiar _Q-learning algorithm_
+
+        *Q-learning  algorithm is model-free*, it solves RL task using samples from emulator $\varepsilon$
+        - without explicitly constructing an estimate of $\varepsilon$
+        *Q-learning is off-policy*, it learns about the greedy state $a=max_{a}Q(s,a;\theta)$
+        - while following a behaviour distribution that ensures adequate exploration of state space
+          /in practice, the behaviour distribution is selected by a $\epsilon$ - greedy strategy/
+          - that follows the greedy strategy with probabilty $1 - \epsilon$
+            - and selects a random action with probability $\epsilon$
+
+
+** Deep RL
+- the most successful approaches are trained from raw inputs
+  - using lightweight updates basd on stochastic gradient descent
+
+- by feeding data into neural networks
+  - it is possible to learn better feature representations
+
+_goal_: connect RL algorithm to a deep neural network
+- which operates directly on RGB images
+  - and efficiently process training data by using stochastic gradient descent updates
+
+
+- *experience replay* where we store the agent's experiences at each time-step
+  $e_{t}=(s_{t},a_{t},r_{t},s_{t+1})$ in a dataset $\mathcal{D} = e_{1},...,e_{N}$
+  - pooled over many episodes into a *replay memory*
+- During the inner loop of the algorithm
+  - we apply Q-learning updates
+    - or minibatch updates
+  - to samples of experience $e \sim \mathcal{D}$
+    - drawn at random from the pool of stored samples
+- after performing experience replay
+  - the agent selects and executes
+    - an action according to an $\epsilon$ - greedy policy
+/since histories of arbitrary lengths as inputs to a neural network can be difficult/
+- our Q-function instead works on fixed length representation of histories
+  - produced by a function $\phi$
+
+_algorithm_
+- this approach is advantageous compared to online Q-learning
+  - each step of experience is potentially used in many weight updates
+    - allowing for greater data efficiency
+  - learning directly from consecutive samples is inefficient
+    - due to strong correlation between samples...
+    - randomizing the samples breaks these corelations
+      - therefore reduces the variance of the updates
+  - when learning on-policy the current parameters determine the next data sample
+    - that the parameters are trained on
+      - its easy to see that unwanted feedback loops may arise
+        - and the parameters could get stuck in a poor local minimum or diverge
+    - by using experience replay the behaviour distribution
+      - is averaged over many of its previous states
+        - smoothing out learning and avoiding oscillations
+          - or divergence in the parameters
+        /note: when learning by experience replay, it is neccessary to learn.../
+        - off-policy, becuase our current parameters are different
+          - to those used to generate the sample
+
+- in practice...
+  - algorithm only stores the last $N$ experience tuples in the replay memory
+    - and samples uniformly at random from $D$ when performing updates
+      - limited since the memory buffer does not differentiate important transitions
+        - and always overwrites with recent transitions due to finite memory size $N$
+      - similary the uniform sampling gives
+        - equal importance to all transitions in the replay memory
+/a sophisticated sampling strategy can emphasize transitions/
+ - from which we can learn the most... like *prioritized sweeping*
+
+***Deep Q-Learning with Experience replay***
+- initialize replay memory $\mathcal{D}$ to capacity $N$
+- initialize action-value function $Q$ with random weights
+*for* episode = 1, $M$ *do*
+  - initialize sequence $s_{1} = \{x_{1}\}$ and preprocessed sequenced $\phi_{1} = \phi(s_{1})$
+  *for* $t = 1, T$ *do*
+    - with probability $\epsilon$ select a random action $a_{t}$
+      - otherwise select $a_{t} = max_{a}Q^{*}(\phi(s_{t}),a;\theta)$
+    - execute action $a_{t}$ in emulator and observe reward $r_{t}$ and image $x_{t+1}$
+    - set $s_{t+1} = s_{t},a_{t},x_{t+1}$ and preprocess $\phi_{t+1}=\phi(s_{t+1})$
+    - store transition $(\phi_{t},a_{t},r_{t},\phi_{t+1})$ in $\mathcal{D}$
+    - sample random minibatch of transitions $(\phi_{t},a_{t},r_{t},\phi_{t+1})$ from $\mathcal{D}$
+      - set $y_{j} = \begin{cases} r_{j} & for terminal \phi_{j+1}\\ r_{j}+\gamma max_{a^{'}}Q(\phi_{j+1},a^{'};\theta) & for non-terminal \phi_{j+1}\end{cases}$
+
+        Perform a gradient descent step on $(y_{j} - Q(\phi_{j},a_{j};\theta))^{2}$
+   *end for*
+*end for*
+
+*** Preprocessing and Model Architecture
+ - Atari frames are 210 $\times$ 160 pixel images
+   - with a 128 color palette
+
+ - raw frames are preprocessed
+   - by converting RGB to gray-scale
+     - and downsampling to 110 $\times$ 84 image
+       - final image is cropped to 84 $\times$ 84 region of the image
+         /note: implementation expects square inputs/
+_from the experiments_
+- the function $\phi$ from pseudo-algorithm above applies this preprocessing
+  - to the last 4 frames of a history
+    - and stacks them to produce the input to the $Q$ - function
+
+ $Q$ maps history-action pairs to scalar estimates of their $Q$ - values
+ - the history and the action have been used as inputs to the neural network
+_the main drawback of this architecture_
+- a separate forward-pass is required to compute the $Q$ value
+  - of each action, resulting in a cost that scales linearly
+    - with the number of actions
+_instead we use architecture where there is a separate output unit_
+- for each possible action, and only the state representation
+  - is an input to the neural network
+- output corresponds to the prediced $Q$ value
+  - of the individual action for the input state
+        _main advantage_: computing Q-values for all possible actions
+        - in a given state with only a single forwad pass through the network
+
+
+**input to the neural networks consists of an $84 \times 84 \times 4$ image produced by $\phi$ .**
+
+*first hidden layer convolves 16 $8 \times 8$ filters with stride 4 with the input image*
+        *and applies a rectifier nonlinearity*
+*second hidden layer convolves 32 $4 \times 4$ filters with stride 2*
+        *followed by rectifier nonlinearity*
+*final hidden layer is fully-connected and consists of 256 rectifier units*
+
+- number of valid actions varied between 4 and 18 on the games we considered

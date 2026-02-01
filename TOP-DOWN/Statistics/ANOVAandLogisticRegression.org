@@ -234,3 +234,33 @@ run;
    - is described as the variability between the groups
 
 4. $\beta_{1}$ represents the slope the parameter
+
+
+
+
+
+** Two-Way ANOVA
+
+x- you use a one-way ANOVA to determine
+  - whether there are significant differences between the means
+    - of two or more populations across different levels of a _categorical variable_
+
+_what if you have two categorical variables each with multiple levels?_
+- using one-way ANOVA separately misses the possible interactions between the predictor variables
+
+*Two-Way ANOVA analyzes the effect of each predictor individually*
+- and tests for interactions between them
+
+  /an ANOVA with more than one predictor variable is called n-way ANOVA/
+  - where $n$ represents the number of categorical predictor variables
+    - or factors included in the model
+
+$Y_{ijk} = \mu + \alpha_{i} + \beta_{j} + (\alpha\beta)_{ij} + \varepsilon_{ijk}$
+
+
+$Y_{ijk} = \beta_{0} + \alpha_{i} h_{i} + \beta_{j}s_{j} + \beta_{j} + \delta_{ij} (h_{i}s_{i}) + \varepsilon_{ijk}$
+$\alpha_{m} = 0$  $\beta_{n} = 0$  $\delta_{mj} = 0$
+
+
+two factors become one with $m \times n$ levesl
+$\beta_{ij}(h_{i}s_{j}) + \varepsilon_{ijk}$
