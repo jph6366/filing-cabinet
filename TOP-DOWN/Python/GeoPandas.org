@@ -1,0 +1,355 @@
+#+title: Geo Pandas
+
+* Overview
+- GeoPandas adds support for geographic data to _pandas_ objects
+  - it implements GeoSeries and GeoDataFrame
+    - which are subclasses of pandas.Series and pandas.DataFrame
+  - GeoPandas objects can act on _shapely_ geometry objects and perform geometric operations
+    - GeoPandas geometry operations are cartesian
+      - the coordinate reference system can be stored as an attribute of an object
+
+- GeoPandas is written in pure Python, but has several dependencies written in C
+  - GEOS, GDAL, PROJ
+_also depends on_
+- pandas
+- shapely
+- pyogrio
+- pyproj
+- packaging
+/optional/
+- matplotlib
+
+** First Example
+  #+begin_src python
+
+import geopandas as gpd
+from shapely.geometry import Polygon
+p1 = Polygon([(0, 0), (1, 0), (1, 1)])
+p2 = Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])
+p3 = Polygon([(2, 0), (3, 0), (3, 1), (2, 1)])
+
+g = gpd.GeoSeries([p1, p2, p3])
+#0    POLYGON ((0 0, 1 0, 1 1, 0 0))
+#1    POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))
+#2    POLYGON ((2 0, 3 0, 3 1, 2 1, 2 0))
+
+g.area # returns a pandas.Series containing area for each item in GeoSeries
+#0    0.5
+#1    1.0
+#2    1.0
+#dtype: float64
+
+g.buffer(0.5) # returns GeoPandas objects
+#0    POLYGON ((-0.3535533905932737 0.35355339059327...
+#1    POLYGON ((-0.5 0, -0.5 1, -0.4975923633360985 ...
+#2    POLYGON ((1.5 0, 1.5 1, 1.502407636663901 1.04...
+#dtype: geometry
+
+g.plot() # use matplotlib to generate plot for GeoSeries
+
+#########
+# GeoPandas implements constructors to read any data format
+# recognized by pyogrio
+# SHP, GPKG, GEOJSON, FLATGEOBUF, ...
+#########
+
+import geodatasets
+# externally hosted datasets for educational purposes
+nybb_path = geodatasets.get_path('nybb')
+boros = gpd.read_file(nybb_path)
+boros.set_index('Borocode', inplace=True)
+boros.sort_index(inplace=True)
+# boroughs boundaries of NYC
+
+boros['geometry'].convex_hull
+  #+end_src
+
+
+
+* Basics
+#+begin_src python
+# pip install geopandas
+# install other necessary libraries
+import pandas as pd
+import geopandas gpd
+import matplotlib.pyplot as plt
+#+end_src
+
+** Creating GeoDataFrames
+- GeoDataFrame is a tabular data structure that contains a /geometry/ column
+  #+begin_src python
+data = {
+    "City": ["Tokyo", "New York", "London", "Paris"],
+    "Latitude": [35.6895, 40.7128, 51.5074, 48.8566],
+    "Longitude": [139.6917, -74.0060, -0.1278, 2.3522],
+}
+
+df = pd.DataFrame(data)
+gdf = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.Longitude, df.Latitude))
+  #+end_src
+
+** Reading and Writing a GeoJSON
+#+begin_src python
+url = "https://github.com/opengeos/datasets/releases/download/vector/nybb.geojson"
+gdf = gpd.read_file(url)
+
+output_file = "nyc_boroughs.geojson"
+gdf.to_file(output_file, driver="GeoJSON")
+# or write to other formats
+output_file = "nyc_boroughs.shp"
+gdf.to_file(output_file)
+output_file = "nyc_boroughs.gpkg"
+gdf.to_file(output_file, driver="GPKG")
+#+end_src
+
+** Simple Accessors
+#+begin_src python
+# Set BoroName as the index for easier reference
+gdf = gdf.set_index("BoroName")
+
+# Calculate the area
+gdf["area"] = gdf.area
+
+# Get the boundary of each polygon
+gdf["boundary"] = gdf.boundary
+
+# Get the centroid of each polygon
+gdf["centroid"] = gdf.centroid
+
+# Use Manhattan's centroid as the reference point
+manhattan_centroid = gdf.loc["Manhattan", "centroid"]
+
+# Calculate the distance from each centroid to Manhattan's centroid
+gdf["distance_to_manhattan"] = gdf["centroid"].distance(manhattan_centroid)
+
+mean_distance = gdf["distance_to_manhattan"].mean()
+
+gdf.plot("area", legend=True, figsize=(10, 6))
+plt.title("NYC Boroughs by Area")
+plt.show()
+
+# Plot the boundaries and centroids
+ax = gdf["geometry"].plot(figsize=(10, 6), edgecolor="black")
+gdf["centroid"].plot(ax=ax, color="red", markersize=50)
+plt.title("NYC Borough Boundaries and Centroids")
+plt.show()
+
+gdf.explore("area", legend=False)
+# explore your data interactively w/ Leaflet
+#+end_src
+
+** Geometry Manipulation
+#+begin_src python
+# Buffer the boroughs by 10000 feet
+gdf["buffered"] = gdf.buffer(10000)
+
+# Plot the buffered geometries
+gdf["buffered"].plot(alpha=0.5, edgecolor="black")
+plt.title("Buffered NYC Boroughs (10,000 feet)")
+plt.show()
+
+# Calculate convex hull
+gdf["convex_hull"] = gdf.convex_hull
+
+# Plot the convex hulls
+gdf["convex_hull"].plot(alpha=0.5, color="lightblue", edgecolor="black")
+plt.title("Convex Hull of NYC Boroughs")
+plt.show()
+#+end_src
+
+** Spatial Queries and Relations
+#+begin_src python
+# Get the geometry of Manhattan
+manhattan_geom = gdf.loc["Manhattan", "geometry"]
+
+# Check which buffered boroughs intersect with Manhattan's geometry
+gdf["intersects_manhattan"] = gdf["buffered"].intersects(manhattan_geom)
+
+# Check if centroids are within the original borough geometries
+gdf["centroid_within_borough"] = gdf["centroid"].within(gdf["geometry"])
+#+end_src
+
+** Projections and Coordinate Reference Systems
+#+begin_src python
+print(gdf.crs)
+
+# Reproject the GeoDataFrame to WGS84 (EPSG:4326)
+gdf_4326 = gdf.to_crs(epsg=4326)
+
+# Plot the reprojected geometries
+gdf_4326.plot(figsize=(10, 6), edgecolor="black")
+plt.title("NYC Boroughs in WGS84 (EPSG:4326)")
+plt.show()
+#+end_src
+
+
+* Advanced
+
+** Spatial Indexing
+- when you want to know a spatial predicate/relationship between a sets of geometries
+  - An efficient approach utilizing a spatial index
+    - for pre-filtering comparisons of geometries
+      - before using more computationally expensive spatial predicates
+
+- GeoPandas exposes the Sort-Tile-Recursive R-Tree from shapely
+  - on any GeoDataFrame
+    - or GeoSeries (using the GeoSeries.sindex property)
+
+- GeoPandas automatically uses spatial indexes in _sjoin()_ _overlay()_, or _clip()_
+  - a more direct approach
+
+#+begin_src python
+import geopandas
+import matplotlib.pyplot as plt
+import shapely
+
+from geodatasets import get_path
+
+nyc = geopandas.read_file(get_path("geoda nyc"))
+
+##############
+# R-Tree Principle
+##############
+"""
+Any R-Tree index
+builds a hierarchical collection
+of bounding boxes/envelopes representing
+first individual geometries
+and then
+their most efficient combinations
+"""
+point_inside = shapely.Point(950000, 155000)
+point_outside = shapely.Point(1050000, 150000)
+points = geopandas.GeoSeries([point_inside, point_outside], crs=nyc.crs)
+fig, axs = plt.subplots(1, 2, sharey=True, figsize=(8, 4))
+
+nyc.plot(ax=axs[0], edgecolor="black", linewidth=1)
+nyc.envelope.boundary.plot(ax=axs[1], color='black')
+points.plot(ax=axs[0], color="limegreen")
+points.plot(ax=axs[1], color="limegreen");
+#+end_src
+
+*** Scalar Query
+- use the _sindex_ property to query the index
+  - the _query()_ method returns positions of all geometry whose bounding boxes intersect the bounding box of the input geometry
+
+nyc.sindex.valid_query_predicates
+{None,
+ 'contains',
+ 'contains_properly',
+ 'covered_by',
+ 'covers',
+ 'crosses',
+ 'dwithin',
+ 'intersects',
+ 'overlaps',
+ 'touches',
+ 'within'}
+
+#+begin_src python
+bbox_query_inside = nyc.sindex.query(point_inside)
+bbox_query_outside = nyc.sindex.query(point_outside)
+bbox_query_inside, bbox_query_outside
+
+## plots
+fig, axs = plt.subplots(1, 2, sharey=True, figsize=(8, 4))
+
+nyc.plot(ax=axs[0], edgecolor="black", linewidth=1)
+nyc.envelope.boundary.plot(ax=axs[1], color='black')
+points.plot(ax=axs[0], color="limegreen", zorder=3, edgecolor="black", linewidth=.5)
+points.plot(ax=axs[1], color="limegreen", zorder=3, edgecolor="black", linewidth=.5)
+nyc.iloc[bbox_query_inside].plot(ax=axs[0], color='orange')
+nyc.iloc[bbox_query_outside].plot(ax=axs[0], color='orange')
+nyc.envelope.iloc[bbox_query_inside].plot(ax=axs[1], color='orange')
+nyc.envelope.iloc[bbox_query_outside].plot(ax=axs[1], color='orange');
+
+##############
+# The spatial index allows filtering based on the actual geometry
+# ... the is first queried and afterwards each hit is checked
+# using a spatial predicate
+#############
+pred_inside = nyc.sindex.query(point_inside, predicate="intersects")
+pred_outside = nyc.sindex.query(point_outside, predicate="intersects")
+# "intersects" here is a spatial query predicate
+
+## plots
+fig, axs = plt.subplots(1, 2, sharey=True, figsize=(8, 4))
+
+nyc.plot(ax=axs[0], edgecolor="black", linewidth=1)
+nyc.envelope.boundary.plot(ax=axs[1], color='black')
+points.plot(ax=axs[0], color="limegreen", zorder=3, edgecolor="black", linewidth=.5)
+points.plot(ax=axs[1], color="limegreen", zorder=3, edgecolor="black", linewidth=.5)
+nyc.iloc[pred_inside].plot(ax=axs[0], color='orange')
+nyc.envelope.iloc[pred_inside].plot(ax=axs[1], color='orange');
+
+#+end_src
+
+
+*** Array Query
+- Checking a single geometry against the tree is not very efficient for many-to-many relationships
+
+  #+begin_src python
+bbox_array_query = nyc.sindex.query(points)
+#the method returns a 2-D array of indices
+# where the query found a hit
+# where the subarrays correspond to the indices
+# of the input geometries and indices
+# of the tree geometries associated with each.
+
+
+bbox_array_query
+# array([[ 0,  1],
+#       [ 1, 16]])
+
+#  the 0-th geometry in the points GeoSeries
+# intersects the bounding box of the geometry
+# at the position 1 from the nyc GeoDataFrame
+#  the geometry 1 in the points matches geometry 16 in the nyc
+
+bbox_array_query_dense = nyc.sindex.query(points, output_format="dense")
+bbox_array_query_dense
+# return a boolean array with shape (len(tree), n)
+# boolean values marking whether the bounding box of a geometry
+# in the tree intersects a bounding box of a given geometry
+
+#####
+# can either be dense numpy array or a sparse scipy array
+##### it is recommended to use the sparse format
+#array([[False, False],
+#       [ True, False],
+#       ...
+#       [False, False],
+#       [False, False],
+#       [False, False]])
+
+######
+# scipy.sparse.coo_array
+######
+bbox_array_query_sparse = nyc.sindex.query(points, output_format="sparse")
+bbox_array_query_sparse
+#<COOrdinate sparse array of dtype 'bool'
+ #       with 2 stored elements and shape (55, 2)>
+
+#  to find the number of neighboring geometries for each subborough
+# you can use the spatial index to compare all geometries against each other
+neighbors = nyc.sindex.query(nyc.geometry, predicate="intersects", output_format="dense")
+
+# a geometry always intersects itself, you need to subtract one
+n_neighbors = neighbors.sum(axis=1) - 1
+
+## plots
+nyc.plot(n_neighbors, legend=True);
+
+  #+end_src
+
+
+
+*** Nearest geometry query
+- GeoPandas allows you to use the spatial index to find the nearest geometry
+
+  #+begin_src python
+nearest_indices = nyc.sindex.nearest(points)
+# returns the indices representation
+nearest_indices, distance = nyc.sindex.nearest(points, return_distance=True)
+# returns also tuple of arrays of distances
+  #+end_src

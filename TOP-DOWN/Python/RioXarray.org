@@ -1,0 +1,188 @@
+#+title: Rio Xarray
+
+* Overview
+
+- rioxarray is an extension of xarray that focuses on geospatial raster data
+  - easy access to georeferencing information and geospatial transforms
+    - using xarray's label, multi-dimensional data structures
+      - seamless integration of CRS, affine transformations, and more
+
+** Install and Importing rioxarray
+#+begin_src python
+
+# pip install rioxarray rasterio
+
+import rioxarray
+import numpy as np
+import xarray as xr
+import matplotlib.pyplot as plt
+
+xr.set_options(keep_attrs=True, display_expand_data=False)
+
+#+end_src
+
+** Loading Georeferenced Raster data
+#+begin_src python
+# Load a raster dataset using rioxarray
+url = "https://github.com/opengeos/datasets/releases/download/raster/LC09_039035_20240708_90m.tif"
+data = rioxarray.open_rasterio(url)
+### loadings raster data into DataArray
+## automatically attaches the geospatial metadata
+# View the structure of the DataArray
+data.dims  # Dimensions (e.g., band, y, x)
+data.coords  # Coordinates (e.g., y, x in geographic or projected CRS)
+print(data.attrs)  # Metadata (including CRS)
+#+end_src
+
+#+RESULTS:
+
+** Checking CRS and Transform information
+#+begin_src python
+# Check the CRS of the dataset
+data.rio.crs
+# CRS.from_epsg(32611)
+# Check the affine transformation (mapping pixel coordinates to geographic coordinates)
+data.rio.transform()
+# Affine(90.0, 0.0, 582390.0,
+#       0.0, -90.0, 4105620.0)
+# If the CRS is missing or incorrect, assign a CRS
+data = data.rio.write_crs("EPSG:32611", inplace=True)
+#+end_src
+
+** Reprojecting a Dataset
+#+begin_src python
+# Reproject the dataset to WGS84 (EPSG:4326)
+data_reprojected = data.rio.reproject("EPSG:4326")
+print(data_reprojected.rio.crs)
+#+end_src
+** Clipping a raster
+#+begin_src python
+# Define a bounding box (in the same CRS as the dataset)
+bbox = [-115.391, 35.982, -114.988, 36.425]
+
+# Clip the raster to the bounding box
+clipped_data = data_reprojected.rio.clip_box(*bbox)
+
+clipped_data.shape
+
+import geopandas as gpd
+
+# Load a geojson with regions of interest
+geojson_path = "https://github.com/opengeos/datasets/releases/download/places/las_vegas_bounds_utm.geojson"
+bounds = gpd.read_file(geojson_path)
+
+# Clip the raster to the vector shape
+clipped_data2 = data.rio.clip(bounds.geometry, bounds.crs)
+#+end_src
+** Working with Spatial Dimensions
+#+begin_src python
+#####
+# resample the raster dataset to different resolution
+#####
+
+# Resample to 1km resolution (using an average resampling method)
+resampled_data = data.rio.reproject(data.rio.crs, resolution=(1000, 1000))
+
+#####
+# extract spatial subsets of the dataset
+####
+
+# Select a subset of the data within a lat/lon range
+min_x, max_x = -115.391, -114.988
+min_y, max_y = 35.982, 36.425
+subset = data_reprojected.sel(
+    x=slice(min_x, max_x), y=slice(max_y, min_y)
+)  # Slice y in reverse order
+#+end_src
+
+** Visualization of Georeferenced data
+#+begin_src python
+# Plot the raster data
+plt.figure(figsize=(8, 8))
+data_reprojected.sel(band=[4, 3, 2]).plot.imshow(vmin=0, vmax=0.3)
+plt.title("Landsat Image covering Las Vegas")
+plt.xlabel("Longitude")
+plt.ylabel("Latitude")
+plt.show()
+
+# Plot the clipped or masked raster data
+plt.figure(figsize=(8, 8))
+clipped_data.sel(band=[4, 3, 2]).plot.imshow(vmin=0, vmax=0.3)
+plt.title("Landsat Image covering Las Vegas")
+plt.xlabel("Longitude")
+plt.ylabel("Latitude")
+plt.show()
+
+# Plot raster with GeoJSON overlay
+fig, ax = plt.subplots(figsize=(8, 8))
+data.attrs["long_name"] = "Surface Reflectance"  # Update the long_name attribute
+data.sel(band=4).plot.imshow(ax=ax, vmin=0, vmax=0.4, cmap="gray")
+bounds.boundary.plot(ax=ax, color="red")
+plt.title("Raster with Vector Overlay")
+plt.show()
+#+end_src
+
+** Saving data
+#+begin_src python
+# Save the DataArray as a GeoTIFF file
+data.rio.to_raster("output_raster.tif")
+#+end_src
+** Handling NoData Values
+#+begin_src python
+# Assign NoData value
+data2 = data.rio.set_nodata(-9999)
+
+# Remove NoData values (mask them)
+data_clean = data2.rio.write_nodata(-9999, inplace=True)
+#+end_src
+** Reproject to Multiple CRS
+#+begin_src python
+# Reproject to WGS 84 (EPSG:4326)
+data = data.rio.reproject("EPSG:4326")
+print(data.rio.crs)
+# Reproject to EPSG:3857 (Web Mercator)
+mercator_data = data.rio.reproject("EPSG:3857")
+print(mercator_data.rio.crs)
+# Plot the raster data in WGS84
+plt.figure(figsize=(6, 6))
+data.sel(band=[4, 3, 2]).plot.imshow(vmin=0, vmax=0.3)
+plt.title("EPSG:4326")
+plt.xlabel("Longitude")
+plt.ylabel("Latitude")
+plt.show()
+# Plot the raster data in Web Mercator
+plt.figure(figsize=(6, 6))
+mercator_data.sel(band=[4, 3, 2]).plot.imshow(vmin=0, vmax=0.3)
+plt.title("EPSG:3857")
+plt.xlabel("X")
+plt.ylabel("Y")
+plt.show()
+
+#+end_src
+
+** Basic Band Math (NDVI)
+#+begin_src python
+# Select the red (band 4) and NIR (band 5) bands
+red_band = data.sel(band=4)
+nir_band = data.sel(band=5)
+
+# Calculate NDVI
+ndvi = (nir_band - red_band) / (nir_band + red_band)
+ndvi = ndvi.clip(min=-1, max=1)  # Clip values to the range [-1, 1]
+ndvi.attrs["long_name"] = "NDVI"
+
+# Plot the NDVI values
+ndvi.plot(cmap="RdYlGn", vmin=-1, vmax=1)
+plt.title("NDVI of the Landsat Image")
+plt.xlabel("Longitude")
+plt.ylabel("Latitude")
+plt.show()
+
+# Mask out non-vegetated areas (NDVI < 0.2)
+ndvi_clean = ndvi.where(ndvi > 0.2)
+ndvi_clean.plot(cmap="Greens", vmin=0.2, vmax=0.5)
+plt.title("Cleaned NDVI (non-vegetated areas masked)")
+plt.xlabel("Longitude")
+plt.ylabel("Latitude")
+plt.show()
+#+end_src
