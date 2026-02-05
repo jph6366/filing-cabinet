@@ -2,6 +2,9 @@
 
 * Logistic Regression
 
+
+* Logistic Regression
+
 _defined mathematically as_
 
 $model(x) = \sigma(Wx + b)$
@@ -67,7 +70,8 @@ _define some quantitative values for logistic regression model_
          - for an estimated probability distribution $q$
            - rather than the true distribution $p$
 
-             $H(p,q)=-E_{p}[log q]\comma$
+             $H(p,q)=-E_{p}[log q]$
+
              Where $E_{p}[\cdot]$ is the expected value operator w.r.t. the distribution $p$
         _may also be formulated using Kullback-Leibler divergence_ $D_{KL}(p||q)$
         diveregence of $p$ from $q$, known as relative entropy of $p$ w.r.t. $q$
@@ -162,7 +166,9 @@ _Expand Catgorical CE an softmax equations_
 let $x \in X$ be a feature vector representing sample in the set $X$
 $l$ be the logits vector and $p=softmax(l)$
 - let $y$ be the ground truth class vector associated with $x$
-  $E(y,l)= -\sum_{i}y_{i}log p_{i} = - \sum_{i}y_{i}log\frac{e_^{l_{i}}}{\sum_{j}e^{l_{j}}}$
+
+  $E(y,l)= -\sum_{i}y_{i}log p_{i}=-\sum\limits_{i}y_{i}log\frac{e_^{l_{i}}}{\sum_{j}e^{l_{j}}}$
+
 applying $log(q/t) = log q - log t_{'}$
         $E(y,l)=-\sum_{i}y_{i}[log e^{l_{I}}+log(\sum_{j}e^{l_{j}})]$
                 9$=-\sum_{i}y_{i}[l_{i}+log(\sum_{j}e^{l_{j}})]$
@@ -181,4 +187,3 @@ function loss(W,b,x,onehoty)
 end
           #+end_src
 
-          #+RESULTS:
