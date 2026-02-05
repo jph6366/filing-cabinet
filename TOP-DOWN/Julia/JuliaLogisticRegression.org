@@ -1,15 +1,184 @@
 #+title: Julia Logistic Regression
 
+* Logistic Regression
+
 _defined mathematically as_
 
 $model(x) = \sigma(Wx + b)$
+Where $W$ is the weight matrix
+$b$ is the bias vector
+$\sigma$ is any activation function
+
+#+begin_src python
+import numpy as np
+
+def logisticregression_model(W, b, x):
+    return np.dot(W, x) + b
+#+end_src
+
+#+RESULTS:
+
+#+begin_src julia
+m(W, b, x) = W*x .+ b
+#+end_src
 
 
-_use an activation function to map our outputs to a probability value_
+* softmax activation function
+_Use an activation function to map our outputs to a probability value_
 
-_softmax activation function_
+   _softmax activation function_
 
-$\sigma(\overrightarrow{x})= \frac{e^{z_{i}}}{sum_{j=1}^{k} e^{z_{i}}}$
+$\sigma(\overrightarrow{x})= \frac{e^{z_{i}}}{\sum\limits_{j=1}^{k} e^{z_{i}}}$
+_Log softmax_
+
+$\log \sigma(\overrightarrow{x})$
+- taking the lof of the softmax transforms large numbers into much smaller scale
+  - transfers the small probabilities into a negative number with a larger scale
+    - this increase numeric stability
 
 - softmax scales down the outputs ot probability values
   - such that the sum of all final ouputs equals 1
+
+    #+begin_src python
+import numpy as np
+
+def softmax(x):
+    return np.divide(np.exp(x), np.sum(np.exp(x))
+    #+end_src
+
+#+begin_src julia
+softmax(x) = exp.(x) ./ sum(exp.(x), dims=1)
+#+end_src
+
+
+
+* Loss and Accuracy
+
+_define some quantitative values for logistic regression model_
+
+        _maximize or minimize this value during the complete training procedure_
+
+
+ _cross-entropy between two probability distributions $p$ and $q$ over_
+ - the same underlying set of events
+   - measures the average number of binary digits
+     - to identify an event drawn from the set
+       - when the coding scheme used for the set is optimized
+         - for an estimated probability distribution $q$
+           - rather than the true distribution $p$
+
+             $H(p,q)=-E_{p}[log q]\comma$
+             Where $E_{p}[\cdot]$ is the expected value operator w.r.t. the distribution $p$
+        _may also be formulated using Kullback-Leibler divergence_ $D_{KL}(p||q)$
+        diveregence of $p$ from $q$, known as relative entropy of $p$ w.r.t. $q$
+                $H(p,q)=H(p)+D_{KL}(p||q)$
+                Where $H(p)$ is the entropy of $p$
+
+        _for discrete distributions $p$ and $q$ with the same support $X$, this means_
+
+        $H(p,q)=-\sum\limits_{x\in X}p(x) log q(x)$
+        _for continous distributions, we assume $p$ and $q$ are absolutely continous w.r.t. some reference measure $r$_
+        Let $P$ and $Q$ be probability density functions of $p$ and $q$ w.r.t. to $r$
+
+        $-\int_{x} P(x)logQ(x)dx = E_{p}[-logQ]$
+        and therefore...
+        $H(p,q)=-\int_{x}P(x)\log Q(x)dx$
+
+        $H(p,q)$ is used as the joint entropy of $p$ and $q$
+
+_Categorical Cross-entropy loss function
+for optimizing estimators for multiclass classification problems_
+
+        $E(y,p)=-y \cdot log p =-\sum_{i}y_{i}logp_{i}$
+        *also called negative log likelihood*
+- heavily based on Claude Shannon's Mathematical theory of communication
+
+** The mathematical theory of communication
+  - To quantify the deficit in the information content in a message he characterized it by a number, the entropy, adopting a term from thermodynamics
+    - showcased that any given communications channel has a maximum capacity for transmitting information
+      - The maximum, which can be approached but never attained, has become known as _the Shannon limit_
+
+_pseudo diagram_
+- An ‘information source’ outputs a ‘message,’
+  - which is encoded by a ‘transmitter’ into the transmitted ‘signal.’
+- The received signal
+  - is the sum of the transmitted signal and unavoidable ‘noise.’
+- It is recovered as a decoded message,
+  - which is delivered to the ‘destination.’
+- The received signal,
+  - which is the sum between the signal and the ‘noise,’
+    - is decoded in the ‘receiver’
+      - that gives the message to destination.
+
+*the paper includes 23 theorems with proofs*
+- divided into 4 parts
+  1. differentiating between discrete
+     2. or continuous sources of information
+        3. the presence
+           4. or absence of noise
+
+
+_simplest case_
+/source-coding theorem/
+- the *entropy* formula from the theory of cryptography
+  - which in fact can be reduced to a *logarithmic mean*
+- defines the binary digit as the unit for information
+
+  *Shannon states the mean length of a message has a lower limit proportional to the entropy of the source*
+
+_introducing noise_
+/channel-coding theorem/
+- when the *entropy* of the source is less than the capacity of the channel
+  - a code exists that allows one to transmit a message
+    - so that the output of the source can be transmitted over the channel
+      - with an arbitrarily small frequency of errors
+
+
+Entropy (in information theory) represents an absolute mathematical limit
+- on how well data from the source can be perfectly reconstructed from compressed data onto a perfectly noiseless channel
+
+ Shannon's contribution were the invention of the source-encoder-channel-decoder-destination model, and the elegant and remarkably general solution of the fundamental problems which he was able to pose in terms of this model. Particularly significant is the demonstration of the power of coding with delay in a communication system, the separation of the source and channel coding problems, and the establishment of fundamental natural limits on communication.
+
+
+ _categorical CE can be interpreted as a sum of the log probabilities_
+ - conditioned to the association of the sample
+   - to the respective class being predicted
+     if $y_{i}=0$ then the output $p_{i}$ is ignored in the optimization process
+     /logit $l_{i}$ will be ignored as it appears in the denominator of the softmax/
+     - in terms of $p_{j}|j \neq i$
+
+_simplest case, multi-class and single-label problem_
+- $y$ is a one-hot encoded vector and
+  - thus can be represented as a single positive integer
+    - representing the associated class index
+      $E(y,p)=-log(p_{k})$
+      - this form is known as *Sparse Cross-Entropy*
+        /notice we no longer add all of the elements of the probability vector $p$/
+        - all of them are multipled by 0 and would not change the loss value
+
+
+_Expand Catgorical CE an softmax equations_
+
+let $x \in X$ be a feature vector representing sample in the set $X$
+$l$ be the logits vector and $p=softmax(l)$
+- let $y$ be the ground truth class vector associated with $x$
+  $E(y,l)= -\sum_{i}y_{i}log p_{i} = - \sum_{i}y_{i}log\frac{e_^{l_{i}}}{\sum_{j}e^{l_{j}}}$
+applying $log(q/t) = log q - log t_{'}$
+        $E(y,l)=-\sum_{i}y_{i}[log e^{l_{I}}+log(\sum_{j}e^{l_{j}})]$
+                9$=-\sum_{i}y_{i}[l_{i}+log(\sum_{j}e^{l_{j}})]$
+        /here we can see at least one path $y\times l$/
+        - which the gradients can linearly propagate to the rest of the network
+
+          #+begin_src julia
+logitcrossentropy(ŷ, y) = mean(.-sum(y .* logsoftmax(ŷ; dims = 1); dims = 1));
+# This is mathematically equivalent to `crossentropy(softmax(ŷ), y)`,
+# but is more numerically stable
+
+# our loss function can be written
+function loss(W,b,x,onehoty)
+    y\hat = softmax(model(W,b,x))
+    logitcrossentropy(y\hat, onehoty)
+end
+          #+end_src
+
+          #+RESULTS:

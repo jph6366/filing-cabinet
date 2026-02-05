@@ -181,6 +181,7 @@ _goal_: connect RL algorithm to a deep neural network
 - which operates directly on RGB images
   - and efficiently process training data by using stochastic gradient descent updates
 
+*** Experience Replay and Deep Q Networks
 
 - *experience replay* where we store the agent's experiences at each time-step
   $e_{t}=(s_{t},a_{t},r_{t},s_{t+1})$ in a dataset $\mathcal{D} = e_{1},...,e_{N}$
@@ -273,7 +274,6 @@ _instead we use architecture where there is a separate output unit_
         _main advantage_: computing Q-values for all possible actions
         - in a given state with only a single forwad pass through the network
 
-
 **input to the neural networks consists of an $84 \times 84 \times 4$ image produced by $\phi$ .**
 
 *first hidden layer convolves 16 $8 \times 8$ filters with stride 4 with the input image*
@@ -283,3 +283,63 @@ _instead we use architecture where there is a separate output unit_
 *final hidden layer is fully-connected and consists of 256 rectifier units*
 
 - number of valid actions varied between 4 and 18 on the games we considered
+
+*** DeepQLearning.jl
+
+ - an exploration policy and evaluation policy can be specified in the solver parameters
+   - exploration policy can be in the form of a function
+   - provided will be called as follows:
+     - f(policy, env, obs, global_step, rng) where
+       - _policy_ is the NN policy being trained,
+       - _env_ the environment,
+       - _obs_ the observation at which to take the action,
+       - _global_step_ the interaction step of the solver,
+       - _rng_ a random number generator.
+         /also provides by default an epsilon greedy policy/
+         /with linear decrease of epsilon with global_step/
+   - eval policy similarly f(policy, env, n_eval, max_episode_length, verbose)
+
+ - _qnetwork_ optins of the solver should accept any _Chain_ object
+   - MLPs or CNNs followed by dense layer is expected
+   - _dueling_ options will split all the dense layers at the end
+   - _flattenbatch_ to flatten all dims but the batch size
+   - input size of network must be specified when you create a q network
+
+/This Pkg exports type _AbstractNNPolicy_ which represents neural network based policy/
+- in addition to core functions from _POMDPs.jl_
+  - _AbstractNNPolicy_ also supports _getnetwork(policy)_, _resetstate!(policy)_
+
+/for saving and loading models, the solvers saves the network as a _bson_ in.../
+- _solver.logdir/"qnetwork.bson"_
+
+/Logging is done through _TensorBoardLogger.jl_, log directory is specified solver options/
+
+**GPU support has not been tested thoroughly**
+
+#+begin_src julia
+using DeepQLearning
+using POMDPs
+using Flux
+using POMDPModels
+using POMDPTools
+
+# MDP model from POMDPModels
+mdp = SimpleGridWorld()
+
+# define Q network
+model = Chain(Dense(2,32), Dense(32, length(actions(mdp))))
+
+exploration = EpsGreedyPolicy(mdp, LinearDecaySchedule(start=1.0, stop=0.01, steps=10000/2))
+
+solver = DeepQLearningSolver(qnetwork = model, max_steps=10000m
+                             exploration_policy= exploration,
+                             learning_rate=0.005, log_freq=500,
+                             recurrence=false, double_q=true,
+                             dueling=true, prioritized_replay=true)
+policy = solve(solver, mdp)
+
+sim = RolloutSimulator(max_steps=30)
+r_tot = simulate(sim,mdp,policy)
+println("Total discounted reward for 1 simulation: $r_tot")
+
+#+end_src
