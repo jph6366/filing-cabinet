@@ -1,0 +1,20 @@
+#+title: Databricks
+
+*Data Platforms to know*
+- Azure
+- Snowflake (best for SQL)
+- Databricks
+
+Databricks is an _data intelligence platform_
+- data sources, orchestration, ... etc.
+
+
+* Lakehouse Architecture
+
+data lake vs. data warehouse vs. data lakehouse
+
+** Storage Layer
+
+** Compute Layer
+
+** Consumption Layer
