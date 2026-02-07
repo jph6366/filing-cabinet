@@ -1,0 +1,858 @@
+#+title: Julia Programming
+
+
+
+* Style Guide for Julia Code
+- Variable names must begin with a letter (A-Z,a-z), underscore, or a subset of unicode code points greater than 00A0
+  - variable names are case-sensitive, and have no semantic meaning
+    - Unicode names (UTF-8 encoding) are allowed by typing the backslashed LaTeX symbol name followed by tab
+      - you can shadow existing exported constants, fore as long as you dont redefine a built-in constant or built-in function already
+        - variable names that contain only underscores are write-only, and the values assigned are immediately discarded
+          - variables with explicit names of built-in keywords are disallowed
+
+            [[https://docs.julialang.org/en/v1/manual/variables/#Stylistic-Conventions][_Stylistic Conventions_]]
+            1. Names of variables are in lowercase
+            2. Word separation can be indicated by underscores, but use of underscores is discouraged
+               - unless the name would be hard to read otherwise
+            3. Names of `Types` and `Modules` begin with a capital letter
+               - word separation is shown with upper camel case instead of underscores
+            4. Names of `functions` and `macros` are in lowercase, without underscores
+            5. Functions that write to their arguments have names that end in `!`.
+               - These are called "mutating" or "in-place" functions
+                 - they are intended to produce changes in their arguments after the function is called, not just return a value.
+
+
+** Julia Data Types
+- Julia comes with a rich set of built-in data types
+  - These types help Julia manage memory efficiently
+    - all values in Julia are true objects having a type belonging to the fully connected type graph
+      - all nodes of which are equally first-class as types
+- _Only values, not variables, have types_
+  - variables are simply names bound to values in Julia
+- Data types in Julia form a single, fully connected type graph
+  - At the top is /Any/
+    - Then its subtypes are many common types like /Number/, /AbstractString/, /Bool/, /Char/
+- The three principal types **(Abstract, Primitive, Composite)**
+  - are explicity declared
+    - have names
+      - have explicitly declared supertypes
+        - may have parameters
+  - These types are internally represented as instances of the same concept, /DataType/
+    - /DataType/ may be abstract or concrete
+      - concrete has a specified size, storage layout, and optionally field names
+    - composite type is a /DataType/ that has field names or is empty
+
+
+* Types in Julia
+
+
+_static_ types where every program expression must have a type computable before the execution of the program.
+
+_dynamic_ types where nothing is known about types until run time, when the actual values manipulated by the program are available.
+
+- when types are omitted they are `Any` type
+
+- adding annotations serves three primary purposes
+  1. to take advantage of Juli'a powerful multiple dispatch
+     2. to improve human readability
+        3. to catch programmer errors
+
+
+**Julia's type system is dynamic, nominative, and parametric**
+
+- generic types can be parameterized
+- hierarchial relationships btwn types are explicitly declared
+  - rather than implied by compatible structure
+- concrete types may not subtype each other
+  - abstract types can be their supertype
+
+
+_All nodes are equally first-class as types_, that belongs to a single, fully connected type graph
+
+_There is no compile time type_, the only time a value has is its actual type when the program is running, this is called _run-time type_ where the combination of static compilation w/ polymorphism makes this distinction significant.
+
+_variables are bound to values_, values have types
+
+_abstract and concrete types can be parameterized by other types_
+- this can be parameterized by values of any type for which `isbits` returns true
+
+
+** Abstract Types
+
+Abstract types cannot be instantiated, and serve only as nodes in the type graph
+
+#+begin_src julia
+abstract type <<name>> end
+abstract type <<name>> <: <<supertype>> end
+#+end_src
+
+the `abstract type` keyword introduces a new abstract type, whose name is given
+-  the name is optionally followed `<:` and an already existing type, indicating that the newly declared abstract type is a subtype of this `parent` type
+  - the default supertype is `Any`
+
+- Julia has a predefined abstract "bottom" type, at the nadir of the type graph, the opposite of the Any is `Union{}`
+  - no object is an instance of Union{}
+    - and all types are supertypes of `Union{}`
+
+** Primitive Types
+
+"""
+it is always preferable to _wrap an existing primitive type in a new composite type_ than to define your own primitive type.
+
+this functionality exists to allow Julia to bootstrap the standard primitive types that LLVM supports. Once they are defined, there is very little reason to define more.
+"""
+
+A Primitive type is a concrete type whose data consists of plain old bits.
+- Julia lets you declare your own primitive types
+
+  #+begin_src julia
+primitive type <<name>> <<bits>> end
+primitive type <<name>> <: <<supertype>> <<bits>> end
+  #+end_src
+- the number of bits indicates the storage the type requires and the name gives the new type a name
+  - A primitive type can optionally be declared to be a subtype of some supertype
+    - supertype defaults to `Any`
+- Only sizes that are multiples of 8 bits are supported
+  - you will experience LLVM bugs with sizes other than that
+  - booleans cannot be smaller than 8 bits
+
+
+
+** Composite Types
+
+Composite types are called records, structs, or objects in various languages
+- A composite type is a collection of named fields
+  - an instance of which can be treated as a single value
+    - most commonly used user-defined type in Julia
+
+      "in C++ and Python composite types also have named functions associated with them, and the combination is called an object. In SmallTalk, all values are objects whether they are composites or not. In C++ and Java, some values, such as integers and floating-point values, are not objects, while instances of user-defined composite types are true objects with associated methods."
+
+      _In Julia, all values are objects, but functions are not bundled with the objects they operate on_
+      - this is necessary since Julia chooses which method of a function to use by _multiple dispatch_
+        - meaning that the types of all of a function's arguments are considerd when selecting a method, rather than just the first one
+          - it would be inappropiate for functions to belong only to their first argument
+            - organizing methods into function objects
+              - rather than having named bags of methods "inside" each object
+                - ends up being a highly beneficial aspect of the language design
+#+begin_src julia
+struct Foo
+    bar
+    baz::Int
+    qux::Float64
+end
+foo = Foo("Hello, world.", 23, 1.5)
+typeof(foo) # Foo
+fieldnames(Foo)
+# (:bar, :baz, :qux)
+foo.bar # "Hello, world"
+#+end_src
+
+**when a type is applied like a function, two constructors are generated automatically**
+- these are default constructors
+  1. One accepts `Any` arguments can calls `convert` to convert them to the types of the fields
+  2. The other accepts arguments that match the field types exactly
+
+
+_Composite objects declared with struct are /immutable/; they cannot be modified after construction_
+1. some structs can be packed efficiently into arrays
+   - compiler can avoid allocating immutable objects entirely
+2. it is not possible to violate invariants provided by the type's constructor
+3. code using immutable objects can be easier to reason about
+
+   - immutable object might contain mutable objects
+     - contained objects will remain mutable
+     - only the fields of the immutable object itself cannot be changed to point to different objects
+
+_if all fields of an immutable struct are indistinguishable `===` then 2 immutable values containing those fields are also indistinguishable_
+#+begin_src julia
+struct X
+    a::Int
+    b::Float64
+end
+
+X(1, 2) === X(1, 2)
+true
+#+end_src
+
+For many user-defined types X, _you may want to define a method /Base.broadcastable(x::X) = Ref(x)/ so that instances of that type act as 0-dimensional "scalars" for broadcasting_
+
+
+** Parametric Types
+
+Types can take parameters, so that _type declarations actually introduce a whole family of new types - one for each possible combination of parameter values_
+
+**Generic Programming in ML, Haskell, C++, Java, C#, Scala**
+- ML Haskell Scala support true parametric polymorphism
+  - others support ad-hoc, template-based styles like C++ and Java
+
+    _Julia is dynamically-typed language and doesn't need to make all type decisions at compile time_
+    - All declared types `DataType` can be parameterized
+      - parametric composite types
+        #+begin_src julia
+struct Point{T}
+    x::T
+    Y::T
+end
+
+Point{Float64} <: Point{Int64}
+# false
+Float64 <: Real
+# true
+Point{Float64} <: Point{Int64}
+# false
+        #+end_src
+      - parametric abstract types
+        #+begin_src julia
+abstract type Pointy{T} end
+Pointy{Int64} <: Pointy
+# true
+ Pointy{Real} <: Pointy{Float64}
+# false
+ Pointy{Float64} <: Pointy{<:Real}
+# true
+struct Point{T} <: Pointy{T}
+    x::T
+    y::T
+end
+
+Point{Float64} <: Pointy{Float64}
+Point{Float64} <: Pointy{<:Real}
+
+abstract type Pointy{T<:Real} end
+
+struct Point{T<:Real} <: Pointy{T}
+    x::T
+    y::T
+end
+# true
+        #+end_src
+      - parametric primitive types
+
+
+* Intro to FluxML
+
+
+** Why Flux and What is Flux.jl?
+
+- a machine learning library written in 100% Julia code.
+  - providing lightweight abstractions
+    - on top of native GPU
+    - and automatic differentiation support
+  - enables researchers, engineers, and developers to write performant and customizable machine learning code
+
+
+ Julia provides idiomatic and robust packages
+
+ _Flux is used extensively in the SciML ecosystem for differential equations_
+
+
+
+ *Just like the core Julia lang*
+ - Flux can be scaled up to run on anything from CPU to GPU cluster, to probably even larger...
+
+
+** Building Deep Learning Models
+
+1. *Start by creating a dense layer*
+   - w/ a single input and output
+what is dense layer?
+ *also known as the fully-connected layer*
+ - "neurons in a fully connected layer have full connections to all activations" (in the previous layer)
+#+begin_src julia
+using Flux
+
+model = Dense(1, 1)
+# Flux automatically sets a random weight value for the layers created
+
+model.weight, model.bias
+#+end_src
+- in _deep learning_, weights and biases are ones of the many fine-tuning parameters
+  - that helps the model to learn something of value
+  - the power of deep learning is to stack layers on top of each other
+
+2. *Flux provides a chain function, which allows us to connect multiple layers together*
+- so they are called _in-sequence_.
+
+  #+begin_src julia
+l1 = Dense(1,1)
+l2 = Dense(1,1)
+model = Chain(l1,l2)
+  #+end_src
+  - Models in flux are like predictive functions
+    - we take some input and make a prediction
+      - and provide an output
+
+a dynamic state response given existing interconnected processes
+
+1. *Now lets create a _convolutional layer_, which will help our model do more complicated deep learning tasks*
+   - Using flat layers like a dense layers introduces challenges
+     - the information around each pixel is lost in the learning process
+       - thats where the conovolutional layer comes in
+
+#+begin_src julia
+l2 = Conv((5,5), 3 => 7, relu)
+# the first part is the filter, set to 5x5
+#     '5x5' refers to number of pixels
+#     the layer should be looking at as it filters
+#     through an image
+###
+# After the filter we set the input and output channel sizes
+#     the I/O channels depend on the data we are working with...
+#     Here we use 3 inputs channels and 7 output channels
+###
+# Last is the activation function
+#     we use the ReLU activation function
+#     Activation functions act as transformations
+#     that help tailor the model to our needs.
+
+# FAKE CONVOLUTIONAL DATA
+xs = rand(Float32, 100, 100, 3, 50);
+# 50, 3-channel images w/ random float values associated w/ them
+
+# we can pass these values into the convolutional layer
+# and look at what the output is
+l2(xs)
+#+end_src
+
+
+- Other layers in conjunction with _convolutional layers_ allow us to emulate what some may consider to be a close representation of the function of the brain...
+
+
+
+** Intro to Flux.jl
+
+- to get started
+
+  *sigmoid function*
+  (domain) (differentiability) (monotonicity) (asymptotes)
+  - bounded, differentiable, real function
+    - a function that maps any real-valued number into a value between 0 and 1
+      _useful for converting outputs into probabilities_
+      - activation function in Machine Learning
+        - neural networks for modeling binary classification
+        - smoothing outputs
+        - introducing non-linearity into models
+
+        $\sigma = \frac{1}{1+e^{-x}}$
+        where,
+      - $x$ is the input value
+        - $e$ is Euler's number (~2.718)
+
+          *Euler's number*
+          - the base of the natural logarithm and exponential function
+            - helps understand growth change, patterns in nature, how population expands, and how money grows with interest...
+
+          #+begin_src julia
+        using Flux, Plots
+
+        # built-in functions...
+        σ # sigmoid function
+
+        plot(σ, -5, 5, label="\\sigma", xlabel="x", ylabel="\\sigma\\(x\\)")
+
+          #+end_src
+
+          - Flux allows us to automatically create neurons with `Dense` function
+            - and all the supporting architecture to work with said neuron
+
+        #+begin_src julia
+model = Dense(2, 1, σ)
+Dense(2 => 1, σ)    # 3 parameters
+model.weight
+1×2 Matrix{Float32}:
+ 0.992837  -0.799815
+model.bias
+1-element Vector{Float32}:
+ 0.0
+
+typeof(model.weight)
+Matrix{Float32} (alias for Array{Float32, 2})
+
+x = rand(2)
+2-element Vector{Float64}:
+ 0.44811035782022945
+ 0.6151330675136076
+model(x)
+┌ Warning: Layer with Float32 parameters got Float64 input.
+│   The input will be converted, but any earlier layers may be very slow.
+│   layer = Dense(2 => 1, σ)    # 3 parameters
+│   summary(x) = "2-element Vector{Float64}"
+└ @ Flux C:\Users\jph6366\.julia\packages\Flux\uRn8o\src\layers\stateless.jl:60
+1-element Vector{Float32}:
+ 0.48822924
+
+## REASON THROUGH HOW THE ABOVE IS WORKING
+
+# UNLIKE PREVIOUSLY model.weight is no longer a `Vector`
+# and model.bias is no longer a number
+σ.(model.weight*x + model.bias)
+1-element Vector{Float64}:
+ 0.4882292155480665
+# both are stored in `TrackedArray`s
+# and model.weight is treated as a matrix w/ a single row
+        #+end_src
+
+_Other built-in function_
+- *the mean square error* measures the amount of error in statistical models
+  - assessing the /averaged squared difference/ between the /observed and predicted values/
+    - when a model has no error the MSE equals zero
+- also known as the *the mean squared deviation*
+  - in regression, the mean squared error represents the *average squared residual*
+    - as data points fall closer to the regression line, the model has less error
+      - less error = better predictions
+
+$MSE=\frac{\sum(y_{i}-\hat{y}_{i})^{2}}{n}$
+
+- $y_{i}$ is the i-th observed value
+  - $\hat{y}_{i}$ is the corresponding predicted value
+    - $n$ = the number of observations
+
+_In Flux is named Flux.mse_
+
+#+begin_src julia
+using CSV, DataFrames
+
+apples = DataFrame('data', delim='\t', allowmissing=:none, normalizenames=true)
+bananas = DataFrame('data', delim='\t', allowmissing=:none, normalizenames=true)
+
+x_apples = [ [row.red, row.green] for row in eachrow(applses)]
+x_bananas = [ [row.red, row.green] for row in eachrow(bananas)]
+
+# we use this to train our model
+xs = [x_apples, x_bananas]
+ys = [fill(0, size(x_apples)); fill(1, size(x_bananas))];
+
+
+model = Dense(2, 1, σ)
+
+model(xs[end])
+# examine the current loss value
+loss = Flux.mse(model(xs[1]), ys[1])
+# the model eval at first label as to compared actual label
+# what is the gradient at this data point
+# so we can improve the predictions...
+#+end_src
+
+_Backpropagation_
+- figure out our gradients and derivatives
+#+begin_src julia
+model.weight.data # is our data we work with
+model.weight.grad # is the gradients
+
+using Flux.Tracker
+# back-bang
+back!(loss)
+# mutates all the things the loss computation touched also tracked
+model.weight.grad
+
+
+loss = Flux.mse(model(xs[1]), ys[1])
+back!(loss) # back-propagation based on loss computation
+model.weight.data .-= model.weight.grad * η # eta learning rate
+model.bias.data .-= model.bias.grad * η # eta learning rate
+
+model(xs[end])
+# should compute an output a little bit closer to zero
+
+###
+# we want to loop over our entire datastep a bunch of times.
+# pick a random data point to do a stochastic gradient descent
+#
+for step in 1:1000
+    i = rand(1:length(xs))
+    η = 0.01
+    loss = Flux.mse(model(xs[i]), ys[i])
+    back!(loss
+    model.weight.data .-= model.weight.grad * η
+    model.bias.data .-= model.bias.grad * η
+end
+          # TRAINS OUR MODELS
+          # By implementing stochastic gradient descent to train
+          # flux makes it easier though
+
+model(xs[1])
+model(xs[end-1])
+#+end_src
+
+
+  #+begin_src julia
+model = Dense(2, 1, σ)
+L(x,y) = Flux.mse(model(x), y)
+opt = SGD(params(model))
+Flux.train!(L, zip(xs,ys), opt)
+# ONE TRAINING STEP ON THE MODEL
+
+# RUN IT MORE TO PERFORM BETTER FOR SUCCESSFUL TRAINING
+for step in 1:100
+    Flux.train!(L, zip(xs,ys), opt)
+end
+
+
+  #+end_src
+
+
+
+** Intro to Neural Networks
+
+- A neural network is made out of a network of neurons that are connected together
+  - we can use _vectors_ of _0 or 1_ values to symbolize each output
+
+    _the idea of using vectors is that different directions in space of outputs encode information about different types of inputs_
+
+
+Essential a linear system of equations...
+
+_linear part hidden in non-linearity_
+$\sigma(x;w^{1},b^{1}):=\frac{1}{1+exp(-w^{(1)}* x + b^{(1)})};$
+
+$\sigma(x;w^{2},b^{2}):=\frac{1}{1+exp(-w^{(2)}* x + b^{(2)})};$
+$\sigma(x;w^{i},b^{i}):=\frac{1}{1+exp(-w^{(i)}* x + b^{(i)})};$
+
+*linear algebra*
+- represents biases as a vector
+  - and the weights as a matrix
+    - weights are in rows respectively to mutliple outputs
+
+_every single neuron can be imagined as matrix multiplcation_
+- non-binary classifcation
+
+
+_Flux provides an efficient representation for one-hot vectors_
+- instead of storing these vectors in memory
+  - Flux records in which position the non-zero element is
+
+    #+begin_src julia
+using Flux: onehot
+
+onehot(1, 1:300)
+    #+end_src
+- works just like julian arrays
+
+_all we need to do is train_
+- don't forget to do training loops!
+#+begin_src julia
+model = Dense(2, 3, σ) # 2 inputs 3 outputs
+L(x,y) = Flux.mse(model(x), y)
+opt = SGD(params(model))
+Flux.train!(L, zip(xs, ys), opt)
+
+for _ in 1:100
+    Flux.train!(L, zip(xs, ys), opt)
+end
+#+end_src
+
+
+** Intro to Deep Learning
+#+begin_src julia
+
+model = Chain(Dense(2, 4, σ), Dense(4, 3, σ))
+L(x,y) = Flux.mse(model(x), y)
+opt = SGD(params(model))
+Flux.train!(L, zip(xs, ys), opt)
+for _ in 1:1000:
+    Flux.train!(L, zip(xs, ys), opt)
+end
+#+end_src
+
+
+_Improve efficiency by batching!_
+
+#+begin_src julia
+Flux.batch(xs)
+# changes the matrix vector multiplication
+model(Flux.batch(xs)) # TO
+# matrix matrix product
+
+databatch = (Flux.batch(xs), Flux.batch(ys))
+
+Flux.train!(L , iterators.repeated(databatch, 10000), opt)
+# instead of for loop
+Iterators.repeated(...)
+
+# CHECK LOSS FOR IMPROVMENT
+L(databatch[1], databatch[2])
+#+end_src
+
+
+#+begin_src julia
+Flux.crossentropy(...)
+# designed for probability distribution
+
+softmax([...])
+# allows normalization across an entire domain
+#+end_src
+
+_Use softmax as a final normalization and change the loss function to `crossentropy`_
+
+#+begin_src julia
+model = Chain(Dense(2, 4, σ), Dense(4, 3, identity), softmax)
+# σ sigmoid is important non-linearity
+L(x,y) = Flux.crossentropy(model(x), y)
+# slowly and iteratively refine your model
+opt = SGD(params(model))
+Flux.train!(L, Iterators.repeated(databatch, 5000), opt)
+#+end_src
+
+
+
+** Recognizing handwriting with a neural network
+
+** Data
+#+begin_src julia
+
+using Flux, Flux.Data.MNIST, Images
+
+labels = MNIST.labels() # groundtruth
+images = MNIST.images() # images
+
+length(images)
+
+images[1:5] # look at first handful of images
+
+labels[1:5] # transposed to match the above
+
+images[1] # individual image
+size(images[1]) # 784 pixels
+typeof(images[1])# array of grayscale pixel
+# Array{Gray{Normed{UInt8, 8}},2}
+Float64.(images[1])# the numbers backing those the grayscale pixel
+# 28x28 Array{Float64,2}
+#+end_src
+
+
+** NN
+- previously we arranged vector of vectors, now we use a matrices
+  - the column $i$ of the matrix is a vector consisting of the $i$-th data point $X^{(i)}$
+    - the desired outputs are given as a matrix
+    - with the $i$-th column being the desired output $y^{(i)}$
+#+begin_src julia
+n_inputs = unique(length.(images))[]
+n_outputs = length(unique(labels))
+#+end_src
+
+- create a vector of features each with the floating points values of n_inputs pixels
+  - an image is a matrix of colours, but now we need a vector of floating points instead
+    - to do so, we arrange all elements of the matrix in a certain way into a single list
+
+use a subset of $N= 5000$ of the total 60,000 images available
+- hold out on the rest of the data for testing and 'novel' data
+#+begin_src julia
+preprocess(img) = vec(Float64.(img))
+xs = preprocess.(images[1:5000]);
+#+end_src
+
+_creating labels with Flux.onehot_
+- creates independent batches from arbitrary segments of the og dataset
+#+begin_src julia
+function create_batch(r)
+    xs = [preprocess(img) for img in images[r]]
+    ys = [Flux.onehot(label, 0:9) for label in labels[r]]
+    return (Flux.batch(xs), Flux.batch(ys))
+end
+
+### TRAIN MODEL ON FIRST 5000 IMAGES
+trainbatch = create_batch(1:5000);
+#+end_src
+
+
+_Setting up the neural network_
+- since data is complicated, it is to be expected to need several layers
+
+- the network will take as inputs the vectors $x^{(i)}$, so the input layer has $n$ nodes
+- the output will be a one-hot vector encoding the digit from 1 to 9 or 0 that is desired
+  - there are 10 possible categories
+    - so output layer of size 10
+
+- the task designing neural networks is to insert layers between input and output layers
+  - whose weights will be tuned during the learning process
+#+begin_src julia
+model = Chain(Dense(n_inputs, n_outputs, identity), softmax)
+L(x,y) = Flux.crossentropy(model(x),y)
+opt = SGD(params(model))
+# TRAINING!
+Iterators.repeated(trainbatch, 100);
+# current loss
+L(trainbatch...)
+# keep track of loss! insight of well the model is training
+
+### Using callbacks
+# provides the the ability to call a function
+# at each step or every so often during training
+callback() = @show(L(trainbatch...))
+
+Flux.train!(L, Iterators.repeated(trainbatch, 3), opt; cb = callback)
+
+### its expensive to calc the complete loss function
+# flux provides the throttle function
+# to call a given function at most once every certain # of seconds
+Flux.train!(L, Iterators.repeated(trainbatch, 40), opt; cb = Flux.throttle(callback, 1))
+
+# Our novel data to test on
+testbatch = create_batch(5001:10000);
+
+using Printf
+
+train_loss =Float64[]
+test_loss =Float64[]
+
+function update_loss!() # stores loss values in above vectors
+    push!(train_loss, L(trainbatch...).data)
+    push!(test_loss, L(testbatchh...).data)
+    @printf("train loss = %.2f, test loss = %.2f", train_loss, test_loss)
+end
+
+# train 1000 times with update_loss!
+Flux.train!(L, Iterators.repeated(trainbatch, 1000), opt; cb = Flux.throttle(update_loss!, 1))
+# loss values should decrease rapidly
+# loss over testbatch is greater than loss over trainbatch
+# model has less advantage testing the novel data!
+
+#+end_src
+
+
+** Testing
+- the model is trained
+  - we check how well the resulting trained network performs
+    - when we test it with images that network has not yet seen!
+
+      #+begin_src julia
+i = 5001
+display(images[i])
+labels[i], findmax(model(preprocess(images[i]))) .- (0, 1)
+
+model(preprocess(images[i]))
+      #+end_src
+
+** Evaluation
+
+- What percent of images are we correctly classifying if we take the highest element to be the chosen answer?
+
+  #+begin_src julia
+prediciton(i) = findmax(model(preprocess(images[i])))[2]-1
+sum(prediction(i) == labels[i] for i in 1:5000)/5000
+sum(prediction(i) == labels[i] for i in 5001:10000)/5000
+  #+end_src
+
+
+** Improving the Prediction
+- try adding more layers!
+- try different activation funcs
+- or try different optimizers
+  #+begin_src julia
+n_hidden = 20
+model = Chain(Dense(n_inputs, n_hidden, relu),
+              Dense(n_hidden, n_outputs, identity), softmax)
+L(x,y) = Flux.crossentropy(model(x), y)
+opt = ADAM(params(model))
+
+train_loss = Float64[]
+test_loss = Float64[]
+Flux.train!(L, Iterators.repeated(trainbatch, 1000), opt;
+            cb= Flux.throttle(update_loss!, 1))
+  #+end_src
+
+
+* Modern Julia Workflows
+
+
+** Principles
+- the compiler's job is to optimize and translate Julia code into runnable machine code
+
+ **If a variable's type cannot be deduced before the code is run, then the compiler won't generate efficient code to handle that variable**
+
+ - enabling type inference means making sure that every variable's type in every function can be deduced from the types of the function inputs alone
+
+ **An allocation occurs when we create a new variable without knowing how much space it will require**
+
+ - Julia has a mark-and-sweep garbage collector, which runs periodically during code execution to free up space on the heap
+   - execution of code is stopped while the gc runs, _so minimising its usage is important_
+
+
+** Measurements
+- the simplest way to measure code is to use `@time` macro
+#+begin_src julia
+sumabs(vec) = sum(abs(x) for x in vec)
+v = rand(100)
+
+using BenchmarkTools
+@time sumabs(v)
+@time sumbas(v) # JIT
+#+end_src
+- it only measures your function once
+** Chairmarks
+-  fast benchmarking toolkit
+  #+begin_src julia
+using Chairmarks
+@b sumabs(v) # benchmark, runs code multiple times and provides min execution time
+@be sumabs(v) # also runs benchmark and outputs stats
+#supports pipeline syntax
+@be v sumabs
+
+my_matmul(A, b) = A * b;
+@be (A=rand(1000,1000), b=rand(1000)) my_matmul(_.A, _.b) seconds=1
+  #+end_src
+- PrettyChairmarks.jl shows performance histograms alongside numerical results
+** Profiling
+- Profiling identifies performance bottlenecks at function level
+** Sampling
+- sampling-based profilers periodically ask the program which line it is currently executing, and aggregate results by line or func.
+  1. Profile (runtime)
+  2. Profile.Allocs (memory)
+- ProfileView and PProf both use flame graphs
+  - ProfileSVG or ProfileCanvas for Jupyter Notebook
+
+** Type Stability
+- the simplest way to detect an instability is with `@code_warntype`
+  - the output is hard to parse, but `Body` is the main takeaway
+    #+begin_src julia
+@code_warntype sumabs(v)
+MethodInstance for sumabs(::Vector{Float64})
+  from sumabs(vec) @ Main REPL[4]:1
+Arguments
+  #self#::Core.Const(Main.sumabs)
+  vec::Vector{Float64}
+Locals
+  #1::var"#1#2"
+Body::Float64
+1 ─ %1 = Main.sum::Core.Const(sum)
+│   %2 = Main.:(var"#1#2")::Core.Const(var"#1#2")
+│        (#1 = %new(%2))
+│   %4 = #1::Core.Const(var"#1#2"())
+│   %5 = Base.Generator(%4, vec)::Base.Generator{Vector{Float64}, var"#1#2"}
+│   %6 = (%1)(%5)::Float64
+└──      return %6
+
+    #+end_src
+   **@code_warntype is limited to one func body: calls to other funcs are not expanded**
+
+   _JET.jl provides optimization analysis aimed primarily at finding type instabilities_
+
+   #+begin_src julia
+  using JET
+
+  @report_opt sumabs(v)
+   #+end_src
+- Cthulhu.jl exposes `@descend` macro which can be used to step through lines of typed code, and particular line if needed
+
+- DispatchDoctor.jl allows an approach to error whenever type instability occurs
+  - the macro `@stable`
+
+** Memory Management
+- modify existing arrays instead allocating new objects and try to access arrays in the right order (column major).
+  - AllocCheck.jl annotates a function with `@check_allocs`
+    - compiler detects that it might allocate, it will throw error
+
+** Compilation
+
+- _PrecompileTools_ reduces amount of time taken to run funcs loaded from a package or local module that you wrote
+  - to see if intended calls were compiled correctly or diagnose other problems
+    - use _SnoopCompile.jl_
+- To reduce the time that package take to load
+  - use _PackageCompiler.jl_ to generate custom version of Julia, called a sysimage
+    - with its own standard library
+      - filetype of sysimage_path differs by OS
+       #+begin_src julia
+packages_to_compile = ["Makie", "DifferentialEquations"]
+create_sysimage(packages_to_compile; sysimage_path="MySysimage.so")
+       #+end_src
+       - Once a sysimage is generated, it can be used with the command line flag: julia --sysimage=path/to/sysimage.
