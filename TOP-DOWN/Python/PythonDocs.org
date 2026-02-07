@@ -1,7 +1,6 @@
-#+GIS Programming with Python & Julia:
+#+Programming with Python
 
-* GIS Programming
-
+* Python Overview
 
 ** Jupyter Notebooks
 - The name is a reference to the Julia, Python, and R
