@@ -75,7 +75,6 @@
 
 ** Quickstart
 
-https://learnxinyminutes.com/julia/
 
 https://learnxinyminutes.com/python
 
