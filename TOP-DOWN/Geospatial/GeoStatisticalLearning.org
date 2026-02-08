@@ -1,0 +1,204 @@
+#+title: Geo Statistical Learning
+
+ /taking the geospatial setting into account in performing statistical learning/
+
+     *geostatistical (transfer) leraning problem*
+
+* Intro
+
+- classical learning theory cannot be applied straightforwardly to solve problems in geosciences
+- as the characteristics of these problems violate
+  - fundamental assumptions to derive...
+    - e.g. those for estimating the _generalization_ (or prediction) error of learned models in unseen samples are crucial in practice
+
+** Leave-one-out (1974) also known as Cross-Validation
+- method for assessing and selecting learning models
+  - was based on the idea that to estimate the prediction error
+    - on an unseen sample one only needs to _hide a seen sample from a dataset_
+      - and _learn the model_
+
+** k-fold cross validation (1975)
+- a family of error estimation methods that _split a dataset_
+  - into _non-overlapping "folds"_ for model evaluation
+/generalization of leave-one-out/
+- may introduce bias in the error estimates
+  - if the number of samples in the folds used for learning
+    - is much smaller than the original number of samples
+
+
+**assumptions of methods above**
+1. samples come from independent and /identically distributed/ (i.i.d) random variables
+   - spatial samples are not i.i.d. and spatial correction needs to be modeled explicitly (with geostats theoery)
+   _sample mean of the empriical error used in the methods is an unbiased estimator_
+   - of the prediction error regardless of the i.i.d. assumption,
+     - the precision of the estimator can be _degraded considerably with non i.i.d. samples_
+
+** h-block leave-one-out (1995)
+- developed for time-series data
+- it is based on the principle that stationary processes
+  - achieve a correlation length `h`
+    - after which the samples are not correlated
+- the time series data is split
+  - such that samples used for error evaluation
+    - _are at least `h` steps distant from the samples_ used to learn the model
+
+** Spatial leave-one-out (2014)
+- generalization of h-block leave-out-out
+  - from time-series to spatial data
+    - where blocks have multiple dimensions
+
+** Block cross-validation (2016)
+- similar to k-fold cross-validation
+  - faster alternative to spatial leave-one-out
+- creates folds using _blocks of size equal to spatial correlation length_
+  - and separates samples for error evaluation
+    - from samples used to learn the model
+- introduces concept of `dead zones`
+  - regions discarded to avoid over-optimistic error estimates
+
+**2nd assumption for estimating generalization error in a classical learning theory**
+2. The distribution of _unseen samples_ to which the model will be applied _is equal to the distribution of samples over which the model was trained_.
+   - just not very realistic for geosciences
+     - involving usually lots of variables with diff variability processes
+
+
+**Transfer learning introduces methods more amenable for geosciences**
+- e.g. the covariate shift problem
+  - where the samples on which the model is applied
+    - have a distribution of covariates that differs from
+      - the distribution of covariates over which the model was trained
+
+** Importance-weigted cross-validation (2007)
+- under covariate shift, cross validation is not unbiased
+- importance weights can be considered for each sample
+  - to recover the unbiasedness property of the method
+- the method is unbiased under covariate shift for supervised learning tasks
+  - regression and classification
+- importance weights used are _ratios between the test/target probability density_
+  - and _the source/train probability density of covariates_
+- Density ratios are useful in a broader set of applications
+  - two-sample tests, outlier detection, and distribution comparison
+
+* GEOSTATISTICAL  LEARNING
+
+** definition
+_we define elements of statistical learning in geospatial setting_
+
+- Consider a sample space $\Omega$
+- a source spatial domain $\mathcal{D}_{s} \subset \mathbb{R}^{d_{s}}$
+- and a target spatial domain $\mathcal{D}_{t}\subset \mathbb{R}^{d_{t}}$
+  - on which stochastic processes (spatial random variables) are defined
+
+    $Z_{s_{j}} : \mathcal{D}_{s}\times\Omega \rightarrow \mathbb{R}$ , $j = 1,2,...,n_{s}$ on source domain
+
+    $Z_{t_{j}} : \mathcal{D}_{t}\times\Omega \rightarrow \mathbb{R}$ , $j = 1,2,....,n_{t}$ on target domain
+
+*** practice example
+
+given $(Z_{s_{j}})_{j}=1,2,...,n_{s}$
+- may represent a collection of processes
+  - observed remotely from satellite on a 2D surface
+                                        $\mathcal{D}_{s} \subset \mathbb{R}^{2}$
+- whereas $(Z_{t_{j}})_{j}=1,2,...,n_{t}$
+  - may represent a collection of processes
+    - that occuring within the 3D subsurface of the earth
+                                        $\mathcal{D}_{t} \subset \mathbb{R}^3$
+
+
+** source and target domains
+- any process $Z$ in these collections
+  - can be viewed in two distinct ways
+
+    1. /Geostatistical Theory/
+       - samples $z(\cdot,\omega)$
+         - of the process $Z(u,w)$
+           - are obtained by fixing $\omega \in \Omega$
+       - samples are spatial maps
+         - that assign a real number to
+           - each location $u\in\mathcal{D}$
+
+    2. /Learning Theory/
+       - scalar samples $z(u, \cdot)$
+         - are obtained by fixing $u \in \mathcal{D}$
+       - scalar samples are ordered into a *feature vector*
+                                                $x_{u}=(z_{1},z_2,...,z_n)$
+         - for a collection of processes $(Z_{j})_{j=1,2,...,n}$
+           - and for a specific location $u \in \mathcal{D}$
+       - in this case
+        - $X_{u} : \Omega \rightarrow \mathbb{R}^{n}$ denotes the corresponding random vector of features
+          - such that $x_{u} \sim X_{u}$
+
+** joint probability distribution of features
+$Pr(\{X_{u}\}_{u\in\mathcal{D}})$
+- feature vectors $X_u$ and $X_v$
+  - for two different locations $u \neq v$ are not independent
+    - the closer the locations $u,v\in\mathcal{D}$ in the spatial domain
+      - the more similar are their features $x_{u},x_{v}\in\mathbb{R}^{n}$ in the feature space
+- given that only one realization $z^{obs}=z(\cdot,\omega)\sim Z$
+  - of the process is available at any given time
+    - one must introduce stationarity assumptions inside $\mathcal{D}$
+      - to pool together different scalar samples $z(u,\cdot)$
+        - from different locations $u\in \mathcal{D}$ in the spatial domain
+          - and be able to estimate the distribution
+- regardless of stationarity assumptions involved in modeling...
+  - we can assume that inside $\mathcal{D}$ the probability
+                                        $Pr_{\mathcal{D}} (X) = Pr(\{X_u\}_{u\in\mathcal{D}})$
+                                      is well defined.
+*** practice example
+- assume pointwise probability of features $Pr_u(X)=Pr(X_u)$
+  - is not a function of location
+    - that is $Pr_u(X)=Pr(X),\forall u \in \mathcal{D}$
+  - under this assumption
+    - samples from everywhere in $\mathcal{D}$
+      - are used to estimate $Pr(X)=Pr(Z_1,Z_2,...,Z_n)$
+        - with additional *assumption that the feature vectors $X_u$ and $X_v$ are independent*
+- the joint distribution of features for all locations can be written as...
+
+                                        $Pr_{\mathcal{D}}(X)=\Pi_{u\in\mathcal{D}}Pr_u(X)$
+
+/the assumption of spatial independence is rarely defensible/
+- pointwise stationarity often does not transfer from a source domain
+  - where the model is learned to a target domain
+    - where the model is applied
+  - and consequently the joint distributions of features
+    - differ $Pr_D \neq Pr_D$
+
+** spatial learning tasks
+- similar to classical learning tasks
+  - but can leverage properties of the underlying spatial domain
+- classically, a learning task describes an action
+  - in terms of avaiable features to produce new data
+    - e.g. "predict feature $Z_{j_0}$ from features $(Z_{j_1},Z_{j_2})$ "
+    - "cluster the samples using features $(Z_{j_1},Z_{j_2},Z_{j_3})$ "
+- spatially, a learning task $T$ involves the spatial domain $\mathcal{D}$ besides the features
+  - e.g. Agriculture: the task of identifying crops from satellite images
+    - location that have the same crop type appear together
+      - despite presence of noise in image layers
+  - e.g. Mining: the task of segmenting mineral deposit from drillhole samples
+    - using a set of features
+      - assuming the segmentation result to be a contiguous volume of rock
+        - which is an additional constraint in terms of spatial coordinates
+
+
+** geostatistical learning definition
+- let $\mathcal{D}_{s}$ be a source spatial domain
+  - and $\mathcal{D}_{t}$ be a target spatial domain
+- let $Pr_{D_s}(X_s)$
+  - and $Pr_{D_t}(X_t)$
+    - be the joint distributions of features for all locations in these domains
+      - and let $T_s$ and $T_t$ be two spatial learning tasks
+- geostatistical learning consists of learning $T_t$ over $D_t$
+  - using knowledge acquired while learning $T_s$ over $D_s$
+    - and assuming that the observed spatial data in $D_s$ and $D_t$
+      - are both a single spatial sample of $Pr_{D_s}(X_s)$ and $Pr_{D_t}(X_t)$
+
+
+** covariate shift
+
+** spatial correlation
+
+** generalization error of learning models
+
+** density ratio estimation
+
+** weighted cross-validation
