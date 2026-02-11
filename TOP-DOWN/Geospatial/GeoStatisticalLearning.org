@@ -29,7 +29,7 @@
 **assumptions of methods above**
 1. samples come from independent and /identically distributed/ (i.i.d) random variables
    - spatial samples are not i.i.d. and spatial correction needs to be modeled explicitly (with geostats theoery)
-   _sample mean of the empriical error used in the methods is an unbiased estimator_
+   _sample mean of the empirical error used in the methods is an unbiased estimator_
    - of the prediction error regardless of the i.i.d. assumption,
      - the precision of the estimator can be _degraded considerably with non i.i.d. samples_
 
@@ -194,10 +194,111 @@ $Pr(\{X_{u}\}_{u\in\mathcal{D}})$
 
 
 ** covariate shift
+- assume that two spatial domains are different $\mathcal{D}_{s} \neq \mathcal{D}_{t}$
+  - they share a set of processes $(Z_1,Z_2,...,Z_n)$
+- additionally assume that pointwise stationarity holds
+- let $Z_0 = f(Z_1,Z_2,...,Z_n)$ be a new process
+  - obtained as a function of the shared processes
+  - and assume that it has only been observed in $\mathcal{D}_s$
+    - via a measuring device and or manual labeling
+    - that is $z_0^{obs}(.,\omega)\sim Z_0$
+      - is a spatial sample of the process $Z_0$ over $\mathcal{D}_s$
+
+- under these assumptions...
+  $X_s = X_t = X = (Z_1,Z_2,...,Z_n,Z_0)$
+  - and the supervised learning task $T_s = T_t = T$
+    - of predicting the process $Z_0$
+      - regardless of location $u \in \mathcal{D}_s \cup \mathcal{D}_t$
+- let $\mathcal{X} = X_{1:n}$ be the explanatory features
+- and $\mathcal{Y}=X_{n+1}$ be the response feature
+- for any $u\in \mathcal{D}_s$
+  - we can write $Pr(\mathcal{X},\mathcal{Y}) = Pr_u(\mathcal{Y}|\mathcal{X})Pr_u(\mathcal{X})$
+- likewise for any $v \in \mathcal{D}_t$
+  - we can write $Pr(\mathcal{X},\mathcal{Y}) = Pr_v(\mathcal{Y}|\mathcal{X})Pr_v(\mathcal{X})$
+
+_covariate shift defined as follows_
+- a geostatistical learning problem has the covariate shift property
+  - when for any $u\in\mathcal{D}_s$ and for any $v \in \mathcal{D}_t$
+    - the distribution $Pr_u(\mathcal{X}\mathcal{Y})$ and $Pr_v(\mathcal{X}\mathcal{Y})$
+      - differ by $Pr_u(\mathcal{X})\neq Pr_v(\mathcal{X})$
+        - while $Pr_u(\mathcal{Y}|\mathcal{X})=Pr_v(\mathcal{Y}|\mathcal{X})$ for each and every location
+
+- this property is based on the idea that the underlying true function $f$
+  - that created the process $\mathcal{Y}=f(\mathcal{X})$
+    - is the same for all $u\in \mathcal{D}_s$ and all $v\in\mathcal{D}_t$
+  - in this case the function is approximated
+    - by the conditional distribution $Pr_u(\mathcal{Y}|\mathcal{X})=Pr_v(\mathcal{Y}|\mathcal{X})$
+      - for each and every location
+
+- due to the great variability in natural processes
+  - whenever a model is...
+    1. learned using labels provided by experts on a source spatial domain
+    2. validated with classical train-validation-test methodologies
+    3. performs poorly on a target spatial domain where the labeling function is expected to the be same
+**there will be shifts in the distribution**
 
 ** spatial correlation
+spatial dependence if often ignored
+
+- the closer are two locations $u,v \in \mathcal{D}$ in a spatial domain
+  - the more similar are their features $x_u, x_v \in \mathbb{R}^n$ in the feature space
+
+- to quantify this spatial dependence in a collection of samples
+  - is the variogram $\gamma(h)$ which estimates
+    - for each spatial lag $h = ||u-v|| \in \mathbb{R}_0^+$
+      - a correlation $\sigma^2 - \gamma(h)$ where
+        - $\sigma^2$ is the total sill in the samples
+/parallel algorithms for efficient variogram estimation/
+- and can be useful tools for fast diagnosis of the spatial correlation property
+
+  _definition_
+  - a geostatistical learning problem has the spatial correlation property
+    - when the variogram of any of the stochastic process
+                        $(Z_s_j)_{j=1,2,...,n_s}$ and $(Z_t_j)_{j=1,2,...,n_t}$
+                        defined over $\mathcal{D}_s$ and $\mathcal{D}_t$
+                        has a non-negligible positive range (or correlation length)
+
+/variograms can be used to simulate spatial processes/
+- with theoretical correlation structure
+
+- in the feature space of two independent spatial processes $Z_1$ and $Z_2$
+  - simulated with direct (a.k.a. LU) Gaussian simulation
+- as we increase the variogram range $r$ in a spatial domain $\mathcal{D}$ with 100x100 pixels
+  - we observe that the distribution of features $Pr(\mathcal{X})=Pr(Z_1,Z_2)$
+    - is gradually deformed from a standard Gaussian $(r=0)$ to a $(r=80)$
+- we illustrate the impact of spatial correlation for an interprocess correlation
+  - of $\rho(Z_1,Z_2)= 0.9$
+
+- spatial correlations may have different impact in source and target domains
+  - and can certainly affect the generalization error of learning models
+
+- we assume tha variogram range of source and target processes are equal
+  - to faciliate this analysis of thre results
+
+/in practice source and target processes may also have different spatial correlation/
+- which is a type of a shift that is not considered in classical transfer learning problems
 
 ** generalization error of learning models
+
+- importance-weighted approximation of a related generalization error
+  - based on pointwise stationarity assumptions
+    - and the use of an efficent importance weighted cross-validation
+      - method for error estimation
+
+- consider geostatistical learning problem
+                $\mathcal{P}=\{(\mathcal{D}_s, Pr_{\mathcal{D}_s}, \mathcal{T}_s),(\mathcal{D}_t, Pr_{\mathcal{D}_t}, \mathcal{T}_t)\}$
+                with a single supervised spatial learning task $T_s=T_t=T$
+                (e.g. regression)
+                - and assume that a set of response features $\mathcal{Y}_u$
+                  - are created by a function $f$
+                    - based on a set of explanatory features $\mathcal{X}_u$
+                      - for each and every location $u \in \mathcal{D}_s \cup \mathcal{D}_t$
+
+- our goal is to learn a model $\{\mathcal{Y}_u\}_{u\in\mathcal{D}_t} \approx \hat{f}(\{\mathcal{X}\}_{u\in\mathcal{D}_t})$
+  - over the target domain $\mathcal{D}_t$
+    - that approximates $f$ in terms of expected risk
+      - for some spatial supervised loss function $\mathcal{L}$
+         $\hat{f}=arg min \mathbb{E}_{Pr_{D_t}}[\mathcal{L}(\{\mathcal{Y}_u\}_{u\in\mathcal{D_t}}, g(\{\mathcal{X}_{u\in\mathcal{D}_t}\}))]$
 
 ** density ratio estimation
 

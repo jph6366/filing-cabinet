@@ -1,5 +1,5 @@
-#+title: Julia Academy
-
+#+title: Intro to Flux ML
+*Julia Intro Flux ML
 * Why Flux and What is Flux.jl?
 
 - a machine learning library written in 100% Julia code.
@@ -271,9 +271,11 @@ end
 Essential a linear system of equations...
 
 _linear part hidden in non-linearity_
+
 $\sigma(x;w^{1},b^{1}):=\frac{1}{1+exp(-w^{(1)}* x + b^{(1)})};$
 
 $\sigma(x;w^{2},b^{2}):=\frac{1}{1+exp(-w^{(2)}* x + b^{(2)})};$
+
 $\sigma(x;w^{i},b^{i}):=\frac{1}{1+exp(-w^{(i)}* x + b^{(i)})};$
 
 *linear algebra*
@@ -294,7 +296,7 @@ using Flux: onehot
 
 onehot(1, 1:300)
     #+end_src
-- works just like julian arrays
+- works just like julia arrays
 
 _all we need to do is train_
 - don't forget to do training loops!

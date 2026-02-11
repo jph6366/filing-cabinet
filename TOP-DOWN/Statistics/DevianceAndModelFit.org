@@ -1,0 +1,40 @@
+#+title: Deviance And Model Fit
+
+Deviance is a key concept in logistic regression.
+- it measure the deviance of the fitted logistic model w.r.t. a perfect model for $\mathbb{P}[Y=1|X_1=x_1,...,X_k=x_k]$
+  /perfect model is known as a saturated model/
+  - an abstract model that fits perfectly the sample
+
+    _deviance is defined as the difference of likelihoods between the fitted model and saturated model_
+
+    $D=-2\log lik(\hat{\beta})+2 \log lik(saturated model)$
+    since the the likelihood of the saturated model is exactly one
+    - then the deviance is simply another expression of the likelihood...
+      $D=-2\log lik(\hat{\beta})$
+      *deviance is always larger or equal than zero*
+
+      _evaluating the magnitude of deviance is the null deviance_
+
+      $D_0 = -2 \log like(\hat\beta)$
+
+      _deviance of the worst model, the one fitted without any predictor to the perfect model_
+
+      $Y|(X_1=x_1,...,X_k=x_k)\sim Ber(logistic(\beta_0))$
+
+      in this case, $\hat\beta_0 = logit(\frac{m}{n}) = \log \frac{\frac{m}{n}}{1-\frac{m}{n}}$
+      where $m$ is the number of $1$ s in $Y_1,...,Y_n$
+
+      *null deviance serves for comparing how much the model has improved*
+      - by adding the predictors and can be done by means of the $R^2$ statistic
+        - which is a generalization of the determination coefficient
+          - _mulitple linear regression_
+
+            $R^2 = 1 - \frac{D}{D_0} = 1 - \frac{deviance(fitted logistic, saturated model)}{deviance(null model, saturated model)}$
+
+/in logistic regression, $R^2$ does have the same interpretation/
+- it is a ratio of indicating how close is the fit
+  - to being perfect or the worst
+
+    The connexion between and the *determination coefficient* is given by the expressions of the *deviance* and *null of the deviance* for the linear model:
+
+    $D=SSE (or D = RSS) and D_0 = SST$
