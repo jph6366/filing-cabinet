@@ -1,0 +1,330 @@
+#+title: Multi Layer Perceptron
+
+* MLP
+
+MLP consists of *at least 3 sets of nodes*
+1. an input layer
+   1. one or more hidden layers
+      1. and an output layer
+
+- each node except for the input node is a neuron that uses a nonlinear activation function
+
+  /multiple layers and non-linearities allow an MLP to distinguish data that is not linearly separable once trained/
+
+** Hidden Layers
+
+at the heart of every solution is a model that describes how features can be transformed into an estimate of the target
+
+- weights can determine the influence of each feature on our prediction
+  - bias determines the value of the estimate when all features are zero
+
+_an affine transformation of inputs features_ is characterized by a linear transformation of features via a weighted sum, combined with a translation via added bias.
+
+**linearity implies the weaker assumption of monotonicity**
+- any increase in our feature must either always cause an increase in our model's output, or always cause a decrease in our model's output
+
+**with deep neural networks we used observational data to jointly learn both**
+- a representation via hidden layers
+  - and a linear predictor that acts upon that representation
+
+** incorporating hidden layers
+
+we overcome limitation of linear models by incorporating  one or more hidden layers.
+
+_stack fully-connected layers on top of one another_
+- each layer feeds into the layer above it
+  - until we generate outputs
+
+- first $L-1$ layers are our representation and the final layer as the linear predictor
+
+  MLP has 4 inputs 3 outputs and its hidden layer contains 4 hidden units
+  - input layer involves no calculations
+    - to get the network output
+      - the computation is implemented in the hidden and output layers
+  -  thus MLP has 2 layers
+    - both layers are fully-connected
+
+** from linear to nonlinear
+
+we denote by the matrix $X \in \mathbb{R}^{n\times d}$
+- a minibatch of $n$ examples where each example has $d$ inputs (features)
+
+a one hidden-layer MLP
+- whose hidden layer has $h$ hidden units
+we denote by $H \in \mathbb{R}^{n\times h}$ the outputs of hidden layer
+- which are hidden representations
+we have hidden layer weights $W^{(1)} \in \mathbb{R}^{d \times h}$ and biases $b^{(1)} \in \mathbb{R}^{1\times h}$
+  - and output layer weights $W^{(2)} \in \mathbb{R}^{h \times q}$ and biases $b^{(2)} \in \mathbb{R}^{1\times q}$
+
+we can calculate the outputs $O \in \mathbb{R}^{n\times q}$ of the one-hidden layer MLP
+        $H = XW^{(1)} + b^{(1)}$
+        $O = HW^{(2)} + b^{(2)}$
+
+/after adding the hidden layer, we must track and update an additional sets of parameters/
+- hidden units above are given by an affine function of the inputs, and the outputs
+  - are just an affine function of the hidden units
+
+        $O = (XW^{(1)} + b^{(1)})W^{(2)}+b^{(2)} = XW^{(1)}+W^{(2)} + b^{(1)}W^{(2)} + b^{(2)} = XW+b$
+
+we need one more key ingredient: a nonlinear activation function $\sigma$
+- to be applied to each hidden unit following the affine transformation
+
+- the outputs of activation functions $\sigma(\cdot)$ are called acivations
+
+  we can collapse our MLP into a linear model
+
+  $H=\sigma(XW^1 + b^1)$
+  $O = HW^2 + b^2$
+
+  to yield more expressive models we can continue to stack hidden layers
+
+  $H^1=\sigma_1(XW^1 + b^1)$ and $H^2 = \sigma_2(H^1W^2+b^2)$
+
+
+** code from scratch
+_PyTorch_
+
+#+begin_src python
+import torch
+from d2l import torch as d2l
+
+# ReLu
+x = torch.arange(-8.0, 8.0, 0.1, requires_grad=True)
+y = torch.relu(x)
+d2l.plot(x.detach(), y.detach(), 'x', 'relu(x)', figsize=(5, 2.5))
+
+# derivative of the ReLU function
+y.backward(torch.ones_like(x), retain_graph=True)
+d2l.plot(x.detach(), x.grad, 'x', 'grad of relu', figsize=(5, 2.5))
+
+class MLPScratch(d2l.Classifier):
+    def __init__(self, num_inputs, num_outputs, num_hiddens, lr, sigma=0.01):
+        super().__init__()
+        self.save_hyperparameters()
+        self.W1 = nn.Parameter(torch.randn(num_inputs, num_hiddens) * sigma)
+        self.b1 = nn.Parameter(torch.zeros(num_hiddens))
+        self.W2 = nn.Parameter(torch.randn(num_hiddens, num_outputs) * sigma)
+        self.b2 = nn.Parameter(torch.zeros(num_outputs))
+
+def relu(X):
+    a = torch.zeros_like(X)
+    return torch.max(X, a)
+
+@d2l.add_to_class(MLPScratch)
+def forward(self, X):
+    X = X.reshape((-1, self.num_inputs))
+    H = relu(torch.matmul(X, self.W1) + self.b1)
+    return torch.matmul(H, self.W2) + self.b2
+
+model = MLPScratch(num_inputs=784, num_outputs=10, num_hiddens=256, lr=0.1)
+data = d2l.FashionMNIST(batch_size=256)
+trainer = d2l.Trainer(max_epochs=10)
+trainer.fit(model, data)
+#+end_src
+
+_Jax_
+
+#+begin_src python
+import jax
+from jax import grad
+from jax import numpy as jnp
+from jax import vmap
+from d2l import jax as d2l
+from flax import linen as nn
+
+# ReLu
+x = jnp.arange(-8.0, 8.0, 0.1)
+y = jax.nn.relu(x)
+d2l.plot(x, y, 'x', 'relu(x)', figsize=(5, 2.5))
+
+# derivative of the ReLu function
+grad_relu = vmap(grad(jax.nn.relu))
+d2l.plot(x, grad_relu(x), 'x', 'grad of relu', figsize=(5, 2.5))
+
+class MLPScratch(d2l.Classifier):
+    num_inputs: int
+    num_outputs: int
+    num_hiddens: int
+    lr: float
+    sigma: float = 0.01
+
+    def setup(self):
+        self.W1 = self.param('W1', nn.initializers.normal(self.sigma),
+                             (self.num_inputs, self.num_hiddens))
+        self.b1 = self.param('b1', nn.initializers.zeros, self.num_hiddens)
+        self.W2 = self.param('W2', nn.initializers.normal(self.sigma),
+                             (self.num_hiddens, self.num_outputs))
+        self.b2 = self.param('b2', nn.initializers.zeros, self.num_outputs)
+
+def relu(X):
+    return jnp.maximum(X, 0)
+
+@d2l.add_to_class(MLPScratch)
+def forward(self, X):
+    X = X.reshape((-1, self.num_inputs))
+    H = relu(jnp.matmul(X, self.W1) + self.b1)
+    return jnp.matmul(H, self.W2) + self.b2
+
+model = MLPScratch(num_inputs=784, num_outputs=10, num_hiddens=256, lr=0.1)
+data = d2l.FashionMNIST(batch_size=256)
+trainer = d2l.Trainer(max_epochs=10)
+trainer.fit(model, data)
+#+end_src
+
+_Flux_
+
+#+begin_src julia
+using Flux, NNlib, Statistics, Plots, MLDatasets, MLUtils
+
+lineplot(relu, -8, 8, height=14)
+
+plot(x, (xi -> Flux.gradient(Flux.relu, xi)[1]).(x))
+
+function custom_relu(x) # faster than max(zero(x),x), still preserves NaN
+    if x < 0
+        zero(x)
+    else
+        x
+end
+
+ struct MLPScratch
+    W1
+    b1
+    W2
+    b2
+end
+
+function MLPScratch(num_inputs::Int, num_hiddens::Int, num_outputs::Int;
+                    sigma=0.01f0)
+    # Flux uses Float32 by default for performance
+    # Initializers: normal(sigma) and zeros
+    W1 = randn(Float32, num_hiddens, num_inputs) .* sigma
+    b1 = zeros(Float32, num_hiddens)
+    W2 = randn(Float32, num_outputs, num_hiddens) .* sigma
+    b2 = zeros(Float32, num_outputs)
+
+    return MLPScratch(W1, b1, W2, b2)
+end
+
+# recommended for pretty printing and other niceties
+Flux.@layer MLPScratch
+
+# forward pass
+function (m::MLPScratch)(x)
+    # Layer 1: W1*x + b1 -> ReLU
+    z1 = m.W1 * x .+ m.b1
+    a1 = custom_relu.(z1)
+
+    # Layer 2: W2*a1 + b2
+    z2 = m.W2 * a1 .+ m.b2
+    return z2
+end
+
+num_inputs, num_hiddens, num_outputs = 784, 256, 10
+model = MLPScratch(num_inputs, num_hiddens, num_outputs)
+
+train_data = MNIST(split=:train)
+train_loader = DataLoader(
+    (Flux.flatten(train_data.features), Flux.onehotbatch(train_data.targets, 0:9)),
+    batchsize=256,
+    shuffle=true
+)
+
+opt_state = Flux.setup(Flux.Descent(0.1f0), model)
+
+loss(m, x, y) = Flux.logitcrossentropy(m(x), y)
+
+epochs = 10
+for epoch in 1:epochs
+    Flux.train!(loss, model, train_loader, opt_state)
+    println("Epoch $epoch complete")
+end
+#+end_src
+
+
+** concise code
+
+_PyTorch_
+
+#+begin_src python
+class MLP(d2l.Classifier):
+    def __init__(self, num_outputs, num_hiddens, lr):
+        super().__init__()
+        self.save_hyperparameters()
+        self.net = nn.Sequential(nn.Flatten(), nn.LazyLinear(num_hiddens),
+                                 nn.ReLU(), nn.LazyLinear(num_outputs))
+
+model = MLP(num_outputs=10, num_hiddens=256, lr=0.1)
+trainer.fit(model, data)
+#+end_src
+
+_Jax_
+
+#+begin_src python
+class MLP(d2l.Classifier):
+    num_outputs: int
+    num_hiddens: int
+    lr: float
+
+    @nn.compact
+    def __call__(self, X):
+        X = X.reshape((X.shape[0], -1))  # Flatten
+        X = nn.Dense(self.num_hiddens)(X)
+        X = nn.relu(X)
+        X = nn.Dense(self.num_outputs)(X)
+        return X
+
+model = MLP(num_outputs=10, num_hiddens=256, lr=0.1)
+trainer.fit(model, data)
+#+end_src
+
+
+_Flux_
+
+#+begin_src julia
+using Flux, MLDatsets, Statistics
+
+model = Chain(Dense(28^2 => 32, sigmoid), Dense(32 => 10), softmax)
+
+train_data = MLDatasets.MNIST()  # i.e. split=:train
+test_data = MLDatasets.MNIST(split=:test)
+
+function simple_loader(data::MNIST; batchsize::Int=64)
+    x2dim = reshape(data.features, 28^2, :)
+    yhot = Flux.onehotbatch(data.targets, 0:9)
+    Flux.DataLoader((x2dim, yhot); batchsize, shuffle=true)
+end
+
+x1, y1 = first(simple_loader(train_data)); # (784×64 Matrix{Float32}, 10×64 OneHotMatrix)
+
+function simple_accuracy(model, data::MNIST=test_data)
+    (x, y) = only(simple_loader(data; batchsize=length(data)))  # make one big batch
+    y_hat = model(x)
+    iscorrect = Flux.onecold(y_hat) .== Flux.onecold(y)  # BitVector
+    acc = round(100 * mean(iscorrect); digits=2)
+end
+
+train_loader = simple_loader(train_data, batchsize = 256)
+opt_state = Flux.setup(Adam(3e-4), model);
+
+
+for epoch in 1:30
+    loss = 0.0
+    for (x, y) in train_loader
+        # Compute the loss and the gradients:
+        l, gs = Flux.withgradient(m -> Flux.crossentropy(m(x), y), model)
+        # Update the model parameters (and the Adam momenta):
+        Flux.update!(opt_state, model, gs[1])
+        # Accumulate the mean loss, just for logging:
+        loss += l / length(train_loader)
+    end
+
+    if mod(epoch, 2) == 1
+        # Report on train and test, only every 2nd epoch:
+        train_acc = simple_accuracy(model, train_data)
+        test_acc = simple_accuracy(model, test_data)
+        @info "After epoch = $epoch" loss train_acc test_acc
+    end
+end
+
+#+end_src
