@@ -1,5 +1,120 @@
 #+title: Lemon Graphs
+
 * LEMONgraphs.jl
+
+
+** Summary
+
+- /JuliaGraphs/LEMONGraphs.jl/ packages exists and provides a barebones wrapper for the LEMON C++ library.
+  - JuliaGraphs wants to better support LEMON graphs and networks  through funding from the NSF for Quantum Networks.
+    - Familiarity with the Graphs.jl API and understanding of the CxxWrap interface package is helpful to interpret requirements
+
+
+** Requirements
+
+ 1. fast conversion between Graphs.jl and the C++ structs of LEMON
+    - slow converters already exist for simple graphs
+
+ 2. complete graph API support for the LEMONGraph types
+    - compatibile use with existing Graph.jl algorithms that do not peek behind the API
+
+ 3. _GraphsInterfaceChecker.jl_ in test suite
+
+ 4. dispatch from ops defined _Graphs/GraphsMatching/GraphsOptim_ 2 LEMON implementation
+    - i.e. if theres pre-existing `Graphs.some_interesting_property(::AbstractGraph)`
+      - then there should now be a method defined in LEMONGraphs `some_interesting_property(g::AbstractGraph, ::LEMONAlgorithm)`
+        - that dispatches to the C++ implementation
+          - converting `g` argument to LEMONGraph if necessary
+
+ 5. if there is an algorithm in LEMON that does not exist in _Graphs.jl_
+    - it should be declared in Graphs.jl, just a func w/ docs but no methods
+      - with an error hint if necessary
+    - given large scope of the library, this should be a PoC setup
+      - documenting how to add everything
+
+ 6. Idiomatic code, implementation tests, and easy-to-digest documentation
+
+
+ 0. submit with clean git histories and good practices for version control
+    - well-defined for ease of review
+
+
+** Warmup
+
+
+1. study the Graphs.jl API
+
+   https://juliagraphs.org/Graphs.jl
+
+
+   - JuliaGraphsTutorials https://github.com/JuliaGraphs/JuliaGraphsTutorials
+     /Jupyter Notebooks for learning JuliaGraphs/
+
+
+   - Practice Graph Theory
+
+     _graph generators_
+     - SBM
+     - Barabasi-Albert Model
+     - Dorogovtsev-Mendes
+     - Erdos-Renyi
+     - Generation of Networks with Given Expected Degrees
+     - Kronecker graph
+     - random-oriented graph, random tournament graph
+     - static fitness model
+     - scale-free networks
+     - Watts-Strogatz small world random graph
+     - Barbell graph
+     - Binary Tree
+     - Circular Ladder graph
+     - Clique graph
+     - complete mulitpartite/bipartite graph
+     - grid
+     - lollipop graph
+     - roach graph
+     - star graph
+     - Turan graph
+     - wheel graph
+     - small graph
+     - euclidean graph
+
+     _graph pathing and traversal_
+     - breadth first tree
+     - topological sort by depth first search
+     - depth first tree
+     - maximum adjacency search
+     - diffusion
+     - random walks
+     - graph connectivity
+     - bipartite map
+     - condensation
+     - neighborhood
+     - articulation
+     - bridges
+     - cycle detection
+     - minimum spanning trees
+     - shortest-path algos
+     - path discovery/enumeration
+
+   - Reading through docs
+   - Graph types and creating your own Graph format
+   - Test graphs
+   - Contributor Guide
+
+
+
+
+
+
+2. study the LEMON Tutorial
+   http://lemon.cs.elte.hu/pub/tutorial/index.html
+
+
+3. Learn CxxWrap to wrap C++ types to Julia
+   https://github.com/JuliaInterop/CxxWrap.jl
+
+   - external example: GeographicModels.jl
+     - wrapping GeographicLib C++ types for EGMs
 
 * Graphs.jl
 - network and graph analysis in julia
@@ -626,6 +741,7 @@ LEMON stands for _Lib for Efficient Modeling and Optimization_
    - focus on combinatorial optimization tasks connected
      - connected mainly with graphs and networks
        - for telecommunication, computer networks, logistics, scheduling, and other areas
+
 ** Installation Instructions
  _building and installing LEMON from source on Linux_
  #+begin_src bash
