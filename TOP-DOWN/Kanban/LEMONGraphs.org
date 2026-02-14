@@ -3,14 +3,14 @@
 * LEMONgraphs.jl
 
 
-** Summary
+* Summary
 
 - /JuliaGraphs/LEMONGraphs.jl/ packages exists and provides a barebones wrapper for the LEMON C++ library.
   - JuliaGraphs wants to better support LEMON graphs and networks  through funding from the NSF for Quantum Networks.
     - Familiarity with the Graphs.jl API and understanding of the CxxWrap interface package is helpful to interpret requirements
 
 
-** Requirements
+* Requirements
 
  1. fast conversion between Graphs.jl and the C++ structs of LEMON
     - slow converters already exist for simple graphs
@@ -39,7 +39,7 @@
     - well-defined for ease of review
 
 
-** Warmup
+* Warmup
 
 
 1. study the Graphs.jl API
@@ -115,6 +115,7 @@
 
    - external example: GeographicModels.jl
      - wrapping GeographicLib C++ types for EGMs
+
 
 * Graphs.jl
 - network and graph analysis in julia
