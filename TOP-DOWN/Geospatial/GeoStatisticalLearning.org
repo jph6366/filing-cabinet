@@ -289,17 +289,32 @@ spatial dependence if often ignored
                 $\mathcal{P}=\{(\mathcal{D}_s, Pr_{\mathcal{D}_s}, \mathcal{T}_s),(\mathcal{D}_t, Pr_{\mathcal{D}_t}, \mathcal{T}_t)\}$
                 with a single supervised spatial learning task $T_s=T_t=T$
                 (e.g. regression)
-                - and assume that a set of response features $\mathcal{Y}_u$
-                  - are created by a function $f$
-                    - based on a set of explanatory features $\mathcal{X}_u$
-                      - for each and every location $u \in \mathcal{D}_s \cup \mathcal{D}_t$
+  - and assume that a set of response features $\mathcal{Y}_u$
+    - are created by a function $f$
+      - based on a set of explanatory features $\mathcal{X}_u$
+        - for each and every location $u \in \mathcal{D}_s \cup \mathcal{D}_t$
 
 - our goal is to learn a model $\{\mathcal{Y}_u\}_{u\in\mathcal{D}_t} \approx \hat{f}(\{\mathcal{X}\}_{u\in\mathcal{D}_t})$
   - over the target domain $\mathcal{D}_t$
     - that approximates $f$ in terms of expected risk
       - for some spatial supervised loss function $\mathcal{L}$
          $\hat{f}=arg min \mathbb{E}_{Pr_{D_t}}[\mathcal{L}(\{\mathcal{Y}_u\}_{u\in\mathcal{D_t}}, g(\{\mathcal{X}_{u\in\mathcal{D}_t}\}))]$
+- spatial samples of processes are drawn probability of target domain
+  - and rearranged into feature vectors u,v for every location u in the target domain
+- the spatial loss function compares the spatial map of features from the sample
+  - with the approximated map from model g
+    - the model f is the model that minimizes the expected loss or risk
+      - over the target domain
 
+*unlike classical definition of generalization error*
+- the definition above for geostatistical learning problems
+  - relies on a spatial loss function
+    - and on spatial samples
+      - like those produced via geostatistical simulation
+- for truly spatial learing models $\hat{f}$
+  - that use multiple locations in the spatial domain to make predictions
+    - this generelization error is more appropriate
+  - only considering pointwise learning and not targeting spatial learning models
 ** density ratio estimation
 
 ** weighted cross-validation

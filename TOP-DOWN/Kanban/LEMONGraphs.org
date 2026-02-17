@@ -919,6 +919,211 @@ for (ListDigraph::ArcIt a(g); a != INVALID; ++a)
 
 
 
+** Graph Structures
+- implementation of combinatorial algorithms heavily rely on efficient graph structures
+- diverse applications require the usage of different physical graph structures
+
+  `ListDigraph`, `ListGraph`
+  - LEMON also provides several other classes for handling directed/undirected graphs
+
+*in order to save time or memory usage, some structures may fail to support some graph features like node or arc/egde deletion*
+
+*** Graph concepts
+**all LEMON graph types conform to the corresponding graph concept**
+- *classses* - DiGraph, Graph
+- *files* - digraph.h, graph.h, graph_components.h
+
+/a generic graph algorithm should only exploit the features of the corresponding graph concept/
+- so that it could be applied to any graph structure
+
+*** Directed Graph structures
+- ListDigraph class is most versatile directed graph struct
+  - based on linked lists
+    - _therefore iterating through its nodes and arcs is fast_
+      - and flexible!
+  - provides operations for
+    - adding/removing nodes/arcs
+    - changing the source/target node of an arc
+    - contracting/splitting nodes or arcs
+- *SmartDigraph* is another general digraph impl
+  - _significantly more efficient in terms of space and time_
+    - but less functionality
+      - nodes and arcs cannot be removed from it
+- *StaticGraph* structure is _even more optimized for efficiency_
+  - requires less space in memory
+  - provides fastest iteration
+    - especially using OutArcIt iterators
+      - since it arcs are stored in an appropriate order
+        /however you can't add or delete arcs or nodes/
+        - the graph has to be built at once w/ no modifications afterwards
+
+- *FullDigraph* is an efficient implementation of a directed full graph
+  - also completely static and it needs constant space in memory
+
+*** Undirected Graph structure
+*ListGraph* and *SmartGraph* have similar implementations as their directed variants
+
+*** FullGraph
+- simple, fast implementation of undirected full/complete graphs
+  - contains an edge between every distinct pair of nodes
+    - therefore the number of edges is $n(n-1)/2$
+- this class is completely static and needs constant memory space
+  - you can't add/delete nodes or edges
+/however the structure can be resized using `resize()`/
+/provides constant time counting for nodes, edges, and arcs/
+
+*** GridGraph
+- the nodes of the graph can be indexed by two integer values $(i,j)$
+  - where $i$ is in the range $[0,...,width()-1]$
+    - and $j$ is in the range $[0,...,height()-1]$
+
+- two nodes are connected in the graph if the indices differ extactly on one position and the difference is aso exactly one
+
+- the nodes of the graph can be obtained by position using the $operator()()$ function
+  - and the indices of the nodes can be obtained using $pos(),col(),row()$ members
+- the outgoing arcs can be retrieved with the $right(),up(),left(),down()$ functions
+  - where the bottom-left corner is the origin
+/class is completely static and needs constant memory space/
+- cannnot add/delete nodes or edges but $resize()$ can be used
+
+  #+begin_src cpp
+#include <lemon/grid_graph.h>
+
+GridGraph g(rows,cols);
+GridGraph::NodeMap<int> val(g);
+for (int i = 0; i < g.width(); ++i) {
+    for (int j = 0; j < g.height(); ++j) {
+        val[g(i, j)] = i + j;
+     }
+}
+  #+end_src
+
+
+*** HypercubeGraph
+- the nodes of the graph are indexed with integers having at most `dim` binary digits
+  - two nodes are connected in the graph if and only if their indices differ only on one position in the binary form
+/completely static graph and needs constant memory space/
+- thus cannot add/delete nodes or edges only use *resize()*
+/provides constant time counting for nodes/edges/arcs/
+
+**NOTE:** the type of the indices is chosen to `int` for efficiency reasons
+- the maximum dimension of the implemenation is 26 assuming size of int is 32 bit
+
+
+** Undirected Graphs
+
+- each undirectde edge of a graph can also be regarded as two oppositely directed arcs
+_As a result all directed graphs algos automatically run on undirected graphs_
+
+- provides an `Edge` type for the undirected edges
+  - and `Arc` type for the directed arcs
+    - the `Arc` type is convertible to `Edge`
+      - thus the corresponding edge can always be obtained from an arc
+- only nodes and edges can be added or removed from an undirected graph
+  - and the corresponding arcs are added or removed automatically
+    - there are twice as many arcs as edges
+
+- each edge has _inherent orientation_
+  - this can be defined whether an arc is forward or backward oriented
+    - in a undirected graph with respect to this default orientation of the represented edge
+- the direction of an arc can be obtained and set using the functions
+  - `direction()` and `direct()` respectively
+
+#+begin_src cpp
+ListGraph::Arc a1 = g.direct(e, true);    // a1 is the forward arc
+ListGraph::Arc a2 = g.direct(e, false);   // a2 is the backward arc
+if (a2 == g.oppositeArc(a1))
+  std::cout << "a2 is the opposite of a1" << std::endl;
+#+end_src
+
+the end nodes of an edge can obtained using the functions `u()` and `v()`
+- while the `source()` and `target()` can be used for arcs
+
+  #+begin_src cpp
+std::cout << "Edge " << g.id(e) << " connects node "
+  << g.id(g.u(e)) << " and node " << g.id(g.v(e)) << std::endl;
+std::cout << "Arc " << g.id(a2) << " goes from node "
+  << g.id(g.source(a2)) << " to node " << g.id(g.target(a2)) << std::endl;
+  #+end_src
+
+- also provides iterators `NodeIt` `ArcIt` `OutArcIt` `InArcIt`
+  - there is also iterator classes for edges
+    - `EdgeIt` traverses all edges in the graph and `IncEdgeIt` lists the incidence edges of a certain node
+
+_print out the degree of each node_
+
+#+begin_src cpp
+for (ListGraph::NodeIt n(g); n != INVALID; ++n) {
+  int cnt = 0;
+  for (ListGraph::IncEdgeIt e(g, n); e != INVALID; ++e) {
+    cnt++;
+  }
+  std::cout << "deg(" << g.id(n) << ") = " << cnt << std::endl;
+}
+#+end_src
+
+- in an undirected graph, both `OutArcIt` and `InArcIt` iterates on the same edges but w/ opposite direction
+  - they are convertible to both `Arc` and `Edge` types
+- `IncEdgeIt` also iterates on these edges
+  - but not convertible to `Arc`, only to `Edge`
+
+_using the member class for constructing edge maps_
+
+#+begin_src cpp
+ListGraph::EdgeMap cost(g);
+cost[e] = 10;
+std::cout << cost[e] << std::endl;
+std::cout << cost[a1] << ", " << cost[a2] << std::endl;
+ListGraph::ArcMap arc_cost(g);
+arc_cost[a1] = cost[a1];
+arc_cost[a2] = 2 * cost[a2];
+// std::cout << arc_cost[e] << std::endl;   // this is not valid
+std::cout << arc_cost[a1] << ", " << arc_cost[a2] << std::endl;
+#+end_src
+
+**** Practice
+
+1. we would like to design an electric network minimizing the total length of wires
+   - then you might be looking for a MST in an undirected graph
+     - you can use the `Kruskal` algo
+
+ **Let us suppose that the network is stored in a ListGraph object `g` with a cost map `cost`**
+ - we create a `bool` valued edge map `tree_map` or a vector `tree_vector`
+   - for storing the tree that is found by the algorithm
+     - after that we call the `kruskal()` function
+       - it gives backt he weight of the MST and `tree_map` or `tree_vector` will contain the found spanning tree
+
+_if you want to store arcs in a bool valued edge map_
+
+#+begin_src cpp
+// Kruskal algorithm with edge map
+ListGraph::EdgeMap<bool> tree_map(g);
+std::cout << "The weight of the minimum spanning tree is "
+          << kruskal(g, cost_map, tree_map) << std::endl;
+// Print the results
+std::cout << "Edges of the tree: " << std::endl;
+for (ListGraph::EdgeIt e(g); e != INVALID; ++e) {
+  if (!tree_map[e]) continue;
+  std::cout << "(" << g.id(g.u(e)) << ", " << g.id(g.v(e)) << ")\n";
+}
+#+end_src
+
+_if you would like to store the edges in a standard container_
+
+#+begin_src cpp
+// Kruskal algorithm with edge vector
+std::vector<ListGraph::Edge> tree_vector;
+std::cout << "The weight of the minimum spanning tree is "
+          << kruskal(g, cost_map, std::back_inserter(tree_vector))
+          << std::endl;
+// Print the results
+std::cout << "Edges of the tree: " << std::endl;
+for (unsigned i = 0; i != tree_vector.size(); ++i) {
+  Edge e = tree_vector[i];
+  std::cout << "(" << g.id(g.u(e)) << ", " << g.id(g.v(e)) << ")\n";
+}
+#+end_src
+
 ** Algorithms
 
 LEMON provides well-known fundamental algorithms for discovering graph properties
@@ -1009,6 +1214,36 @@ while (!dijkstra.emptyQueue()) {
 #+end_src
 
 - LEMON provides other algos for finding shortest paths
+
+*** Maximum Flows
+
+*SUBSECTION IS ON TODO TO BE WRITTEN*
+
+_Preflow<GR,CAP,TR>_ class template reference
+- GR = type of digraph the algo runs on
+- CAP = the type of capacity map
+  - default map type is `GR::ArcMap<int>`
+- TR = the traits class that define various types used by the algo
+
+- provides implementation of *Goldberg-Tarjan's preflow push-relabel algorithm*
+  - producing a flow of maximum value in a digraph
+
+**preflow algorithms are the fastest known max flow algos**
+- current impl uses a mix of `highest label` and `bound decrease` heuristics
+
+_worse case time complexity of the algorithm is $O(n^{2}\sqrt{e})$ ..._
+- algo consists of 2 phases
+  1. max flow value and minimum cut is obtained
+  2. constructs a feasible maximum flow on each arc
+
+/cannot handle infinite or very large capacities/
+- max value of `CAP::Value`
+
+  #+begin_src cpp
+#include <lemon/preflow.h>
+  #+end_src
+
+
 ** Style Guide
 *** Naming Conventions
 - in LEMON the name of a source file is written in lowercase and words are separated with underscores

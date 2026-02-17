@@ -30,7 +30,7 @@ ans == emb(Flux.onehotbatch("cat&dog", 'a':'z', 'n'))
 emb(rand(1:26, (10, 1, 12))) |> size  # three batch dimensions
 #+end_src
 
-** Transformsers.jl Embed
+** Transformers.jl Embed
 
 - we define an abstract type for embeddings
   - and a concrete implementation of the abstract type

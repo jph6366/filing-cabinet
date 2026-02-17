@@ -88,6 +88,16 @@ _F1-score is defined as:_
 𝐹⁡1−𝑠⁢𝑐⁢𝑜⁢𝑟⁢𝑒=2×P⁢R×S⁢E/(P⁢R+S⁢E)
 
 
+** Reciever Operating Characteristic
+
+- the true positive rate is also known as *sensitivity or probability of detection*
+- the false positive rate is also known as the *probability of false alarm*
+  - and equals ( 1 - specificity)
+
+- the ROC is also known as relative operating characteristic curve
+  - because of two operating characteristics, true-positive rate and false-positive rate
+    - as the criterion changes
+
 
 ** Logistic Regression for Binary Response
 

@@ -1,5 +1,10 @@
 #+title: Bayesian Information Criterion
 
+$IC = f(SSE) + penalty$
+
+
+
+
 - when fitting models, its possible to increase the maximum likelihood
   - by adding parameters, but doing so may result in overfitting
     - BIC resolves this problem by introducing a penalty term

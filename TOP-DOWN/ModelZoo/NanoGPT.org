@@ -1,0 +1,12 @@
+#+title: Nano Gpt
+
+
+GPT is a multi-head attention architecture
+- the default parameters gives a model much smaller than nanoGPT
+  - tuned for fastest convergence on a very small data set
+
+- this model takes as input a sequence of existing text (context)
+  - and produces as output the predicted next character
+  - it actually produces the next predicted character
+    - for each initial sub-sequence of the input
+      - in effect giving an extra degree of parallelism for the purpose of training

@@ -1,0 +1,106 @@
+#+title: Model Selection
+
+* Model Selection
+
+for GLM, choosing the best model amounts to choosing a best predictor set
+- predictors may come directly from collected data
+  - or may be constructed from them
+
+/we presume all candidate predictors are assembled with the data at the outset/
+
+
+
+
+** Practice
+
+For RealEstate data:
+1. using any reasonable, potential predictor, find a "best" model for price
+   - use GLMSELECT to consider all criteria (stepwise)
+
+2. compare best subsets in REG on $R_{adj}^2$ , AIC, BIC, SBC
+
+#+begin_src sas
+proc glmselect data=realestate;
+     class ac highway quality; /*categorical vars*/
+     model price =   sq_ft--highway /
+        selection=stepwise(select=sl choose=cv) stats=(AIC AICC BIC SBC);
+run;
+
+proc reg data=realestate;
+     model sq_ft--highway /
+        selection=adjsq aic bic sbc;
+     ods output subsetSelSummary=subsets;
+run;
+#+end_src
+
+
+**IN HPGENSELECT, use quality as response and find best model**
+
+#+begin_src sas
+proc hpgenselect data=realestate;
+     model quality = price--year lot highway / dist=multinomial
+                                                      link = logit;
+     selection method=stepwise(slentry=0.2 slstay=0.2 choose=SBC);
+run;
+proc hpgenselect data=realestate;
+     where quality in (1,2);
+     model quality = price--year lot highway / dist=multinomial
+                                                      link = logit;
+     selection method=stepwise(slentry=0.2 slstay=0.2 choose=SBC);
+run;
+proc hpgenselect data=realestate;
+     where quality in (2,3);
+     model quality = price--year lot highway / dist=multinomial
+                                                      link = logit;
+     selection method=stepwise(slentry=0.2 slstay=0.2 choose=SBC);
+run;
+/** splitting adjacent link choices **/
+
+
+/** often multicategory logit in the predictor selection is avoided **/
+#+end_src
+
+
+** Wald Chi-Squared
+classic approach to hypothesis testing
+- wald has the advantage of only requireing estimation
+  - lowering the computational burden
+- disadvantage is it is not invariant to changes in the representation of the null hypothesis
+
+- _Wald Test_ assesses constraints on statistical parameters based on the weighted distance between the unrestricted estimate and its hypothesized value under the $H_0$
+  - Where the weight is the *precision of the estimate*
+
+    /The Larger The Weight Distance/
+    /The Less Likely It Is That The Constraint Is True/
+
+- it has a asymptotic $X^2$ distribution under the $H_0$
+  - a fact that can be used to determine stastistical significance
+
+    1. test on a single parameter
+
+       $W = \frac{(\hat\theta - \theta_0)^2}{var(\hat\theta)}$
+
+       _square root of the single-restriction Wald statistic can be understood as $t$ - ratio_
+       - however not $t$ - distributed except for the special case
+         - of linear regression w/ normally distributed errors
+           - in general follows asymptotic $z$ - distribution
+
+             $\sqrt{W} = \frac{\hat\theta - \theta_0}{se(\hat\theta)}$
+
+           - where $se(\hat\theta)$ is the standard error of the maximum likelihood estimate, the square root of the variance
+
+2. test(s) on multiple parameters
+
+   - can test jointly multiple hypotheseses on single/multiple parameters
+
+     - Let $\hat\theta_n$ be our sample estimator of P parameters
+       - $\hat\theta_n$ is a $P \times 1$ vector
+
+  - test of Q hypotheses on the P parameters is expressed as $Q \times P$ matrix R
+
+    $H_0 : R\theta = r$
+    $H_1 : R\theta \neq r$
+** Logit
+in mathematics, the logit (Logistic Unit) function is the inverse of the sigmoid function
+
+                $logit(p)=\log(\frac{p}{1-p})$
