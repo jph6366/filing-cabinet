@@ -9,7 +9,5 @@ SCHEDULED: <2026-03-06 Fri>
 SCHEDULED: <2026-03-06 Fri>
 ** TODO MCP for OGC APIs: System Design
 SCHEDULED: <2026-03-06 Fri>
-** STRT GeoIO.jl: CleaninG
+** DONE GeoIO.jl: Code Review
 SCHEDULED: <2026-03-06 Fri>
-- 0:35:36 :: 0:00:00
-- 0:45:26 ::
