@@ -5,10 +5,9 @@
 * BACKLOG
 
 Google Summer of Code 2026 Project Proposals
-- JuliaGeo
-- PySAL
-- OpenStreetMaps
-- OSGEO
+1. MCP for OGC APIs
+2. MCP for OGC SensorThings APIs
+3. Implementation of Geographically Weighted Matrix Decomposition Algorithms
 
 [[https://github.com/FluxML/fluxml.github.io/issues/107][FluxML/fluxml.github.io#107 Create Machine Learning Tutorials with Flux.jl]]
 
@@ -20,11 +19,6 @@ Google Summer of Code 2026 Project Proposals
 
 * REVIEW
 
-[[https://github.com/jph6366/peppi-jlrs][GitHub - jph6366/peppi-jlrs]]
-
-[[https://github.com/jph6366/peppi-jl][GitHub - jph6366/peppi-jl: Julia bindings for the peppi Slippi replay parser]]
-
-[[https://github.com/OSIPI/TF2.4_IVIM-MRI_CodeCollection/pull/99][OSIPI/TF2.4_IVIM-MRI_CodeCollection#99 Added the feature to read DICOM images...]]
 
 * COMPLETED
 

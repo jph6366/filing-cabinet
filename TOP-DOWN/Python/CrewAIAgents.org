@@ -1,0 +1,365 @@
+#+title: Crew Ai Agents
+
+What is an AI Agent?
+
+it is a component with a specific operation
+- a role
+  - goal
+    - context
+
+*unix philosophy*
+
+
+an AI agent has a model attached to it
+- reasoning and interfacing
+
+
+** Quick Start
+
+#+begin_src python
+!pip install -U -quiet crewai crewai_tools
+!pip install -U --q ddgs duckduckgo-search langchain-community
+
+from crewai.tools import tool
+from langchain_community.tools import DuckDuckGoSearch
+from crewai import Agent
+from crewai import LLM
+
+AGENT_LLM = LLM(model="openai/gpt-4o-mini")
+
+search_tool_instance = DuckDuckGoSearchRun()
+
+# CODE: Wrap the search tool with the CrewAI @tool decorator
+@tool("DuckDuckGo Search")
+def search_tool(query: str) -> str:
+    """A tool for searching the web using DuckDuckGo."""
+    return search_tool_instance.run(query)
+
+
+# CODE: Define the agent
+research_agent = Agent(
+  role="Senior Research Analyst",
+  goal="Analyze the content of the provided website and extract key insights.",
+  backstory="""You are a world-class research analyst with a knack for identifying
+  the most important trends and data points from any text. You have a keen eye for detail
+  and are known for your concise and insightful summaries.""",
+  verbose=False,
+  llm=AGENT_LLM,
+  tools=[search_tool] # CODE: pass the wrapped tool
+)
+
+print("✅ Research Agent Created!")
+print(f"Role: {research_agent.role}")
+print(f"Goal: {research_agent.goal}")
+#+end_src
+
+
+
+a _Task_ for an agent is some task that is not learned and process some instruction
+- proceseses define how agents will work
+  - how tasks are orchestrated
+    - etc.
+
+Tasks can override agent tools with specific ones that should be reasoned on their use
+
+#+begin_src python
+from crewai import Task
+
+# CODE: Create a research task
+research_task = Task(
+    description="""Research the latest developments in AI agent technology in 2025.
+    Focus on:
+    1. Key breakthroughs and innovations
+    2. Major companies and their contributions
+    3. Practical applications and use cases
+    4. Future trends and predictions
+
+    Provide a comprehensive analysis that a business executive could use for strategic planning.""",
+    expected_output="A detailed research report with key insights, trends, and actionable recommendations about AI agent technology developments in 2025.",
+    agent=research_agent
+)
+
+print("✅ Research Task Created!")
+print(f"Description: {research_task.description[:100]}...")
+
+from crewai import Crew, Process
+
+# CODE: Assemble your research crew
+research_crew = Crew(
+    agents=[research_agent],
+    tasks=[research_task],
+    process=Process.sequential,
+    verbose=False
+)
+
+# CODE: Kickoff the crew and get results
+print("🚀 Launching Research Crew...")
+research_result = research_crew.kickoff()
+
+from IPython.display import Markdown
+print("\n" + "="*50)
+print("📊 RESEARCH REPORT COMPLETE")
+print("="*50)
+Markdown(research_result.raw)
+#+end_src
+
+
+
+
+#+begin_src cpp
+from typing import Dict, Any
+from pydantic import BaseModel
+
+# CODE: Define the state model and add its fields
+class ContentState(BaseModel):
+  """
+  State model that tracks information throughout the content creation workflow.
+
+  Think of this as a form that gets filled out as the workflow progresses:
+  - Start: Only URL is filled
+  - After routing: Content type is determined
+  - After processing: Final content is ready
+  - Throughout: Metadata can be added by any step
+  """
+  url: str = "" # CODE
+  content_type: str = ""
+  final_content: str = ""
+  metadata: Dict[str, Any] = {} # CODE
+
+from crewai.flow.flow import Flow, listen, router, start
+from crewai.flow.persistence import persist
+from crewai import Crew
+
+# CODE: Create the workflow class
+@persist(verbose=True)
+class ContentRouterFlow(Flow[ContentState]):
+    """
+    A dynamic workflow that routes content creation to specialized crews.
+
+    Flow Overview:
+    1. START: Get user input (URL + content type)
+    2. ROUTE: Direct to appropriate content crew
+    3. PROCESS: Execute specialized content creation
+    4. FINISH: Return the final content
+
+    This flow demonstrates:
+    - Event-driven architecture with decorators
+    - State management across workflow steps
+    - Dynamic routing based on user input
+    - Parallel processing capabilities
+    """
+
+    # CODE: Define the get_user_input with a start decorator
+    @start()
+    def get_user_input(self):
+        """Get URL and desired content type from user"""
+        url = "https://blog.crewai.com/pwc-choses-crewai/"
+        content_type = "newsletter"
+        self.state.url = url
+        self.state.content_type = content_type
+        return "Input collected"
+
+    @router(get_user_input)
+    def route_to_crew(self, previous_result):
+        """Route to appropriate crew based on content type"""
+        return self.state.content_type
+
+    @listen("blog")
+    def process_blog_content(self):
+        """Process content using blog crew"""
+        researcher, writer = create_blog_agents()
+        tasks = create_blog_tasks(researcher, writer, self.state.url)
+        blog_crew = Crew(
+            agents=[researcher, writer],
+            tasks=tasks,
+            verbose=False
+        )
+        result = blog_crew.kickoff()
+        self.state.final_content = result.raw
+        return "Blog content created"
+
+    @listen("newsletter")
+    def process_newsletter_content(self):
+        """Process content using newsletter crew"""
+        researcher, writer = create_newsletter_agents()
+        tasks = create_newsletter_tasks(researcher, writer, self.state.url)
+        newsletter_crew = Crew(
+            agents=[researcher, writer],
+            tasks=tasks,
+            verbose=False
+        )
+        result = newsletter_crew.kickoff()
+        self.state.final_content = result.raw
+        return "Newsletter content created"
+
+    @listen("linkedin")
+    def process_linkedin_content(self):
+        """Process content using LinkedIn crew"""
+        researcher, writer = create_linkedin_agents()
+        tasks = create_linkedin_tasks(researcher, writer, self.state.url)
+        linkedin_crew = Crew(
+            agents=[researcher, writer],
+            tasks=tasks,
+            verbose=False
+        )
+        result = linkedin_crew.kickoff()
+        self.state.final_content = result.raw
+        return "LinkedIn content created"
+
+
+
+flow = ContentRouterFlow()
+result = flow.kickoff()
+
+from IPython.display import display, Markdown
+
+display(Markdown("## 📝 Generated Content"))
+display(Markdown("---"))
+
+content = str(flow.state.final_content)
+display(Markdown(content))
+
+display(Markdown("## Flow State Summary"))
+display(Markdown(f"URL: {flow.state.url}"))
+display(Markdown(f"Content Type: {flow.state.content_type}"))
+display(Markdown(f"Final Content Length: {len(str(flow.state.final_content))} characters"))
+
+
+
+#+end_src
+
+
+
+_building specialist teams_
+
+#+begin_src python
+from crewai import Agent, LLM
+
+AGENT_LLM = LLM(model="openai/gpt-4o-mini")
+
+def create_blog_agents():
+    """Create agents specialized for blog content"""
+
+    blog_researcher = Agent(
+        role="Blog Content Researcher",
+        goal="Extract and analyze web content to identify key insights for blog posts",
+        backstory="""You are an expert content researcher who specializes in analyzing
+        web content and identifying the most valuable insights for creating engaging blog posts.
+        You excel at understanding complex topics and breaking them down into digestible content.""",
+        verbose=False,
+        tool=[search_tool], # CODE: Add a search tool to the researcher agent
+        llm=AGENT_LLM,
+        max_iter=5
+    )
+
+    blog_writer = Agent(
+        role="Blog Content Writer",
+        goal="Transform research into engaging, well-structured blog posts",
+        backstory="""You are a skilled blog writer with expertise in creating compelling content
+        that engages readers and drives meaningful discussions. You excel at taking complex
+        information and making it accessible and interesting.""",
+        verbose=False,
+        llm=AGENT_LLM
+    )
+
+    return blog_researcher, blog_writer
+
+def create_newsletter_agents():
+    """Create agents specialized for newsletter content"""
+
+    newsletter_researcher = Agent(
+        role="Newsletter Content Researcher",
+        goal="Extract key insights from web content for newsletter format",
+        backstory="""You are an expert at identifying the most newsworthy and actionable
+        insights from web content. You understand what makes content valuable for newsletter
+        subscribers and how to present information concisely.""",
+        verbose=False,
+        tool=[search_tool],
+        llm=AGENT_LLM,
+        max_iter=5
+    )
+
+    newsletter_writer = Agent(
+        role="Newsletter Writer",
+        goal="Create engaging newsletter content that provides immediate value",
+        backstory="""You are a newsletter specialist who knows how to craft content that
+        busy professionals want to read. You excel at creating scannable, actionable content
+        with clear takeaways.""",
+        verbose=False,
+        llm=AGENT_LLM
+    )
+
+    return newsletter_researcher, newsletter_writer
+
+def create_linkedin_agents():
+    """Create agents specialized for LinkedIn content"""
+
+    linkedin_researcher = Agent(
+        role="LinkedIn Content Researcher",
+        goal="Extract professional insights suitable for LinkedIn audience",
+        backstory="""You are an expert at identifying professional insights and industry
+        trends that resonate with LinkedIn's professional audience. You understand what
+        content drives engagement on professional networks.""",
+        verbose=False,
+        tool=[search_tool],
+        llm=AGENT_LLM,
+        max_iter=5
+    )
+
+    linkedin_writer = Agent(
+        role="LinkedIn Content Writer",
+        goal="Create engaging LinkedIn posts that drive professional engagement",
+        backstory="""You are a LinkedIn content specialist who knows how to craft posts
+        that get noticed in the professional feed. You excel at creating content that
+        sparks meaningful professional discussions.""",
+        verbose=False,
+        llm=AGENT_LLM
+    )
+
+    return linkedin_researcher, linkedin_writer
+
+
+def create_blog_tasks(researcher, writer, url):
+    """Create tasks for blog content generation"""
+
+    # CODE: Define the blog research task
+    research_task = Task(
+        description=f"""
+        Analyze the content from {url} and extract key insights for a blog post.
+        Your analysis should identify:
+        1. Main themes and key points
+        2. Interesting insights or data points
+        3. Potential angles for blog content
+        4. Target audience considerations
+        5. SEO-worthy topics and keywords
+
+        Provide a comprehensive research summary that will guide blog writing.
+        """,
+        expected_output="A detailed research summary with key insights, themes, and recommendations for blog content",
+        agent=researcher
+    )
+
+    writing_task = Task(
+        description="""
+        Create an engaging blog post based on the research findings.
+
+        Requirements:
+        - 800-1200 words
+        - Engaging headline
+        - Clear introduction with hook
+        - Well-structured body with subheadings
+        - Actionable insights or takeaways
+        - Strong conclusion
+        - SEO-optimized content
+        - Professional yet accessible tone
+
+        Format the output in markdown.
+        """,
+        expected_output="A complete, well-structured blog post in markdown format",
+        agent=writer,
+        # CODE: add the research task as context to the writing task
+        context=[research_task]
+    )
+
+    return [research_task, writing_task]
+#+end_src

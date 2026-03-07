@@ -1,0 +1,15 @@
+#+title: Todo
+
+* Tasks
+** TODO lemoncxxwrap.cpp: Sweeping
+SCHEDULED: <2026-03-06 Fri>
+** TODO LEMONGraphs.jl: Sweeping
+SCHEDULED: <2026-03-06 Fri>
+** TODO MCP for SensorThings: System Design
+SCHEDULED: <2026-03-06 Fri>
+** TODO MCP for OGC APIs: System Design
+SCHEDULED: <2026-03-06 Fri>
+** STRT GeoIO.jl: CleaninG
+SCHEDULED: <2026-03-06 Fri>
+- 0:35:36 :: 0:00:00
+- 0:45:26 ::

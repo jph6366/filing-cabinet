@@ -1,0 +1,85 @@
+#+title: Categorical Analysis
+
+
+odds ratio $= \frac{n_{11}, n_{22}}{n_{21}\cdot n_{12}}$
+
+* /concordant/ - in agreement
+
+- a concordant pair is a pair of observations
+  - each on two variables $(X_1,Y_1)$ and $(X_2,Y_2)$
+    - having the property that
+
+      ${\displaystyle \operatorname {sgn} (X_{2}-X_{1})\ =\operatorname {sgn} (Y_{2}-Y_{1}),}$
+
+      - where $sgn$ refers to a whether a number is positive, zero, or negative (its sign)
+        - the signum function is defined as:
+          ${\displaystyle \operatorname {sgn} x={\begin{cases}-1,&x<0\\0,&x=0\\1,&x>0\end{cases}}}$
+
+- a discordant pair is a pair of two variables observations such that
+
+  ${\displaystyle \operatorname {sgn} (X_{2}-X_{1})\ =-\operatorname {sgn} (Y_{2}-Y_{1})}$
+
+  - if one pair contains a higher value value $X$ then the other pair contains a higher value of $Y$
+
+
+** Somer's D
+
+** Goodman's and Kruskal's gamma
+
+P: Concordant pair
+Q: Discordant pair
+
+$G = (P-Q)/(P+Q)$
+-
+
+** Kendall tau-b
+
+** Stuart tau
+
+** c
+
+
+* Pearson Chi-square test
+
+* Mantel-Haenszel chi-square test
+
+/significance association/
+- cannot assess direction at all
+
+* Spearman Correlation Statistic
+
+* Cramer's V
+
+* Practice
+
+/when a sample size decreases/
+- the p-value increaes
+  - and the width of the CL for the odds ratio increases
+
+
+/there aren't upper bound and lower bound for a logit/
+
+$logit = \log(\frac{p}{1-p}) = x\beta$
+
+
+* Greenacre's method
+
+*similar to gradient descent to find the maximum likelihood*
+
+- chooses a least reduction of chi square
+
+- hierachically clusters
+
+- collapses levels of contigency tables
+
+
+* Variable Clustering
+
+- complexity of dataset increases rapidly with increasing dimensionality
+  - computation times, exploring the model, model scoring, redundancy in the datset
+
+    _Eigenvalue_ - variance explained by each PC for all the variables
+    - column total of each PC
+
+      - if an eigenvalue of PC is greater than specific threshold
+        - then cluster is split

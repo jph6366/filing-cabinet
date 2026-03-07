@@ -1,0 +1,99 @@
+#+title: Regression Analysis
+
+
+- in regression analysis
+  - the distinction between errors and residuals is subtle and important
+    **studentized residuals**
+- given an unobservable function that relates the independent variable to the dependent variable
+  - i.e. a line -- the deviations of the dependent variable observations from this function are the unobservable errors
+    - if one runs regression on some data
+      - then the deviations of the dependent variable observations
+        - from the fitted function are the _residuals_
+
+
+
+$Y = x \beta + E$
+
+Least Squares Est. $\hat\beta = (X^{T}X)^{-1}X^{T}Y$
+
+$Y \sim N(x\beta,\sigma^{2}_{\varepsilon})$
+
+$\hat\beta = N((X^{T}X)^{-1}X^{T}X\beta = \beta_1$
+
+$(X^{T}X)^{-1}X^{T}(\sigma^2_\varepsilon) X(X^{T}X)^{-1} = \sigma^2_\varepsilon(X^{T}X)^{-1}$
+
+$var(X_i \hat\beta) \rightarrow X_i(X^{T}X)^{-1}X^{T}_{-1}$
+
+
+/to Compare residuals at different inputs, one needs to adjust the residuals by the expected variablity of residuals/
+ - this is called _studentizing_
+
+
+** Cook's Distance
+common estimate of the influence of a data point
+- when performing a least-squares regression anaylsis
+
+_in ordinary least squares analysis_
+- cooks D can be used to...
+  1. indicate influential data points that are particularly worth checking for validity
+  2. indicate regions of the design space where it would be good to be able obtain more data points
+
+*data points with large residuals (outliers) and/or high leverage*
+- may distort the outcome and accuracy of a regression
+
+  ${\displaystyle {\underset {n\times 1}{\mathbf {y} }}={\underset {n\times p}{\mathbf {X} }}\quad {\underset {p\times 1}{\boldsymbol {\beta }}}\quad +\quad {\underset {n\times 1}{\boldsymbol {\varepsilon }}}}$
+
+
+Cook's distance $D_i$ of observation $i$( for $i=1,...,n)$
+ - is defined as the sum of all the changes
+   - in the regression model observation $i$ is removed from it
+
+     ${\displaystyle D_{i}={\frac {\sum _{j=1}^{n}\left({\widehat {y\,}}_{j}-{\widehat {y\,}}_{j(i)}\right)^{2}}{ps^{2}}}}$
+
+
+
+
+
+
+ _Sensitivity Analysis_ is the the model down-weighted by leverage?
+- see how much the model changes
+- indicators that it might be important (not that it is important)
+
+
+_Collinearity_
+- it is almost always assumed there is collinearity
+  - otherwise then good
+
+_*vif* - Variance Inflation Factor_
+- computed by standardized regression
+
+  - picks up on larger sets that are in within the data
+    - not just the pairwise correlation
+
+/Pearson Correlation Coefficients/
+
+principal components have the mathematic advantages of being uncorrelated
+- eigenvalues out of the correlation matrix
+  - the total variability in the system can be boiled down to the sum of eigenvalues
+    - the portion of value eigenvalue relative to the total
+- each eigenvalue is equal to each dimension
+
+
+_Factor Patterns_
+- scores every factor of row vector?
+
+
+/orthogonal rotation preserves the variance and correlation/
+- oblique rotation does not
+
+
+perform EDA => check for collinearity => model selection => validate assumptions plotting residuals -> model revision => cross validation
+
+influential observation is an outlier
+
+* Inversing a matrix
+
+* Correlation Matrix
+
+
+* forward v.s. backward v.s. stepwise

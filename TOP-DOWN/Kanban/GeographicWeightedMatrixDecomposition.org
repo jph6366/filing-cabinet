@@ -1,0 +1,3 @@
+#+title: Geographic Weighted Matrix Decomposition
+
+*PySAL and GeoStats implementation*

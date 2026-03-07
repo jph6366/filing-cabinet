@@ -1,0 +1,54 @@
+#+title: Attention Mechanism Prompting
+
+- the prompt is broken up into tokens (word fragments)
+  - and processes them through multiple attention layers
+  - each token initially has a single embedding (vector representation)
+    - once processing within context
+      - attention mechanisms dynamically alter a token's effective meaning
+
+- attention head are independent attention mechanisms
+  - that each focus on different aspects of an input
+
+    /think of them as multiple spotlights examining a sentence from different angles/
+
+    _review_
+
+    These attention heads analyze relationships by creating:
+
+    - Q query vectors: what each token is 'looking for' in other tokens
+    - K key vectors: how relevant each token is to others
+    - V value vectors: the actual information that gets passed along
+
+
+
+
+1. Zero-shot prompting
+We provide a textual description
+of the task and a test example. The model
+either provides an answer using open-ended
+generation, or ranks the proposed answers
+
+2. Few-Shot Prompting
+We provide a few examples of the
+task (between 1 and 64) and a test example.
+The model takes this text as input and generates
+the answer or ranks different options.
+
+1. Context Layering
+   - start with foundational concepts before adding nuance
+     - "First, do research on <concepts> before doing <task>"
+
+2. Directed Attention Weighting
+   - explicitly instruct how to distribute attention across sections
+     - "Dedicate equal attention to each section"
+     - "Allocate 30% to definition, 40% to resolution, and 30% to evaluation"
+
+3. Chain-of-thought
+   - a series of intermediate reasoning steps
+     - significantly improves the ability of large language models
+       - to perform complex reasoning
+
+         _Auto-enable "Chain of thought"_
+         - Both Claude and Geminii appears to auto-enable "Chain of thought"
+           - when presented with some prompts.
+           - In particular, Claude prints "let's think through it step-by-step"

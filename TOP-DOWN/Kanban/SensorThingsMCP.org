@@ -1,0 +1,4 @@
+#+title: Sensor Things Mcp
+
+
+*** IDEA System Design

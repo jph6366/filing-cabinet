@@ -1,0 +1,17 @@
+#+title: Pca
+
+_Principal Component Analysis_ - a dimensionality reduction algorithm
+1. it identifies the hyperplane that lies closest to data
+   2. then projects the data onto it
+
+- before you can project the training set onto a lower-dimensional hyperplane
+  - you need to choose the right hyperplane
+
+    e.g. a simple 2D dataset with 3 different axes (1D hyperplanes)
+    - result of the projection of the dataset onto each axis
+
+it should seem reasonable to select the axis that preserves the maximum amount of variance
+- as it will most likely lose less information that the other projections
+- another way to justify a choice is that it is the axis that minimizes the mean square distance between the original dataset and its projection onto that axis
+
+  **PCA identifies the axis that accounts for th largest amount of variance in the training set**
