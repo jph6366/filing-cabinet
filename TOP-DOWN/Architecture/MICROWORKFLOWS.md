@@ -55,7 +55,6 @@ simulation adoption is cumbersome to use, steep learning curves, and analyzing t
 - Stakeholder and CSE id parameteers toi explore for sim exp
 - CSE maps these parameters ....
 
-![[Pasted image 20250416122010.png]]
 
 
 The web is a pseudo application delivery mechanism for those under IT administration.
