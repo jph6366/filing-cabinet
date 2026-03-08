@@ -2,12 +2,18 @@
 
 * Tasks
 ** TODO lemoncxxwrap.cpp: Sweeping
-SCHEDULED: <2026-03-06 Fri>
+SCHEDULED: <2026-03-08 Sun>
 ** TODO LEMONGraphs.jl: Sweeping
-SCHEDULED: <2026-03-06 Fri>
+SCHEDULED: <2026-03-08 Sun>
 ** TODO MCP for SensorThings: System Design
-SCHEDULED: <2026-03-06 Fri>
+SCHEDULED: <2026-03-08 Sun>
 ** TODO MCP for OGC APIs: System Design
-SCHEDULED: <2026-03-06 Fri>
-** DONE GeoIO.jl: Code Review
-SCHEDULED: <2026-03-06 Fri>
+SCHEDULED: <2026-03-08 Sun>
+** TODO PeppiMCP.jl: Code Review
+SCHEDULED: <2026-03-08 Sun>
+** TODO Peppi Benchmark: Feature Branch
+SCHEDULED: <2026-03-08 Sun>
+** TODO MewgenicsMCP: Scoping
+SCHEDULED: <2026-03-08 Sun>
+** TODO PeppiMCP + HuggingFace + WebLLM
+SCHEDULED: <2026-03-09 Mon>

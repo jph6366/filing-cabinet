@@ -19,8 +19,9 @@ Google Summer of Code 2026 Project Proposals
 
 * REVIEW
 
+[[https://github.com/JuliaEarth/GeoIO.jl/pull/193][JuliaEarth/GeoIO.jl#193 GeoPackage Writer by jph6366]]
 
-* COMPLETED
+* DONE
 
 [[https://github.com/JuliaEarth/GeoIO.jl/pull/188][JuliaEarth/GeoIO.jl#188 squash GPKG reader by jph6366]]
 
