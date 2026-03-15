@@ -10,10 +10,13 @@ SCHEDULED: <2026-03-08 Sun>
 ** TODO MCP for OGC APIs: System Design
 SCHEDULED: <2026-03-08 Sun>
 ** TODO PeppiMCP.jl: Code Review
-SCHEDULED: <2026-03-08 Sun>
+SCHEDULED: <2026-03-13 Fri>
+** TODO Peppi.jl: Code Review
+SCHEDULED: <2026-03-12 Thu>
 ** TODO Peppi Benchmark: Feature Branch
-SCHEDULED: <2026-03-08 Sun>
-** TODO MewgenicsMCP: Scoping
-SCHEDULED: <2026-03-08 Sun>
-** TODO PeppiMCP + HuggingFace + WebLLM
-SCHEDULED: <2026-03-09 Mon>
+SCHEDULED: <2026-03-12 Thu>
+** TODO GeoPackage Benchmark: Initialize
+SCHEDULED: <2026-03-13 Fri>
+** TODO DSC551: HW1 Exercises
+SCHEDULED: <2026-03-15 Sun>
+0:00:00

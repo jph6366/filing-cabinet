@@ -33,7 +33,7 @@
 ```
 
 
-![[Pasted image 20250417092725.png]]
+TODO ADD IMAGE
 illustration of DICOM element encoding in a DICOM data stream
 (DICOM standard, Chapter 5)
 
