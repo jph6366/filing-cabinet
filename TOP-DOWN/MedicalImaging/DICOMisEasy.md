@@ -63,7 +63,6 @@ illustration of DICOM element encoding in a DICOM data stream
 		- The modules are also defined in chapter 3 of the DICOM standard in appendix C
 - IOD’s are specified in Appendix A of chapter 3 of the standard
 
-![[Pasted image 20250417113716.png]]
 simplified view of the DICOM data model
 
 Two object oriented concepts, **composition** and **reuse**, that are used by DICOM is the Modules that are parts shared between different IOD’s.
@@ -106,7 +105,6 @@ So, when reading a DICOM file, a DICOM library should do this:
 
 Important: always remove group 0002 before sending objects over the network. Group 0002 is strictly for DICOM files.
 
-![[Pasted image 20250417152052.png]]
 this is how a DICOM file actually looks like in the byte level of three DICOM files of exactly the same object opened in a binary editor, each file was saved with a different transfer syntax
 - Up to the highlighted part, the files are identical but for the value of the transfer syntax UID element in the file meta header. You can see the 128 0's and the DICM and then the elements of group 0002. In all three files this part is little endian explicit and you can see the VR codes UL and then OB just after the preamble.
 	- ==The highlighted part is the first data element of the object itself,== which is element (0008,0005). While in the *Little Endian files* (left and right) the *bytes are ordered 08 00 05 00*, in the *Big endian file* (center) *the order is 00 08 00 05*.
@@ -131,14 +129,10 @@ To search the PACS we use the DICOM command C-FIND. This command takes as an arg
 
 **C-MOVE is a DICOM command that means this: The calling AE (we) ask the called AE (the PACS) to send all the DICOM Instances that match the identifier to the target AE.**
 
-![[Pasted image 20250418091017.png]]
 The following diagram, taken from part 2 of the DICOM standard, is commonly seen in DICOM Conformance Statements as the Data Flow diagram of the Q/R Service. These diagrams and their notation are defined by the standard in part 2 that specify the DICOM Conformance Statement – a standard document that every application vendor should provide and that describes how they implemented the standard in their product.
 - The vertical dashed line represents the DICOM Protocol Interface between the two applications (it is usually a single dashed line)
 - The arrows across the interface represents DICOM associations. 
 	- The arrow points from the application that initiates the association (the requester) to the application that responds to it (the responder or accepter).
 - The upper part of the diagram shows the control channel where the C-MOVE request is sent and statuses are reported back by the PACS.
 - The lower part of the diagram shows the data channel where the DICOM instances are sent to the client.
-![[Pasted image 20250418103326.png]]
 
-![[Pasted image 20250418193359.png]]
-The picture above, which is by the way the first figure in the DICOM standard (page 10 of chapter 1)
