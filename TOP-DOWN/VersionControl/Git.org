@@ -1,0 +1,61 @@
+#+title: Git
+
+* Git
+
+** git branch
+
+#+begin_src bash
+git branch [--color[=<when>] | --no-color] [--show-current]
+	   [-v [--abbrev=<n> | --no-abbrev]]
+	   [--column[=<options>] | --no-column] [--sort=<key>]
+	   [--merged [<commit>]] [--no-merged [<commit>]]
+	   [--contains [<commit>]] [--no-contains [<commit>]]
+	   [--points-at <object>] [--format=<format>]
+	   [(-r|--remotes) | (-a|--all)]
+	   [--list] [<pattern>…​]
+git branch [--track[=(direct|inherit)] | --no-track] [-f]
+	   [--recurse-submodules] <branch-name> [<start-point>]
+git branch (--set-upstream-to=<upstream>|-u <upstream>) [<branch-name>]
+git branch --unset-upstream [<branch-name>]
+git branch (-m|-M) [<old-branch>] <new-branch>
+git branch (-c|-C) [<old-branch>] <new-branch>
+git branch (-d|-D) [-r] <branch-name>…​
+git branch --edit-description [<branch-name>]
+#+end_src
+
+- list, create, or delete branches
+
+  _if `--list` is given_
+  - existing branches are listed
+
+    /current branch highlighed in green and marked with an asterisk/
+    /branches checked out in linked worktrees will be highlighted in cyan marked with a plus sign/
+
+    _option `-r`_
+    - causes the remote-tracking branches to be listed
+
+    _option `-a`_
+    - shows both local and remote branches
+
+    _if a <pattern> is given_
+    - it is used as a wildcard to restrict the output to matching branches
+      - if multiple patterns are given, a branch is shown if it matches any of the patterns
+
+ _with `--contains`_
+ - shows only the branches that contain the named commit
+   - the branches whose tip commits are descendants of the named commit
+ _with `--contains`_ inverts it
+ _with `--merged`_
+ - only branches merged into the named commit will be listed
+_with `--no-merged`_
+- only branches not merged into the named commit
+  - if the <commit> argument is missing
+    - it defaults to HEAD
+
+
+
+
+** git remote
+
+
+** git reset

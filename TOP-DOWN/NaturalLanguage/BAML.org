@@ -1,0 +1,76 @@
+#+title: Baml
+
+* BOUNDARY ML
+
+- BAML is a domain-specific language to generate structured outputs from LLMs
+  - with good DX
+    - you can build reliable agents, chatbots, with RAG, MCP, etc.
+
+
+** High-level Developer Walkthru
+
+_main.baml_
+#+begin_src rust
+class WeatherAPI {
+  city string @description("the user's city")
+  timeOfDay string @description("As an ISO8601 timestamp")
+}
+
+function UseTool(user_message: string) -> WeatherAPI {
+  client "openai-responses/gpt-5-mini"
+  prompt #"
+    Extract.... {# we will explain the rest in the guides #}
+  "#
+}
+#+end_src
+
+
+- Call your function in any language
+  #+begin_src python
+import asyncio
+from baml_client import b
+from baml_client.types import WeatherAPI
+
+def main():
+    weather_info = b.UseTool("What's the weather like in San Francisco?")
+    print(weather_info)
+    assert isinstance(weather_info, WeatherAPI)
+    print(f"City: {weather_info.city}")
+    print(f"Time of Day: {weather_info.timeOfDay}")
+
+if __name__ == '__main__':
+    main()
+
+  #+end_src
+
+
+** Enable reliable tool-calling with any model
+- BAML includes schema-aligned parsing algorithm to support flexible outputs LLMs can provide
+  - e.g. JSON blob, chain-of-thought, etc.
+
+*** Schema Aligned Parsing
+- instead of relying on the model to strictly understand our desired format
+  - write a parser that generously reads the output text
+    - and applies error correction technique
+      - with knowledge of the original schema
+
+- instead of `json_schema`, `baml_schema` is used as a more compressed way to define schemas
+  - this is because BAML is not as strict so we can omit characters
+
+_what is SAP?_
+ - the idea is that the model will make mistakes, and to build a parser that is robust enough to handle those mistakes
+ - in the context of structured data extraction
+   - we have a schema to guide us
+
+**Postel's Law** coined by Jon Postel, creator of TCP/IP
+/Be conservative in what you do, be liberal in what you accept from others/
+
+_Some error correction techniques we use in SAP include_:
+- Unquoted strings
+- Unescaped quotes and new lines in strings
+- Missing commas, colons, brackets, keys
+- Cast fractions to floats
+- Remove superfluous keys in objects
+- Strip yapping
+- Picking the best of many possible candidates in case LLM produces multiple outputs
+- Complete partial objects (due to streaming)

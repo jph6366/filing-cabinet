@@ -1,0 +1,13 @@
+#+title: Version Control
+
+
+* VERSION CONTROL
+
+_Version Control_ is a system that tracks changes to files over time so you recall specific versions later
+
+        + track history and changes
+        + collaborate with teams
+        + branching and merging
+        + backup and restore files
+
+e.g. Git, Mercurial, SVN, Jujutsu

@@ -1,0 +1,48 @@
+#+title: Containers
+
+- OS-level virtualization
+
+_Containers_:  an engine that enables any payload to be encapsulated
+- as a lightweight, portable, self-sufficient container
+  - that can be manipulated using standard operations and run consistently on virtually any hardware platform
+
+    _high level_: a lightweight VM
+    - owns process space
+      - owns network interface
+        - has root access privileges
+          - can have its own sbin/init (binary files)
+            *machine container*
+    _low-level_: chroot on steroids
+    - can also have its own /sbin/init
+      - container = isolated processes
+        - share kernel with host
+          *application container*
+
+/Containers are isolated but share OS when appropriate/
+- resulting in faster deployment, less overhead, easy migration, fast restart
+
+_Cloud Container_:
+- *content agnostic*: can encapsulate any payload and its dependencies
+- *hardware agnostic*: using OS primitives
+  - can run consistently on any hardware-VMs
+- *content isolation and interaction*: resource, network, and content isolation
+  - avoid complex dependencies
+- *automation* standardized operations
+  - good for DevOps
+- *highly efficient*: lightweight
+- *separation of duties*: dev = code && op = infrastructure
+
+
+_why developers like containers?_ *build once run anywhere*
+
+ * anywhere means on x86 server running a modern Linux kernel
+
+- clean safe, portable runtime environment
+- no missing dependencies, packages, or other issues from subsequent deployments
+- runs each app in its own isolated container
+- automate testing, integration, packaging anything you can script
+- reduce concerns about compatability on different platforms
+- cheap, zero-penalty containers to deploy services
+
+/a VM without the overhead of a VM/
+/instant replay and reset of image snapshots/

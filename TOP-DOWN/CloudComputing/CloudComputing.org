@@ -1,0 +1,109 @@
+#+title: Cloud Computing
+
+* CLOUD COMPUTING
+
+
+** What is cloud computing?
+
+- a model for enabling convenient, on-demand network access
+  - to a shared pool of configurable computing resources
+    - via networks, servers, storage, applications, and services
+
+- it can be rapidly provisioned and released
+  - with minimal management effort
+
+- it provides a high level abstraction of computation and storage model
+
+- it has essential characteristics, service models, and deployment models
+
+
+*Job Management* *Queue* *HPC Clusters* *CPU/GPU utilization*
+
+
+** Why the need for cloud for big data
+
+- cloud offers scalability w/
+  - respect to the use of resources
+  - low admin effort
+  - flexibilitiy in pricing model
+  - mobility for the software user
+
+/Distributed file system/Parallelize computing/Data Storage/Cleaning/Security/
+-> /data mining/ML/stats/network analysis/time series analysis/
+-> Visualization -> Access/Application
+
+Google File
+
+
+** Cloud computing essential characteristics
+
+- *On-demand self service*
+  - consumer automates process via provisioning computing capabilties
+    - w/o interaction with each service's provider
+
+      e.g. you scale up and down on-the-fly
+      say training a model needs more resources for training then we can provision compute to spin up a VM
+      - note: cloud computing has a different level of abstraction for infrastructure
+
+
+- *Heterogeneous Access*
+  - cloud computing allows access to their services
+    - through different types of machines, devices, systems,
+
+      _thin client_: a device or app that does very little processing locally
+
+
+- *Resource Pooling*
+  - the providiers compute is pooled to serve _multi-tenant model_
+    - different physical and virtual resources dynamically
+      - assigned and reassigned according to consumer demand
+
+- *Measured Service*
+  - control and optimize resources by leveraging a metering capability
+
+
+** Cloud computing service models
+
+
+1. *SaaS*
+   - consumer uses the providers apps running on cloud infra
+
+e.g. Salesforce, Google Apps, Dropbox
+
+2. *PaaS*
+   - consumer uploads app and deploy on cloud infra
+     - only tool use of supported programming interfaces, etc.
+
+e.g. Google Colab, Microsoft Azure, Akamai, Cloudflare
+- Akamai is a cloud computing and CDN company
+
+3. *IaaS*
+   - gives you access to the feel baremetal hardware on virtual machines
+     - user has control over OS, storage, deployed apps, and even networking
+       - consumer does not control cloud infra!
+
+
+_Cloud Computing Stack_
+
+Client <-> user interface + machine interface (Application) <->  components + services (Platform) <-> compute + network + storage (Infrastructure) <-> Servers
+
+
+** Cloud computing deployment models
+
+- Private Cloud: cloud is operated soley for an org
+e.g. Bank running internal cloud using OpenStack, Govt Agencies running Azure infra
+- Community Cloud: cloud infra is shared by multiple orgs with different access roles
+e.g. AWS GovCloud
+- Public Cloud: the cloud infra is available to the public
+- Hybrid Cloud: the cloud infra is a composition of 2 or more clouds
+
+
+
+** Cloud Computing For Software Developers
+- the software is composed of interoperable 3rd party components
+- software is running on multiple, highly-abstracted, remote machines
+- ownership is distributed between mutliple orgs
+- source is normally not available
+
+_more challenges for software eng_
+-
