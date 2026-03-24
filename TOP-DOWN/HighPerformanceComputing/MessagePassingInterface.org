@@ -1,0 +1,17 @@
+#+title: Message Passing Interface
+
+
+* Message Passing
+
+- message passing is type of communication between two or more processes or objects
+  - in this model, the communicating entities can send/receive messages containing signals, functions, complex data structures, or data packets (to/from) each other
+
+
+*message invokes behavior or run a program*
+- different from method calling
+  - it is based on the object model
+    - which separates the general functional need from the specific implementation
+- the program that needs the functionality calls an object and that object runs the program
+
+*communication can happen between different applications' objects, threads, processes running on the same node or different processes running on different nodes*
+/INTER-PROCESS COMMUNICATION/

@@ -1,1 +1,78 @@
 #+title: Docker
+
+* Docker
+
+** Overview
+Open platform for developer and system admins
+- to build and test cloud application
+
+- client-server system
+
+- supports multiple cloud platforms
+  - AWS, Digital Ocean, etc.
+
+** Daemon
+
+** CLI Reference
+
+*** docker image
+
+*docker image ls/docker image list/docker images*
+- shows all top level images
+  - their repo and tags, and their size
+
+NOTE: /Untagged (dangling) images are also hidden by default/
+- use the `-a` `--all` flag to show intermediate layers and dangling images
+
+`SIZE` is the cumulative space taken up by the image and all its parent images
+- this is also disk space used by the contents of the Tar file
+  - created when you `docker save` an image
+
+An image will be listed more than once if it has multiple repository names or tags
+- this single image /identifiable by its matching `IMAGE ID`/
+  - uses up the size `SIZE` listed only once
+
+** Dockerfile
+
+*** Add local or remote files and directories: ADD
+
+*** Use build-time variables: ARG
+
+*** Specify default commands: CMD
+
+*** Copy files and directories: COPY
+
+*** Specify default executable: ENTRYPOINT
+
+*** Set environment variables: ENV
+
+*** Which ports your application is listenting on: EXPOSE
+
+*** Create a new build stage from a base image: FROM
+
+*** Check a container's health on startup: HEALTHCHECK
+
+*** Add metadata to an image: LABEL
+
+*** Specify the author of an image: MAINTAINER
+
+*** Specify instructions for when the image is used in a build: ONBUILD
+
+*** Execute build commands: RUN
+
+*** Set the default shell of an image: SHELL
+
+*** Specify the system call signal for exiting a container: STOPSIGNAL
+
+*** Set user and group ID: USER
+
+*** Create volume mounts: VOLUME
+
+*** Change working directory: WORKDIR
+
+
+** Docker Engine
+
+** Docker Images
+
+** Docker Registries

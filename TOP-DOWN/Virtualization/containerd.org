@@ -1,0 +1,12 @@
+#+title: Containerd
+
+* containerd
+
+** Overview
+available as a daemon for Linux and Windows
+- it manages the complete container lifecycle of its host system
+
+
+the _containerd_ binary is built dynamically for glibc-based Linux distros
+- e.g. Ubuntu, Rocky Linux, etc., may not work on musl-based distros
+  - like Alpine Linux

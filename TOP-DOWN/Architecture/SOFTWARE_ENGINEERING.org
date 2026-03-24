@@ -1,0 +1,41 @@
+#+title: Software Engineering
+
+* SOFTWARE ENGINEERING
+
+*study of the cycle*
+- requirements engineering,
+- architectural design
+- tradeoff analysis
+- config management
+- quality engineering
+- lifecycle modeling
+- collaborative development
+
+*threading/multiprocessing/parallel*
+
+*tools of the cycle*
+- we will use: Docker, Git, Azure ML Designer, and MPI
+- other: ...
+
+
+** Docker
+
+1. install docker
+
+
+** UML
+
+1. Draw.io
+
+*** Mermaid Diagrams
+
+** OpenUP
+
+*lifecycle phases*
+1. inception
+2. elaboration
+3. construction
+4. transition
+
+
+** Azure ML Designer

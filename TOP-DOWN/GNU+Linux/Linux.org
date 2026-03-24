@@ -1,0 +1,24 @@
+#+title: Linux
+
+* Linux
+
+** System's Manual Pager: `man`
+
+** List Files: `ls`
+
+#+begin_src bash
+ls # list files in current directory
+ls -l # detailed listing w/ perimissions
+ls -la # show hidden files
+ls -lh # human-readable file sizes
+ls -lt # sort by modification time
+#+end_src
+
+
+
+** CLI for Package Management System: `apt`
+
+- intended as an end user interface and enables some options
+  - better suited for interactive usage by default
+    - compared to more specialized APT tools
+      - like *apt-get* and *apt-cache*

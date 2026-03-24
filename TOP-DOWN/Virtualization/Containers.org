@@ -1,5 +1,9 @@
 #+title: Containers
 
+* Containers
+
+** Overview
+
 - OS-level virtualization
 
 _Containers_:  an engine that enables any payload to be encapsulated
@@ -46,3 +50,35 @@ _why developers like containers?_ *build once run anywhere*
 
 /a VM without the overhead of a VM/
 /instant replay and reset of image snapshots/
+
+
+** Open Container Intiative
+
+- an open governance structure for the express purpose
+  - of creating open industry standards around container formats and runtimes
+
+_At a high-level_
+- OCI implementation would download an OCI image
+  - then unpack that image into OCI Runtime filesystem bundle
+    - at this time the OCI Runtime Bundle would be run by an OCI runtime
+
+  1. _the Runtime specification_
+     /outlines how to run a *filesystem bundle* that is unpacked on disk/
+
+  2. _the Image specification_
+
+
+  3. _the Distribution specification_
+
+*Best Practices*
+- use OCI compliant tools
+  - select runtime engines following OCI specs
+  - implement OCI-compliant registries
+- Container Image Management
+  - follow OCI image format guidelines
+  - implement proper versioning
+  - use standard manifest formats
+- Security Considerations
+  - implement image signing
+  - follow OCI security best practices
+  - regular security audits

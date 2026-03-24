@@ -1,1 +1,16 @@
 #+title: Podman
+
+* Podman
+
+** Overview
+Podman is a *daemonless*, open-source, Linux-native tool
+- designed to develop, manage, and run *Open Container Initiative* containers and pods
+
+/Podman does not use a long-running background process/
+
+
+** Podman for Windows
+- Podman provides native CLI and embeds a guest linux sys to launch containers on windows and mac
+  - this guest is referred to as a podman machine with _podman machine_ command
+
+- (on Windows) each podman machine is backed by a virtualized Windows subsystem for Linux (WSLv2)

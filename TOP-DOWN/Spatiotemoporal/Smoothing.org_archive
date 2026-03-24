@@ -1,0 +1,96 @@
+#    -*- mode: org -*-
+
+
+Archived entries from file c:/Users/jph6366/Desktop/GITHUB/filing-cabinet/TOP-DOWN/Spatiotemoporal/Smoothing.org
+
+
+* Practice
+:PROPERTIES:
+:ARCHIVE_TIME: 2026-03-20 Fri 11:25
+:ARCHIVE_FILE: ~/Desktop/GITHUB/filing-cabinet/TOP-DOWN/Spatiotemoporal/Smoothing.org
+:ARCHIVE_OLPATH: Exponential Smoothing/Simple exponentail smoothing (SES)
+:ARCHIVE_CATEGORY: Smoothing
+:END:
+
+let $l = \hat{y}_1$ be the first fitted value
+$t=1 : \hat{y}_2 = \alpha y_1 + (1-\alpha)\hat{y}_1 = \alpha y_1 + (1 - \alpha)l$
+
+$t=2 : \hat{y}_3 = \alpha y_2 + (1-\alpha)\hat{y}_2 = \alpha y_2 + (1 - \alpha)(\alpha y_1 + (1 - \alpha)l) = \alpha y_2 + \alpha(1-\alpha) y_1 + (1 - \alpha)^2 l$
+
+...
+
+* Exponential Smoothing
+:PROPERTIES:
+:ARCHIVE_TIME: 2026-03-20 Fri 11:37
+:ARCHIVE_FILE: ~/Desktop/GITHUB/filing-cabinet/TOP-DOWN/Spatiotemoporal/Smoothing.org
+:ARCHIVE_CATEGORY: Smoothing
+:END:
+
+
+
+** Simple exponentail smoothing (SES)
+or _exponential moving average_
+
+- a technique for smoothing time series data using exponential window function
+  - exponential functions are used to assign exponentially decreasing weights over time
+/easily learned and applied procedure for determining based on prior assumptions/
+- such as seasonality
+
+- raw data sequence is represented by $\{ x_t\}$
+  - beginning at time $t=0$
+    - which may be regarded as a best estimate of what the next value of $x$ will be
+- when the sequence of observations begins at time $t=0$
+  - the simplest form of exponential smoothing is given below:
+
+    $s_0=x_0$
+    $s_t=\alpha x_t + (1-\alpha)s_{t-1}, t>0$
+
+    - $/alpha$ is the smoothing factor
+      - and $0 <\alpha<1$
+        - if $s_{t-1}$ is substituted into $s_t$ continously
+          - so that the formula of $s_t$ is fully expressed in terms of $\{x_t\}$
+            - then *exponentially decaying weighting factors*
+              - on each raw data $x_t$ is revealed
+                - showing how exponential smoothing is named
+
+/SES is not able to predict what would be observed at $t+m$ based on the raw data up to $t$ , while the double exponential smoothing and triple exponential smoothing can be used for the prediction due to the presence of $b_t$ as the sequence of best estimates of the linear trend/
+
+*** finding $\alpha$ and $l$
+
+since all fitted values are function of $\alpha$ and $l$
+- then SSE $= \sum_{t=1}^T (y_t - \hat{y}_t)^2$ is also a function of $\alpha$ and $l$ only
+
+a common strategy in many models is to fund $\alpha$ , $l$ such that SSE gets minimized
+- this optimization problem will be solved by R
+
+- the method for choosing $\alpha$ must be decided by the modeler
+  - the method of least squares might be used to determine the value of $\alpha$ for which the sum of the quantities $(s_t-x_{t+1})^2$ is minimized
+
+The unknown parameters and the initial values for any exponential smoothing method can be estimated by minimizing the sum of squared errors (SSE)
+
+*** Time constant
+the time constant of an exponential moving average is the amount of time
+- for that smoothed response of a unit step function
+  - to reach $1-1/e \approx 63.2\%$ of the final signal
+
+the relationship between this time constant, $\tau$ , and the smoothing factor, $\alpha$ , is given by the formula below:
+
+$\alpha = 1 - e^{-\Delta T / \tau}$ , thus $\tau = - \frac{\Delta T}{ln(1-\alpha)}$
+- where $\Delta T$ is the sampling time interval of the discrete time implementation
+
+/if sampling time is fast compared to time constant then by using *Taylor expansion of the exponential function* ,/
+$\alpha \approx \frac{\Delta T}{\tau}$ , thus $\tau \approx \frac{\Delta T}{\alpha}$
+
+*** Practice
+
+let $l = \hat{y}_1$ be the first fitted value
+$t=1 : \hat{y}_2 = \alpha y_1 + (1-\alpha)\hat{y}_1 = \alpha y_1 + (1 - \alpha)l$
+
+$t=2 : \hat{y}_3 = \alpha y_2 + (1-\alpha)\hat{y}_2 = \alpha y_2 + (1 - \alpha)(\alpha y_1 + (1 - \alpha)l) = \alpha y_2 + \alpha(1-\alpha) y_1 + (1 - \alpha)^2 l$
+
+...
+
+
+** Holt Linear Trend method
+
+** Holt-Winters method

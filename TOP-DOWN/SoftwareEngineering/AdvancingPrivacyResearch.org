@@ -1,0 +1,47 @@
+#+title: Advancing Privacy Research
+
+- A virtual persona's activities to categorized into `morning`, `afternoon`, and `evening`
+  - human web-searching behavior automated using /Selenium WebDriver/
+    - enabling the persona to conduct searches as a real user would
+
+- dataset 1537 records
+  - each representing a unique search query
+  - each record contains the first 2 pages of a query result
+    - including query keywords and a list of the first 2 pages of the query result
+
+- produces a dataset and framework for generating additional similar datasets
+  - for conducting research on search engines
+
+/the potential for reusing this data is it can be applied to studies on privacy, data collection, and search engine personalization/
+   /it can be used to to develop and test algorithms and models that aim to protect user privacy/
+
+
+   1. *the sensitivity* associated with acquiring such a dataset is considered
+      - collection of this type of information infringes upon privacy of individuals
+      - this dataset is curated without risking personal privacy
+   2. the dataset provides a detailed, *realistic interaction between the persona and search engine*
+
+_looking ahead_, investigations plan to include preserving web users' privacy vulnerabilties
+
+
+
+
+** Methods
+
+- synthetic data is susceptible to separation from reality and inconsistency of the data elements and features
+  - solution establishes a persona that represents a typical member of the world
+
+
+_creating a cyber-history_
+- a history of the persona through web scraping:
+  1. implemented web scraper w/ personalized approach
+     - different interactions for different times of day
+     - setting time gaps between each query submitted to the search engine
+     - to maintain affinity the search queries are organized into categories
+       - categories saved in respective text files
+         - each containing numerous queries' keywords deemed relevant for time of day
+  2. using Selenium WebDriver in Python for automating tasks
+     - log into Google via persona account
+     - perform the queries through the account
+       - to allow the search engine to learn about the persona and profile it
+         - personalizing results to fit the interests of persona's cyberhistory

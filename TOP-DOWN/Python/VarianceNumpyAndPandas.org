@@ -1,0 +1,56 @@
+#+title: Variance Numpy And Pandas
+
+
+- calculate some summary statistics to get an idea of the distribution\
+  - use `numpy` to calculate mean and variance
+
+    #+begin_src python
+import numpy as np
+
+X = [15, 8, 13, 7, 7, 12, 15, 6, 8, 9]
+mean = np.mean(X)
+var = np.var(X)
+
+print(f"Mean={mean:.2f}, Variance={var:.2f}")
+    #+end_src
+
+    #+RESULTS:
+Mean=10.00, Variance=10.60
+
+
+- lets try `pandas`
+
+  #+begin_src python
+import pandas as pd
+
+X = pd.Series([15, 8, 13, 7, 7, 12, 15, 6, 8, 9])
+mean = X.mean()
+var = X.var()
+
+print(f"Mean={mean:.2f}, Variance={var:.2f}")
+  #+end_src
+
+  #+RESULTS:
+Mean=10.00, Variance=11.78
+
+*This discrepancy arises because numpy and pandas use different default equations for calculating the variance of an array*
+
+
+
+_population variance_ $\sigma^2 = \frac{\sum_{i=1}^n (x_i-\mu)^2}{n-1}$
+
+_sample variance_ $s^2 = \frac{\sum_{i=1}^n (x_i-\bar{x})^2}{n-1}$
+
+*notice the differences between these equations*
+
+1. in the numerator's sum, $\sigma^2$ is calculated using the population mean, $\mu$
+   - while $s^2$ is calculated using the sample mean, $\bar{x}$
+
+2. in the denominator, $\sigma^2$ divides by the total population size $N$
+   - while $s^2$ divides by the sample size minus one, $n-1$
+/as $n$ grows, the distinction between $n$ and $n-1$ becomes less and less significant/
+
+- $\mu$ is the true population mean given you have all the data
+  - when calculating sample variance, you only have an estimate of $\mu$
+    - which is the sample mean $\bar{x}$
+/using the sample mean instead of the true population mean tends to underestimate the true population variance on average/

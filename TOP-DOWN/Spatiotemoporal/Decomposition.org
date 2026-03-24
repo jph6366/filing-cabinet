@@ -1,0 +1,105 @@
+#+title: Decomposition
+
+* Decomposition
+
+_Decomposition of time series_
+- a statistical task that deconstructs a time series into several components
+  - each one representing one of the underlying categories of patterns
+
+** Decomposition based on rates of change
+
+- seeks to construct, from an observed time series
+  - a number of component series
+    (that could be used to reconstruct the original by additions or multiplications)
+    - where each of these has a certain characteristic or type of behavior
+
+_time series decomposes into_:
+
+- $T_t$ the trend component at time $t$
+  - reflects the long-term progression of the series (secular variation)
+    - a trend exists when there is a persistent increasing or decreasing direction in the data
+
+- $C_t$ the cyclical component at time $t$
+  - reflects repeated but non-periodic fluctuations
+    - durations of the fluctuations depend on the nature of the time series
+
+- $S_t$ seasonal component at time $t$
+  - reflecting seasonal variation
+    - a seasonal pattern exists when a time series is influenced by the seasonal factors
+
+- $I_t$ the irregular component or noise at time $t$
+  - describes random, irregular influences
+    - it represents the residuals or remainder of the time series after the other components have been removed
+
+      _Additive_
+      $y_t = T_t + C_t + S_t + I_t$
+
+      *additive models is used when the variations around the trend do not vary with the level of the time series*
+
+      *whereas multiplicative models is appropriate if the trend is proportional to the level of the time series*
+
+      _Multiplicative_
+      $y_t = T_t \times C_t \times S_t \times I_t$
+
+      ***Sometimes the trend and cyclical components are grouped into***
+      - called trend-cycle component
+
+        $y_t = S_t + T_t + R_t$
+        $S_t$ seasonal component, $T_t$ trend-cycle component, $R_t$ remainder component
+
+** Moving Averages
+
+$M(X_t)=\sum_{k=-p}^{+f}\theta_k X_{t+k}$
+- the value of time $t$ of the series is therefore replaced by a weighted average of $p$ "past" values of the series, the current value,
+  - and $f$ "future" values of the series
+- the quantity $p+f+1$ is called the moving average is said to be centred
+  - if in addition $\theta_{-k}=\theta_k$ for any $k$
+    - the moving average $M$ is said to be symmetric
+
+- one of the simplest moving averages is the symmetric moving average of order...
+  $P=2p+1$ where all the weights are equal to $\frac{1}{P}$
+
+
+_cons_
+- not resistant and might be deeply impacted by outliers
+- smoothing of the ends of the series cannot be done except with asymmetric moving averages which introduce phase-shifts and delays in the detection of turning points
+
+** X-11 decomposition
+_additive_
+$X_t = TC_t + S_t + I_t$
+
+- result of a long tradition of non-parametric smoothing based on moving averages
+  - which are weighted averages of a moving span of time series
+
+- in the X-11 method, symmetric moving averages play an important role
+  - they do not introduce any phase-shift in the smoothed series
+- but, to avoid losing information at the series ends
+  - they are supplemented by *adhoc* asymmetric moving averages
+    - or applied on the series extended by forecasts
+
+/Henderson Moving Averages/
+
+_pros_
+- relatively robust to outliers and level shifts
+- sophisticated methods for handling trading day variation, holiday effects, end effects of known predictors
+- completly automated choices for trend and seasonal changes
+- widely tested on economic data over a long period of time
+
+_cons_
+- no prediction/confidence intervals
+- ad hoc method with no underlying model
+- developed for quarterly and monthly data
+
+Extension: *X-12-ARIMA* *X-13-ARIMA*
+
+
+** STL decomposition
+
+Seasonal and Trend decomposition using Loess
+- handles any type of seasonality
+  - and the seasonality is allowed to change to over time
+    - and rate of change (and smoothness of trend-cycle) controlled by user
+      - robust to outliers
+        - only additive
+          - take logs to get multiplicative decomposition
+            - use Box-Cox transformations to get other decompositions

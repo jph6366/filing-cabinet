@@ -1,0 +1,133 @@
+#+title: Requirements Engineering
+
+* Requirements Engineering
+
+- the process of establishing the services
+  - that the customer requires from a system
+    - and the constraints under which it operates and is developed
+
+*presented as the first phase of the Software Development Lifecycle*
+- e.g. Rational Unifed Process, assume that requirements engineering continues through a system's lifetime
+
+  1. requirements inception/elicitation
+     2. requirements analysis
+        3. system modeling
+           4. requirements specification
+              5. requirements validation
+                 6. requirements management
+
+[[https://www.faa.gov/sites/faa.gov/files/aircraft/air_cert/design_approvals/air_software/AR-08-32.pdf][requirements engineering management handbook by FAA]]
+
+
+** Type of requirements
+
+- *User requirement*
+
+
+- *System requirements* (specifications)
+
+
+- *Functional requirements*
+  - describe functionality or system services
+  - depend on the type of software
+    - expected users
+      - and the type of system where the software is used
+  /functional user reqs may be high-level statements of what a system should do/
+  /functional system reqs should describe the system services in detail/
+
+  - *Domain requirements*
+    - can be new functional requirements/constraints
+      - on existing requirements or define specific computations
+    - if domain requirements are not satisfied
+      - system may be unworkable!
+      _PROBLEMS with domain requirements_
+    - _understandability_: requirements expreseed in language and idioms of the app domain
+    - _implicitness_: unconscious comprehension user interactions so ignore explicit instructions
+
+- *Non-functional requirements*
+  - defines system properties and constraints
+    - e.g. properties: reliability, resp time, storage reqs, etc.  constraints: I/O device, capability, system representations, etc.
+  - *process requirements* may also be specified mandating a particular IDE, prog lang or development method
+  - may be more _critical than functional_
+    - e.g. safety critical, security critical, real-time
+        /non functional requirements may affect the overall architecture of a system or individual components/
+        /single non-functional may generate a number of related functional requirements/
+
+      - *product requirements*
+        - specific to the delivered product
+
+      - *organizational requirements*
+        - consequence of organizational policies and procedures
+
+      - *external requirements*
+        - arises from factors which are external to the system and its dev process
+
+
+
+
+** Requirements criticisms
+
+- problems arise when requirements are not precisely stated
+  - ambiguous requirements may be interpreted in different ways by devs and users
+
+- in principle, requirements should be both complete and consistent
+  - complete: should include descriptions of all facilities required (functional & non-functional)
+  - consistent: should be conflicts or contradictions in the descriptions of the system facilities
+
+
+** Metrics for specifying nonfunctional requirements
+
+1. speed
+
+2. size
+
+3. ease of use
+
+4. reliability
+
+5. robustness
+
+6. portability
+
+
+** software requirements
+
+** agile and XP
+
+*IEEE Standards*
+– Defines how to organize requirements
+– Ensures clarity, consistency, and completeness
+– Supports communication between stakeholders
+– Mostly used in large-scale/system engineering projects
+
+** architecture description languages
+
+[[      https://acme.able.cs.cmu.edu/docs/language_overview.html][Architecture Description Interchange Language (ACME)]]
+
+_ways of writing system requirments specifications_
+
+1. natural language
+2. structured natural language
+3. design description languages
+4. graphical notations
+5. mathematical/scientific specifications
+
+** requirements engineering processes
+
+_Generic activities_
+- requirements elicitation
+- requirements analysis
+- requirements validation
+- requirements management
+
+/RE is an iterative activity in which these processes are interleaved/
+
+
+** problems of requirements analysis
+
+- stakeholders do not know what they really want
+- stakeholders express requirements in their own terms
+- different stakeholders may have conflicting requirements
+- organizational and political factors may influence the system requirements
+- the requirements change during the analysis process
+  - new stakeholders may emerge and the business environment may change

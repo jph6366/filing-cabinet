@@ -1,0 +1,64 @@
+#+title: Time Series Regression
+
+* Time Series Linear Regression
+
+** use other features as predictors
+
+$y_t=x_{1t}+x_{2t}+...+x_{kt}+e_t$
+
+- explore the data
+  - visually check the relationships or associations
+
+/we can think of a multi-variate time series as a data frame/
+- where each row is ordered
+
+_fitted model_
+$\hat{y_t}= x_{1t}+x_{2t}+...+x_{kt}+e_t$
+
+- be careful, ensure observations are orderd by time
+
+- check the residuals
+  - can be interpreted as a error
+    - i.i.d.
+  $= y_k - \hat{y_t}$
+
+- plot a histogram of *residuals*
+  - visually check the distribution for skew or symmetry
+- plot a histograms of *studentized residuals*
+  - standardized by its mean $\sim N(0,1)$
+
+*** Studentized Residuals
+- for a simple model the design matrix is
+  ${\displaystyle X=\left[{\begin{matrix}1&x_{1}\\\vdots &\vdots \\1&x_{n}\end{matrix}}\right]}$
+- and the hat matrix $H$ is the matrix of the orthogonal projection onto column space of the design matrix
+  ${\displaystyle H=X(X^{T}X)^{-1}X^{T}}$
+- the leverage $h_{ii}$ is the i-th diagonal entry in the hat matrix
+  - the variance of the i-th residual is
+    $var(\hat\varepsilon_i) = \sigma^2(1-h_{ii})$
+- in the case the design matrix $X$ has only two columns, this is equal to
+  ${\displaystyle \operatorname {var} ({\widehat {\varepsilon \,}}_{i})=\sigma ^{2}\left(1-{\frac {1}{n}}-{\frac {(x_{i}-{\bar {x}})^{2}}{\sum _{j=1}^{n}(x_{j}-{\bar {x}})^{2}}}\right)}$
+
+- in the case of an arithmetic mean
+  - the design matrix $X$ has only one column (vector of ones)
+    $var(\hat\varepislon_i)=\sigma^2(1-\frac{1}{n})$
+
+** create time-dependent predictors
+
+- Detect trends, seasonal variation, and irregular fluctuations
+
+  **using time as a covariate**
+- $t$ is time <- 1:N
+ $y_t = \beta_0 + \beta_1 * t + \varepsilon_t$
+
+
+** Piecewise linear fit
+real-valued function of a real variable, whose graph is composed of straight-line segments, such there is a collection of intervals on each of which the function is an *affine function* thus *piecewise affine*
+
+- when there is clear historical breakpoints in a time series
+
+- these points, where the slope are changing, are called knots
+  - suppose the knots are $c_2,c_3,...,c_M$
+    - are going to define $M$ regressors/predictors as follows
+
+      $x_1=t,x_2=(t-c_2)_+,x_3=(t-c_3)_+,...,x_M=(t-c_M)_+$
+       - the notation $(t-c)_+$ means it equals 0 for $t < c$ and equals $t-c$ elsewhere
