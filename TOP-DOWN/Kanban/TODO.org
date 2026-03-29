@@ -9,15 +9,41 @@ SCHEDULED: <2026-03-08 Sun>
 SCHEDULED: <2026-03-08 Sun>
 ** TODO MCP for OGC APIs: System Design
 SCHEDULED: <2026-03-08 Sun>
-** TODO PeppiMCP.jl: Code Review
-SCHEDULED: <2026-03-13 Fri>
-** TODO Peppi.jl: Code Review
-SCHEDULED: <2026-03-12 Thu>
-** TODO PeppiMCP: Benchmark
-SCHEDULED: <2026-03-12 Thu>
 ** TODO GeoPackage Benchmark: Initialize
 SCHEDULED: <2026-03-13 Fri>
+** TODO PeppiMCP: Benchmark
+SCHEDULED: <2026-03-12 Thu>
+** TODO Peppi.jl: Code Review
+SCHEDULED: <2026-03-16 Mon>
+** TODO Peppi-jlrs: Refactor
+SCHEDULED: <2026-03-28 Sat>
 ** TODO PeppiMCP: Containerization
 SCHEDULED: <2026-03-16 Mon>
-** TODO Peppi.jl: Training Embeddings
-SCHEDULED: <2026-03-16 Mon>
+** TODO PeppiMCP: HuggingFace
+SCHEDULED: <2026-03-17 Tue>
+** TODO PeppiMCP: Code Review
+SCHEDULED: <2026-03-17 Tue>
+** TODO PeppiMCP: BAML
+SCHEDULED: <2026-03-17 Tue>
+** TODO Geograpic Weighted Decomposition
+SCHEDULED: <2026-03-27 Fri>
+** TODO SAS Regression Project
+SCHEDULED: <2026-03-28 Sat>
+** TODO Peppi.jl Imitation Learning
+SCHEDULED: <2026-03-29 Sun>
+** TODO NRL Onboarding & Training
+SCHEDULED: <2026-03-29 Sun>
+** TODO PowerSystems.jl: Contribute
+SCHEDULED: <2026-03-29 Sun>
+** TODO PowerNetworkMatrices.ljl: Contribute
+SCHEDULED: <2026-03-29 Sun>
+** TODO BitNet.jl: Initialize
+SCHEDULED: <2026-03-29 Sun>
+** TODO BitNet: Setup
+SCHEDULED: <2026-03-28 Sat>
+** TODO BitNet: Benchmark
+SCHEDULED: <2026-03-29 Sun>
+** TODO MPI.jl: ZettleKasten
+SCHEDULED: <2026-03-30 Mon>
+** TODO Flynn's & Duncan's Taxonomy: ZettleKasten
+SCHEDULED: <2026-03-30 Mon>
