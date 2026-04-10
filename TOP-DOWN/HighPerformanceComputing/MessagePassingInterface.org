@@ -1,6 +1,7 @@
 #+title: Message Passing Interface
 
 
+
 * Message Passing
 
 - message passing is type of communication between two or more processes or objects
@@ -15,3 +16,163 @@
 
 *communication can happen between different applications' objects, threads, processes running on the same node or different processes running on different nodes*
 /INTER-PROCESS COMMUNICATION/
+
+*MP can be used as a more process-oriented to synchronization than the data-oriented approach used in providing mutual exclusion for shared resources*
+- used in _parallel programming_ on parallel computer architectures and connection through networks
+
+  /paradigm not affected by diff architectures it works on or the size and speed of its connecting networks/ *Virtualization*
+
+_MP has 2 main dimensions_
+
+1. synchronous vs. asynchronous
+2. symmetric vs. asymmetric
+
+** MPIF
+
+_goals_
+- design portable API with parallel processing computer architectures
+  - and reflect the needs of programmres
+- semantics of interface is language independent
+- credible parallel computing
+- provide virtual computing model
+  - that hides architecture differences
+  - and allows execution on hetergeneous systems
+    - e.g. MPI impl will automatically do any necessary data conversion
+      - and utilize the correct communications protocol
+- make efficient MPI implementations possible
+  - without significant changes in the underlying communication and system software
+- scalability
+  - e.g. app can create subgroups of processes
+    - that allow collectivee communication operations to limit their scope to the processes involved
+- relieve the programmer of coping with communication failures
+
+1. models of communication
+  A. point-to-point
+     - one system passing message directly to another
+  B. collective
+     - one system passing message to a group
+
+
+1. typing of the message contents using *tags*
+   - necessary for heterogeneous support
+2. *process groups/communicators*, the world where processes live in
+   - and are aware of each other
+3. *intracommunicator*
+4. *intercommunicator*
+
+
+_various MPI impls_
+- MPICH, Open MPI, Microsoft MPI
+
+*libraries are called bindings which extend MPI support to other languages by wrapping an existing MPI implementation*
+
+e.g. `mpi4py` provides binding of MPI standard for Python
+- constructed on top of MPI-1/2/3 specifications
+- provides OO interfaces resembling MPI-2 C++ bindings
+- supports p2p, collective communications for Python object
+  - exposing the single-segment buffer interface (standard offered by python)
+
+** Communicator
+An MPI communicator specifies the communication context for a communication operation
+
+/it specifies the set of processes which share the context, and assigns each process a unique rank taking an integer value in `0:n-1`, where `n` is the number of processes in the communicator/
+
+*** Point-to-point Communication
+
+- to send a message from a process to another
+  - we use the communicator send function
+
+- send takes the buffer name and the message destination
+
+
+
+*** Collective Communication
+
+
+
+** Synchronous
+
+** Asynchronous
+
+** Symmetric
+
+** Asymmetric
+
+
+
+* MPI.jl
+ basic Julia wrapper for the portable message passing system Message Passing Interface (MPI).
+
+ /Inspiration is taken from mpi4py, although we generally follow the C and not the C++ MPI API/
+* mpi4py
+
+MPI for Python provides MPI bindings for the Python programming language, allowing any Python program to exploit multiple processors.
+
+/This package build on the MPI specification and provides an object oriented interface which closely follows MPI-2 C++ bindings/
+
+
+** Point-to-point commnunication
+
+  #+begin_src python
+import numpy
+from mpi4py import MPI
+comm = MPI.COMM_WORLD
+rank = comm.Get_Rank()
+randNum = numpy.zeroes(1)
+
+if rank == 1:
+    randNum = numpy.random.random_sample(1)
+    comm.Send(randNum, dest=0)
+if rank == 0:
+    comm.Recv(randNum, source=1)
+  #+end_src
+
+  *deadlock* - process will never get touched
+  - and will wait indefinitely
+
+  - _Comm.Send(buf, dest=0, tag=0)_
+    - tag extra identification for the message
+
+/MPI_Send has two behaviors and not dependent on the MPI implementation/
+- MPI will not work the same way on two different systems
+
+*Send in MPI4PY does not block waiting for a confirmation from its paired=up `Recv` to happen*
+
+  - _Comm.Recv(buf, source=0, tag=0, status=None)_
+    - Status is a structure that holds information about recieve process
+      - to retrieve after the receive is done
+        - the rank of the sender
+        - the tag of the message
+        - the length of the message
+
+
+*** Message Matching
+
+- there are a few conditions for message send with `Sent` to be receieved
+  - `recv_comm`
+
+*** Recv Wildcards
+
+`source=MPI.ANY_SOURCE`
+
+- allow you to handle situations where mutliple messages can be received from any source
+
+*** Non-blocking communication
+
+`req = comm.Isend(randNum, dest=0)`
+`req.Wait()`
+ - ask it to wait for request
+`comm.Irecv(randNum, source=1)`
+`while not req.Test():`
+`req.cancel()`
+ - break and cancel the request
+
+
+** Collective communication
+
+- MPI allows processes to group communication
+
+- collective communications has its own blocking and non blocking functions
+
+*Synchronization*
+- processes wait til all the members of the communicator rea
