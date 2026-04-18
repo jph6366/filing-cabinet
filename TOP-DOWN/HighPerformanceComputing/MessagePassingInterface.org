@@ -176,3 +176,48 @@ if rank == 0:
 
 *Synchronization*
 - processes wait til all the members of the communicator rea
+
+
+*** Collective Synchronization
+
+
+*** Broadcasting
+
+`comm.bcast(data, root=0)`
+- all of them are seeing the same function
+  - root defines whos sending and recieving
+
+*** Scatter
+`recvbuf = np.empty(10, dtype=np.float64)`
+`comm.Scatter(data, recvbuf, root=0)`
+- sends data to all processes broken into individual chunks
+
+- divide-and-conquer approach
+
+*** Gather
+
+`recvbuf = if rank == 0: np.empty(10*comm.Get_size(), dtype=np.float64)`
+`comm.Gather(sendbuf, recvbuf, root=0)`
+
+
+*** Reduce
+
+`comm.Reduce(value, value_sum, op=MPI.SUM, root=0)`
+`comm.Reduce(value, value_sum, op=MPI.SUM, root=0)`
+
+*** Scatterv
+
+the later sends out chunks of data of variant sizes
+- data elements are distributed in order of process rank
+
+  `comm.Scatter([sendbuf, count, displ, datatype], recvbuf, sendrank)`
+*** Gatherv
+
+
+*** AllGather
+
+- takes elements from each process tone ig ofa ll other asd.f.a
+
+*** AlltoAll
+
+- takes elements from each process to creaon ararays containg the elements corresponding to the order of the process sendingthe elements
