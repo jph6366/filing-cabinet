@@ -1,7 +1,6 @@
 #+title: Message Passing Interface
 
 
-
 * Message Passing
 
 - message passing is type of communication between two or more processes or objects
@@ -97,7 +96,6 @@ An MPI communicator specifies the communication context for a communication oper
 ** Symmetric
 
 ** Asymmetric
-
 
 
 * MPI.jl
@@ -221,3 +219,186 @@ the later sends out chunks of data of variant sizes
 *** AlltoAll
 
 - takes elements from each process to creaon ararays containg the elements corresponding to the order of the process sendingthe elements
+
+* MPI Course by Rolf Rabenseifner
+
+(for MPI-2.1, MPI-2.2, MPI-3.0, MPI-4.0,4.1, and MPI-5.0)
+
+** MPI overview
+- one program on several processors
+- work and data distribution
+- the communication network
+
+*sequential programming paradigm*
+
+[[./sequentialprogramparadigm.png]]
+
+*message-passing programming paradigm*
+
+[[./messagepassing programparadigm.png]]
+
+
+*** Analogy: eletric installations in parallel
+
+- MPI subprogram = work of one electrician on one floor
+- MPI process on a dedicated hardware = the electrician
+- data = the electric installation
+- MPI communication = real communication to guarantee that the wires are coming at the same position through the floor
+
+
+*** Parallel hardware architectures
+
+[[./parallelharwarearch.png]]
+
+**** shared memory programming with OpenMP
+
+*Socket/CPU*
+- memory interface
+/uniform memory access (UMA)/
+/symmetric multi-processing (SMP)/
+
+- all cores connected to all memory banks with same speed
+
+/parallel execution streams on each core/
+- e.g.
+  $x[ 0 ... 999] = ...$ on 1st core
+  $x[ 1000 ... 1999] = ...$ on 2nd core
+  $x[ 2000 ... 2999] = ...$ on 3rd core
+
+
+*Node*
+- hyper-transport
+  /ccNUMA (cache-coherent non-uniform memory access)/
+- shared memory programming is possible!
+$CPUs \times memory bandwidth$
+
+- performance problems
+  - each parallel execution stream should mainly access the memory of its CPU
+- first touch strategy is needed to minimize remote memory access
+- threads should be pinned to the physical sockets
+
+**** distributed memory (MPI works everywhere)
+
+*Cluster*
+- node-interconnect
+  /NUMA (non-uniform memory access)/
+  - fast access only on its own memory!
+
+- many programming options
+  - shared mem / symmetric multi-processing inside of each node
+  - distributed memory parallelization on the node interconnect
+  - or simply one MPI process on each core
+
+*** Message-passing programming paradigm
+
+- each processor in a message passing program runs a sub-program
+  - written in a conventional sequential language
+    - e.g. C, fortran, Python
+  - typically the same on each processor (SPMD)
+  - the variables of each subprogram have
+    - same name
+    - different locations (distributed mem) and different data
+    - i.e. all variables are private
+  - communicate via special send and receive routines
+
+/Caution! completely different model compared to/
+- OpenMP
+- Python with concurrent futures
+- pthreads, shmem
+
+*** Data and work distribution
+
+- the value of `myrank` is returned by special library routine
+- the system of `size` processes is started by special MPI initialization program (`mpirun` or `mpiexec`)
+- all distributions decisions are based on `myrank`
+- i.e. which process works on which data
+
+
+
+*** SPMD
+
+- single program multiple data
+  - same subprogram runs on each processor
+
+- mpi allows MPMD
+  - but some vendors may be restricted to SPMD
+  - MPMD can be emulated with SPMD
+
+**** Emulation of MPMD
+
+#+begin_src C
+main(int argc, char **argv)
+    {
+        if(myrank < .../*process should run the ocean model*/)
+        {
+            ocean(/*arguments*/);
+        } else {
+            weather(/*arguments*/);
+        }
+    }
+#+end_src
+
+#+begin_src fortran
+PROGRAM
+IF (myrank < ...) THEN !! process should run the ocean model
+      CALL ocean( some arguments )
+ELSE
+      CALL weather (some arguments )
+ENDIF
+END
+#+end_src
+
+
+#+begin_src python
+if (myrank < ...): # process should run the ocean model
+    ocean(...)
+else:
+    weather(...)
+
+#+end_src
+
+#+begin_src julia
+if myrank < ...
+    ocean(...)
+else
+    weather(...)
+end
+#+end_src
+
+** Process model and language bindings
+
+** Messages and point-to-point communication
+
+** Nonblocking communication
+
+** Fortran module mpi_f08
+
+** Collective communication
+
+** Error handling
+
+** Groups & Communicators, Environment Management
+
+** Virutal topologies
+
+** One-sided communication
+
+** Shared memory One-sided communication
+
+** Derived datatypes
+
+** Parallel File I/O
+
+** MPI and Threads
+
+** Probe, Persistent Requests, Cancel
+
+** Process Creation and Management
+
+** Miscellaneous MPI
+
+** Parallelization, Performance, and Pitfalls
+
+** Heat example
+
+** Summary
