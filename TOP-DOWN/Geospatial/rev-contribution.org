@@ -1,0 +1,549 @@
+#+title: Rev Contribution
+
+* reV Contributions
+
+
+** custom reV errors/exceptions
+
+<2026-04-10 Fri>
+
+***  story
+
+implement custom rev exceptions to replace base exceptions
+
+_unused exceptions_
+- SlurmWarning
+- SAMExecutionWarning
+- ExtrapolationWarning
+- NearestNeighborError
+- JSONError
+
+_SAM_
+
+/SAM.py/
+- SAMExecutionError
+  - __get_base_handler_ - get base SAM resource handler
+    - raises error if module not found
+  - _execute_ - call PySAM execute method
+    - raises error if execution fails for some reason
+  - _collect_outputs_ - collect SAM output_request -> convert time-series outputs to UTC -> save outputs to self.outputs
+    - raises error if bad request from PySAM object
+- SAMInputWarning
+  - __make_res_kwargs_ - make Resource.preloadSam args and kwargs
+    - raise warning if downscaling is request for any resource handler that is not NSRDB
+  - _assign_inputs_ - assign a flat dict of inputs to the PySAM object
+    - raise warning for inputs that are not set because they are not found in PySAM object
+
+- SAMInputError
+  - ___set_item___ - set a PySAM input data attribute
+    - raises error if attribute not found
+    - catches error from `setattr(getattr(self.pysam, group), key, value)`
+- ResourceError
+  - _ensure_res_len_ - ensure time_index has a constant time-step and only covers 365 days (no leap days)
+    - raises error if time_index does not have a consistent time-step
+
+/econ.py/
+- SAMExecutionError
+  - _parse_sys_cap_ - find the system capacity variable in either inputs or dataframe
+    - raises error uf system capacity or turbine capacity is not included in the site-specific inputs in order to calculate annual energy yield for LCOE
+- KeyError
+  - __get_cf_profiles_ - get the multi-site capacity factor time series profiles
+    - raises error if cf_profile values are not found
+  - __parse_lcoe_inputs_ - parse for non-site-specific LCOE inputs
+    - raises error if cf_mean values are not found for LCOE calculation
+/windbos.py/
+- SAMInputError
+/defaults.py/
+- NotImplementedError
+/generation.py/
+- InputError
+  - multiple vals for `temperature` for site
+  - "" `potential_MW` ""
+  - found nan vals for site {} in vars {}
+- SAMExecutionError
+- NotImplementedError
+- ValueError
+  - lat/lon exception
+/version_checker.py/
+- PySAMVersionError
+- PySAMVersionWarning
+
+_bespoke_
+
+/bespoke.py/
+- ValueError
+  - Unknown dataset name
+- TypeError
+  - min_spacing must be numeric
+- KeyError
+  - user requested "lcoe_fcr" but did not input "fixed_charge_rate" in SAM system config
+  - could not find LCOE kwargs in outputs; plant_optimizer, original_sam_sys_inputs, or meta
+- ModuleNotFoundError
+- RuntimeError
+  - failed while running SAM windpower timeseries analysis
+  - failed while running turbine placement optimizer
+  - SC gid xxx failed
+- FileNotFoundError
+  - exclusions file not found
+- FileInputError
+  - techmap dataset not found in exclusions file
+- OSError
+/pack_turbs.py/
+- WhileLoopPackingError
+/place_turbines.py/
+- ValueError
+  - will not eval string which contains xxx
+- WhileLoopPackingError
+
+_config_
+
+/base_config.py/
+- ConfigError
+  - _init_config_ - initialize and load config from file
+    - raises error if config file does not exist or cannot be parsed
+- IOError
+  - _init_config_ - initialize and load config from file
+    - raises error when config file path cannot be read
+
+/project_points.py/
+- ConfigError
+  - _parse_ - parse project points from file or object
+    - raises error when project points file type is not recognized
+  - _from_range_ - create project points from a range of gids
+    - raises error if sites argument has invalid form
+- ValueError
+  - _parse_tech_ - parse the technology from the project points config
+    - raises error if more than one unique technology is found in project points
+- TypeError
+  - _parse_ - parse project points from file or object
+    - raises error when project points input type is not recognized
+- KeyError
+  - _sam_config_obj_ - get the SAM config object for a given gid
+    - raises error if gid not found in SAM config mapping
+- RuntimeError
+  - _split_ - split project points into sub-chunks
+    - raises error when project points cannot be split into the requested number of chunks
+
+/execution.py/
+- ConfigError
+  - _parse_execution_control_ - parse execution control from config
+    - raises error if required execution control parameters are missing or invalid
+
+_econ_
+
+/econ.py/
+- Exception
+  - _run_single_worker_ - run a single econ worker for a set of sites
+    - raises base exception if `econ_fun` fails during SAM econ execution
+- ExecutionError
+  - _parse_output_request_ - parse and validate user output requests
+    - raises error if none of the user output requests are recognized
+  - _get_data_shape_ - get the output data shape from SAM config
+    - raises error if non-scalar site_data input key is passed as an output_request
+- ValueError
+  - _parse_output_request_ - parse and validate user output requests
+    - raises error if econ outputs requested span incompatible SAM modules
+- Exception
+  - _run_ - run econ analysis for all sites
+    - raises base exception if analysis sites from project points are not found in cf file
+    - raises base exception if SmartParallelJob execution fails
+
+/cli_econ.py/
+- IOError
+  - _parse_cf_files_ - parse capacity factor files for econ
+    - raises error if a cf file does not exist on disk
+- ConfigError
+  - _parse_cf_files_ - parse capacity factor files for econ
+    - raises error if the number of cf files does not match the number of analysis years
+    - raises error if a requested analysis year cannot be found in the cf files
+
+/economies_of_scale.py/
+- TypeError
+  - _preflight_ - run preflight checks on input data
+    - raises error if data input is not a dict or DataFrame
+- KeyError
+  - _preflight_ - run preflight checks on input data
+    - raises error if variables required for an equation are missing from input data
+  - _get_prioritized_keys_ - get keys from input dict by priority order
+    - raises error if none of the requested keys are found in the input dict
+- ValueError
+  - _preflight_ - run preflight checks on input data
+    - raises error if equation string evaluates to an invalid value
+
+_generation_
+
+/base.py/
+- Exception
+  - _out.setter_ - set site output results
+    - raises base exception if site results are non-sequential
+- TypeError
+  - _out.setter_ - set site output results
+    - raises error if output type is unrecognized
+  - _output_request_type_check_ - validate the output_request argument type
+    - raises error if output_request is not str, list, or tuple
+- ValueError
+  - _handle_leap_ti_ - handle leap year time index by dropping Feb 29
+    - raises error if time index length is not a multiple of 365
+  - _site_index_ - get or set the current site index
+    - raises error if output_index is negative (site index already set)
+  - _patch_wave_gen_pysam_5_ - patch wave generation output for PySAM 5
+    - raises error if non-zero values are found at the end of the generation array
+- Exception
+  - _parse_site_data_ - parse site-specific SAM input data from csv or DataFrame
+    - raises base exception if site data input is not a .csv or DataFrame
+- KeyError
+  - _parse_site_data_ - parse site-specific SAM input data from csv or DataFrame
+    - raises error if gid column is missing from site data
+  - _get_pc_ - get the points control object for a given technology
+    - raises error if the technology string is not recognized
+- ExecutionError
+  - _get_data_shape_from_sam_config_ - get output data shape from SAM config
+    - raises error if a non-scalar SAM input key is passed as an output_request
+  - _get_data_shape_from_pysam_ - get output data shape from PySAM object
+    - raises error if the requested dataset is not found in the PySAM object
+
+/cli_gen.py/
+- ConfigError
+  - _parse_res_files_ - parse resource files from generation config
+    - raises error if resource_file is not a recognized type
+    - raises error if resource file count does not match the number of analysis years
+
+/generation.py/
+- KeyError
+  - ___init___ - initialize the generation object
+    - raises error if the technology string is not in OPTIONS dict
+- ProjectPointsValueError
+  - _meta_ - get the resource meta data for analysis sites
+    - raises error if the max site gid exceeds the resource meta data length
+- ConfigError
+  - _handle_lifetime_index_ - handle lifetime index for multi-year modeling
+    - raises error if multiple analysis_periods are found in the config
+    - raises error if invalid output arrays are requested alongside lifetime modeling
+- Exception
+  - _run_single_worker_ - run a single generation worker for a set of sites
+    - raises base exception if `cls.OPTIONS[tech].reV_run` fails
+  - _run_ - run generation for all sites with parallel execution
+    - raises base exception if generation execution fails
+- InputError
+  - _parse_gid_map_ - parse optional gid map to remap resource gids to supply curve gids
+    - raises error if the gid_map file cannot be parsed
+
+_handlers_
+
+/exclusions.py/
+- TypeError
+  - ___init___ - initialize exclusions handler
+    - raises error if h5_file is not str, list, or tuple
+- MultiFileExclusionError
+  - _preflight_multi_file_ - run preflight checks for multi-file exclusions
+    - raises error if a layer shape does not match lat/lon shapes
+    - raises error if multi-file exclusions do not have matching coordinate profiles
+- HandlerKeyError
+  - _get_latitude_ - get latitude array from h5 file
+    - raises error if latitude dataset is missing from h5 file
+  - _get_longitude_ - get longitude array from h5 file
+    - raises error if longitude dataset is missing from h5 file
+  - _get_layer_ - get a single exclusion layer from h5 file
+    - raises error if requested layer is not in available layers
+
+/multi_year.py/
+- ConfigError
+  - _source_files_ (MultiYearGroup) - get list of source files for multi-year aggregation
+    - raises error if source_files is not a list, tuple, or "PIPELINE"
+    - raises error if neither source_files nor source_dir+source_prefix are provided
+- CollectionRuntimeError
+  - _source_files_ (MultiYearGroup) - get list of source files for multi-year aggregation
+    - raises error if source_pattern glob results in non-h5 files
+  - _parse_source_files_pattern_ - parse source files from a glob pattern
+    - raises error if non-h5 files are found in the pattern results
+- FileNotFoundError
+  - _source_files_ (MultiYearGroup) - get list of source files for multi-year aggregation
+    - raises error if no source files are found matching the pattern
+- TypeError
+  - _parse_source_files_pattern_ - parse source files from a glob pattern
+    - raises error if source_files type is not recognized
+- HandlerRuntimeError
+  - _copy_dset_ - copy a dataset across source files into multi-year output
+    - raises error if meta data lengths differ across source files
+  - _compute_means_ - compute multi-year means for a dataset
+    - raises error if dataset shapes do not match across source files
+  - _compute_stdev_ - compute multi-year standard deviation for a dataset
+    - raises error if dataset shapes do not match across source files
+- CollectionValueError
+  - _is_profile_ - check if dataset is a time-series profile
+    - raises error if requested dataset is not found in the source file
+- CollectionWarning
+  - _copy_dset_ - copy a dataset across source files into multi-year output
+    - warns if coordinates do not match between collection files
+  - _my_collect_groups_ - collect all groups into a single multi-year HDF5 file
+    - warns when an existing multi-year output file is found and removed (clobber)
+
+/transmission.py/
+- HandlerKeyError
+  - ___getitem___ - get feature data by gid
+    - raises error if the feature gid is invalid
+  - _features_from_table_ - build features dict from a transmission table
+    - raises error if feature type is not recognized
+  - _substation_capacity_ - get capacity available at a substation
+    - raises error if capacities are not found for the substation
+- ValueError
+  - _features_from_table_ - build features dict from a transmission table
+    - raises error if features dict input is not valid
+- RuntimeError
+  - _check_feature_dependencies_ - check that parent features exist for substations
+    - raises error if parent features depend on missing transmission lines
+  - _connect_ - connect a supply curve point to a transmission feature
+    - raises error if needed capacity exceeds available capacity
+- HandlerRuntimeError
+  - _available_capacity_ - get available capacity at a transmission feature
+    - raises error if available capacity cannot be parsed from the feature data
+- NotImplementedError
+  - _POIFeatures.cost_ - compute connection cost for POI features
+    - raises error because cost computation is not supported for POI features
+  - _POIFeatures._calc_cost_ - internal cost calculation for POI features
+    - raises error because POI cost calculation is not implemented
+
+_losses_
+
+/power_curve.py/
+- reVLossesValueError
+  - _PowerCurve._validate_wind_speed_ - validate wind speed input array
+    - raises error if wind speed contains negative values
+  - _PowerCurve._validate_generation_ - validate generation output array
+    - raises error if there are no positive generation values in the power curve
+    - raises error if non-zero generation values exist above the cutoff wind speed
+  - _PowerCurveLosses._validate_wind_resource_ - validate wind resource input
+    - raises error if wind resource contains negative values
+  - _PowerCurveLosses._validate_weights_ - validate bin weights for wind resource
+    - raises error if weights size does not match wind resource size
+  - _PowerCurveLossesInput._validate_required_keys_exist_ - validate required keys in loss spec
+    - raises error if required keys are missing from the loss specification
+  - _PowerCurveLossesInput._validate_transformation_ - validate transformation name
+    - raises error if transformation name is not in TRANSFORMATIONS dict
+  - _PowerCurveLossesInput._validate_percentage_ - validate loss percentage value
+    - raises error if percentage is not in the range [0, 100]
+  - _PowerCurveWindResource.wind_resource_for_site_ - get wind resource for a single site
+    - raises error if pressure units cannot be determined from dataset
+  - _AbstractPowerCurveTransformation._validate_non_zero_generation_ - validate transformed power curve
+    - raises error if the calculated power curve is invalid (all zeros or negative)
+  - _AbstractPowerCurveTransformation._validate_same_cutoff_ - validate cutoff wind speeds match
+    - raises error if cutoff wind speeds of original and transformed curves don't match
+  - _PowerCurveLossesMixin.wind_resource_from_input_ - get wind resource from user input
+    - raises error if wind_resource_model_choice is incompatible with input type
+- NotImplementedError
+  - _AbstractPowerCurveTransformation.apply_ - apply the power curve transformation
+    - raises error when subclass has not set _transformed_generation
+
+/utils.py/
+- reVLossesValueError
+  - _validate_arrays_not_empty_ - validate that input data arrays are not empty
+    - raises error if an input data array is empty
+
+/scheduled.py/
+- reVLossesValueError
+  - _Outage._validate_required_keys_exist_ - validate required keys in outage spec
+    - raises error if required keys are missing from the outage specification
+  - _Outage._validate_count_ - validate outage count value
+    - raises error if count is not an integer or is less than 1
+  - _Outage._validate_and_convert_to_full_name_months_ - validate and normalize month names
+    - raises error if no recognized month names are provided
+  - _Outage._validate_duration_ - validate outage duration value
+    - raises error if duration is not an integer or is outside the valid range
+  - _Outage._validate_percentage_ - validate outage loss percentage
+    - raises error if percentage is not in the range (0, 100]
+
+_nrwal_
+
+/nrwal.py/
+- KeyError
+  - _parse_site_data_ - parse and validate site data input
+    - raises error if required columns (gid, config) are missing from site_data
+- OffshoreWindInputError
+  - _preflight_checks_ - run preflight validation checks
+    - raises error if config ids in site_data are missing from the NRWAL config input
+    - raises error if site_meta_cols are not found in site_data
+  - _get_input_data_ - get input data arrays for NRWAL analysis
+    - raises error if required NRWAL input variables are not found in gen outputs or meta
+- DataShapeError
+  - _get_input_data_ - get input data arrays for NRWAL analysis
+    - raises error if data shape is not 1D or 2D
+  - _save_nrwal_out_ - save NRWAL output arrays to the output file
+    - raises error if a 1D output is found to be 2D but not all-NaN
+    - raises error if NRWAL output shape cannot be understood
+- TypeError
+  - _value_to_array_ - convert a NRWAL output value to a numpy array
+    - raises error if a NRWAL key returns a value of an unrecognized type
+
+_qa_qc_
+
+/qa_qc.py/
+- TypeError
+  - _QaQcModule.__init____ - initialize the QA/QC module handler
+    - raises error if config input is not a dict
+- PipelineError
+  - _QaQcModule.fpath_ - get the file path for the module output
+    - raises error if fpath cannot be parsed from previous pipeline jobs
+
+_rep_profiles_
+
+/rep_profiles.py/
+- FileInputError
+  - _RepProfilesBase._parse_rev_summary_ - parse the reV summary CSV file
+    - raises error if the reV summary file cannot be parsed
+- TypeError
+  - _RepProfilesBase._parse_rev_summary_ - parse the reV summary CSV file
+    - raises error if rev_summary input is not a valid dtype (str path or DataFrame)
+- KeyError
+  - _RepProfilesBase._check_req_cols_ - check that required columns exist in the summary table
+    - raises error if required column labels are not found in the rev_summary table
+  - _RepProfilesBase._check_rev_gen_ - check that the gen file has required datasets
+    - raises error if cf_dset is not in the gen file datasets
+    - raises error if time_index is not in the gen file datasets
+- DataShapeError
+  - _RegionRepProfile._run_rep_methods_ - run representative profile methods for a region
+    - raises error if the weights column length doesn't match the profiles shape
+- ValueError
+  - _RepProfiles.__init____ - initialize representative profiles
+    - raises error if reg_cols is None
+
+_supply_curves_
+
+/aggregation.py/
+- RuntimeError
+  - _run_serial_ / _run_parallel_ - run supply curve aggregation
+    - raises error if aggregation fails for a supply curve point
+- SupplyCurveInputError
+  - _check_files_ - check that required input files exist
+    - raises error if required exclusions or resource files are not found
+- FileInputError
+  - _check_files_ - check that required input files exist
+    - raises error if techmap dataset is not found in the exclusions file
+- FileNotFoundError
+  - _check_files_ - check that required input files exist
+    - raises error if the exclusions h5 file does not exist
+- EmptySupplyCurvePointError
+  - _run_single_ - run aggregation for a single supply curve point
+    - raises error if no valid resource pixels are found within the supply curve cell
+
+/sc_aggregation.py/
+- FileInputError
+  - _check_excl_files_ - check exclusion file inputs
+    - raises error if the techmap dataset is not found in the exclusions file
+- TypeError
+  - _parse_sc_points_ - parse supply curve points
+    - raises error if sc_points input type is not recognized
+- KeyError
+  - _parse_cf_dset_ - parse capacity factor dataset name
+    - raises error if cf_dset is not found in the resource file
+- ValueError
+  - _check_res_file_ - check resource file is valid
+    - raises error if resource file does not contain required datasets
+- EmptySupplyCurvePointError
+  - _run_single_ - run aggregation for a single supply curve point
+    - raises error if supply curve point has no valid resource data
+
+/supply_curve.py/
+- KeyError
+  - _parse_sc_points_ - parse supply curve points from input
+    - raises error if required columns are missing from the supply curve table
+- RuntimeError
+  - _run_ - run supply curve transmission mapping
+    - raises error if supply curve execution fails
+- SupplyCurveInputError
+  - _check_sc_table_ - validate the supply curve table
+    - raises error if required columns are missing or invalid in the supply curve table
+- SupplyCurveError
+  - _full_sort_ - sort supply curve by LCOE with transmission costs
+    - raises error if supply curve sorting fails unexpectedly
+
+/competitive_wind_farms.py/
+- RuntimeError
+  - _remove_noncompetitive_wind_farms_ - remove wind farms that are not cost-competitive
+    - raises error if the competitive wind farm removal process fails
+- ValueError
+  - _parse_wind_dirs_ - parse wind direction data for competitive analysis
+    - raises error if wind direction input is invalid
+
+/points.py/
+- IndexError
+  - _SupplyCurvePoint.__init___ - initialize a supply curve point
+    - raises error if the supply curve gid is out of range
+- SupplyCurveInputError
+  - _SupplyCurvePoint._parse_resources_ - parse resource data for the point
+    - raises error if required resource inputs are missing or invalid
+- EmptySupplyCurvePointError
+  - _SupplyCurvePoint._check_excl_ - check exclusion data for the point
+    - raises error if no valid (non-excluded) pixels remain in the supply curve cell
+- ValueError
+  - _SupplyCurvePoint._parse_lat_lon_ - parse lat/lon for the supply curve point
+    - raises error if latitude or longitude cannot be determined
+- DataShapeError
+  - _SupplyCurvePoint._parse_data_shape_ - parse expected output data shape
+    - raises error if resource and exclusion data shapes do not match
+- FileInputError
+  - _SupplyCurvePoint._parse_techmap_ - parse technology mapping from exclusions file
+    - raises error if techmap dataset is not found in the exclusions file
+- TypeError
+  - _SupplyCurvePoint._parse_input_ - parse a generic input for the supply curve point
+    - raises error if input type is not recognized
+
+/exclusions.py/
+- ValueError
+  - _LayerMask._parse_inclusion_weights_ - parse inclusion weights for a layer
+    - raises error if inclusion weight values are invalid
+- ExclusionLayerError
+  - _LayerMask.__init___ - initialize a layer mask
+    - raises error if the layer configuration is invalid
+- KeyError
+  - _ExclusionMask._get_layer_ - get a layer from the exclusions file
+    - raises error if a requested layer is not found in the exclusions h5 file
+- SupplyCurveInputError
+  - _ExclusionMaskFromDict._parse_layer_ - parse a single exclusion layer from dict
+    - raises error if layer specification dict is invalid
+
+/tech_mapping.py/
+- FileInputError
+  - _map_to_supply_curve_ - map resource pixels to supply curve points
+    - raises error if techmap dataset is not found in the exclusions file
+
+_utilities_
+
+/curtailment.py/
+- KeyError
+  - _Curtailment._parse_ - parse curtailment parameters from config
+    - raises error if required curtailment parameter keys are missing from the config
+
+
+*** implementation
+
+1. Browse the different modules and note base exceptions and/or scenarios where an exception may be acceptable and valuable to users downstream
+   - identify existing uses of custom exceptions and base exceptions
+2. Replace/Modify exceptions one module at a time.
+
+*** testing
+
+*** foresight
+
+
+
+*** certificate of origin
+
+When AI tools contribute to development, proper attribution helps track the evolving role of AI in the development process. Contributions should include an Assisted-by tag in the following format:
+
+Assisted-by: AGENT_NAME:MODEL_VERSION [TOOL1] [TOOL2]
+
+Where:
+- AGENT_NAME is the name of the AI tool or framework
+- MODEL_VERSION is the specific model version used
+- [TOOL1] [TOOL2] are optional specialized analysis tools used (e.g., coccinelle, sparse, smatch, clang-tidy)
+- Basic development tools (git, editors) should not be listed
+
+*This contribution:*
+
+Assisted-by: Claude:claude-sonnet-4-6 [grep] [glob]
+
+*** comments
+- “User code can raise built-in exceptions. This can be used to test an exception handler or to report an error condition “just like” the situation in which the interpreter raises the same exception; but beware that there is nothing to prevent user code from raising an inappropriate error.”
+- “ It’s recommended to only subclass one exception type at a time to avoid any possible conflicts between how the bases handle the args attribute, as well as due to possible memory layout incompatibilities.”
+
+- Allows downstream users of reV to catch reV exceptions explicitly
