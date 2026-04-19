@@ -1,0 +1,12 @@
+#+title: Rust Julia Interop
+
+* Rust Julia Interop
+
+** jlrs
+
+*** Overview
+
+jlrs is a rust crate that can be used to _embed julia in rust applications_
+- and to create dynamic libraries that _expose functionality written in rust to julia_
+
+*** Types and Layouts
