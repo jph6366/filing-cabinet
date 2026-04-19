@@ -1,0 +1,555 @@
+#+title: Odin Documentation
+
+* Odin
+
+** Overview
+
+
+#+begin_src
+odin run .
+odin build <dir>
+odin run main.odin -file
+#+end_src
+
+
+*** Variable Declarations
+`x: int`
+`y, z: int`
+- intialized to zero by default
+  /note: declarations have to be *unique* within a scope/
+
+`x:=10``x:=20`
+- redeclaration
+`y,z:=20,30` `test, z := 20, 30`
+- not allowed since z exists already
+
+*** Assignment Statements
+`x:int=123`
+- declares a new var x with type int and assigns a value to it
+`x=637`
+- assigns a new value to x
+`x,y,:= 1,"hello"`
+- declares x and y and infers the types from assignments
+`y,x="bye",5`
+/note := is two tokens/
+- the following are the equivalent
+`x:int=123`
+`x: = 123`
+`x := 123`
+  
+
+
+*** Literals
+- string literals in double quotes
+- character literals in single quotes
+- special characters are escaped with a backslash
+
+`"this is s a string"`
+`'A'`
+`'\n'`
+`"C:\\Windows\\notepad.exe"`
+
+- raw string literals are enclosed in single back ticks
+  `C:\Windows\notepad.exe`
+
+- built-in _len_ proc, length of a string
+  - if string passed is compile-time constant, the _len_ will be a compile-time constant
+
+`len("foo")`
+`len(some_string)`
+
+**Escape Characters**
+
+\a - bell (BEL)
+\b - backspace (BS)
+\e - escape (ESC)
+\f - form feed (FF)
+\n - newline
+\r - carriage return
+\t - tab
+\v - vertical tab (VT)
+\\ - backslash
+\" - double quote (if needed)
+\' - single quote (if needed)
+\NNN- octal 6 bit character (3 digits)
+\xNN - hexadecimal 8 bit character (2 digits)
+\uNNNN - hexadecimal 16-bit Unicode character UTF-8 encoded (4 digits)
+\UNNNNNNNN - hexadecimal 32-bit Unicode character UTF-8 encoded (8 digits)
+
+- numeric literals are written similar to most langs
+- most useful feature in odin is that underscores are allowed for readability
+ `1_000_000_000`
+- a number that contains a dot is a floating point literal
+  `1.0e9`
+- a number literal suffixed with `i`
+  - it is an imaginary number literal
+    `2i` (2 multiply the square root of -1)
+
+- binary literals are prefixed with `0b`
+- octal literals `0o`
+- hexadecimal literal `0x`
+- a leading zero does not produce an octal constant
+
+  - if a number constant can be represented by a type without precision loss
+    - it will automatically convert to that type
+      `x: int = 1.0`
+  - constant literals are untyped which means they can implicitly convert to a type
+    `x:int`
+    `x = 1`
+
+
+*** Comments
+
+- comments can be anywhere outside of a string/character literal
+
+  `// a comment`
+  `x: int // comment`
+
+  ```
+  /*
+        text or code can be commented
+        /*
+                nested comments
+        */
+        
+  */
+  ```
+/comments are parsed as tokens within the compiler/
+- this is to allow for future work on automatic documentation tools
+
+
+*** Constant Declaractions
+
+constants are entities (symbols) which have an assigned value
+- the constant's value cannot be changed
+  - the constant's value must be able to be evaluated at compile time
+`x :: "what" // constant x has untyped string value "what"`
+
+- constants can be explicitly typed like variable declaration
+  `y:int:123`
+  `z::y+7`
+  - constant computations are possible
+
+
+*** Packages
+Odin programs consist of packages
+- a package is a directory of odin code files
+  - all of which have the same package declaration at the top
+- execution starts in the package's `main` procedure
+
+**** import
+#+begin_src
+package main
+
+import "core:fmt"
+import "core:os"
+main :: proc() {}
+#+end_src
+
+- `core:` prefix is used to state where the import is meant to look
+  - this is called a library collection
+- if no prefix is present, the import will look relative to the current file
+
+ /note: by convention, the package name is the same as the last element in the import path/
+ - `core:fmt` package comprises of files that begin with the statement `package fmt`
+   - this is not enforce by the compiler
+     - which means the default name for the import name will be determined by the last element in the import path if possible
+ - a different import name can be used over the default package name
+   `import "core:fmt"`
+   `import foo "core:fmt"`
+
+**** export
+- all declarations in a package are public by default
+  - the private attributes can be applied to an entity
+    - to prevent it from being exported from a package
+ `@private()
+ my_var: int // cannot be accessed outside of package`
+ - you may also make an entity private to the file instead of the package
+  `@(private=file)`
+  `my_var: int // cannot be accessed outside of file`
+  
+ - `@(private)` is equivalent to `@(private="package")`
+
+   
+**** authoring a package
+- a package is a directory of odin code files
+  - all of which have the same package declaration at the top
+    - e.g. package main
+- each odin file must have the same package name
+  - a directory cannot contain more than 1 package
+
+
+**** organizing packages
+- packages may be thematically organized by placing them in subdirectories of another package
+  - e.g. `core:image/png` and `core:image/tga`
+    - as subdirectories of `core:image`
+    - nesting these packages is a helpful taxonomy
+    - it does not imply dependency
+      e.g. `core:foo/bar` does not need to import `core:foo` and reference anything from it
+
+
+*** Control Flow statements
+
+#+begin_src odin
+for i := 0; i < 10; i += 1 {
+    fmt.println(i)
+}
+for i := 0; i < 10; i += 1 {  }
+for i := 0; i < 10; i += 1 do single_statement()
+// there are not parentheses surrounding the 3 components
+// braces or a do are always required
+
+i := 0
+for ; i < 10; {
+    i += 1
+}
+// the initial and post statements are optional
+
+i := 0
+for i < 10 {
+   i += 1
+}
+// these semicolons can be dropped
+// this is equivalent to C's while loop
+i := 0
+for i < 10 {
+    i += 1
+}
+// this produces an infinite loop
+for {
+}
+
+// range based for loop
+for i := 0; i < 10; i += 1 {
+    fmt.println(i)
+}
+
+for i in 0..<10 {
+    fmt.println(i)
+}
+// or
+for i in 0..=9 {
+    fmt.println(i)
+}
+// where a..=b denotes a closed interval [a,b], i.e. the upper limit is inclusive
+// and a..<b denotes a half-open interval [a,b), i.e. the upper limit is exclusive
+
+somestring := "Hello"
+for character in somestring {
+    fmt.println(character)
+}
+
+somearr := [3]int{1, 4, 9}
+for value in somearr {
+    fmt.println(value)
+}
+
+someslice := []int{1, 4, 9}
+for value in someslice {
+    fmt.println(value)
+}
+
+somedynarr := [dynamic]int{1, 4, 9} // must be enabled with #+feature dynamic-literals
+defer delete[somedynarr]
+for value in somedynarr {
+    fmt.println(value)
+}
+somemap := map[string]int{"A" = 1, "C" = 9, "B" = 4} // must be enabled with #+feature dynamic-literals
+defer delete(somemap)
+for key in somemap {
+    fmt.println(key)
+}
+
+
+// a second index can be added
+for char, idx in somestring {
+    fmt.println(idx,char)
+}
+for value, index in somearr {
+	fmt.println(index, value)
+}
+for value, index in someslice {
+	fmt.println(index, value)
+}
+for value, index in somedynarr {
+	fmt.println(index, value)
+}
+for key, value in somemap {
+	fmt.println(key, value)
+}
+//// Iterated values are *copies* and cannot be written to!
+
+// when iterating a string, the characters will be runes and not bytes
+// for in assumes the string is encoded in utf-8
+str: string = "sometext"
+for c in str {
+    assert(type_of(character) == rune)
+    fmt.println(c)
+}
+
+// you can iterate arrays and slices by-reference with address operator
+for &value in somearr {
+    value = something
+}
+for &value in someslice {
+    value = something
+}
+for &value in somedynarr {
+    value = something
+}
+for &value, index in somedynarr {
+    value = something
+}
+
+// map values can be iterated by-reference but their keys cannot since map keys are immutable
+somemap := map[string]int{"A" = 1, "C" = 9, "B" = 4}
+defer delete(somemap)
+
+for key, &val, in somemap {
+    val += 1
+}
+fmt.println(some_map["A"]) // 2
+fmt.println(some_map["C"]) // 10
+fmt.println(some_map["B"]) // 5
+
+
+array := [?]int { 10, 20, 30, 40, 50 }
+
+#reverse for x in array {
+	fmt.println(x) // 50 40 30 20 10
+}
+
+x: [4]u8 = 0xFF
+y: [4]u8 = 0x88
+#unroll for i in 0..<len(x) {
+	x[i] ~= y[i]
+}
+
+
+
+if x >= 0 {
+	fmt.println("x is positive")
+}
+if x := foo(); x < 0 {
+	fmt.println("x is negative")
+}
+if x := foo(); x < 0 {
+	fmt.println("x is negative")
+} else if x == 0 {
+	fmt.println("x is zero")
+} else {
+	fmt.println("x is positive")
+}
+
+
+switch arch := ODIN_ARCH; arch {
+case .i386, .wasm32, .arm32:
+	fmt.println("32 bit")
+case .amd64, .wasm64p32, .arm64, .riscv64:
+	fmt.println("64 bit")
+case .Unknown:
+	fmt.println("Unknown architecture")
+}
+// Odin’s switch is like the one in C or C++, except that Odin only runs the selected case. // This means that a break statement is not needed at the end of each case.
+// Another important difference is that the case values need not be integers nor constants.
+switch i {
+case 0:
+case foo():
+}
+// Switch cases are evaluated from top to bottom, stopping when a case succeeds
+switch {
+case x < 0:
+	fmt.println("x is negative")
+case x == 0:
+	fmt.println("x is zero")
+case:
+	fmt.println("x is positive")
+}
+// a switch statement without a condition is the same as switch true
+
+// a switch statement can also use ranges
+switch c {
+case 'A'..='Z', 'a'..='z', '0'..='9':
+	fmt.println("c is alphanumeric")
+}
+
+switch x {
+case 0..<10:
+	fmt.println("units")
+case 10..<13:
+	fmt.println("pre-teens")
+case 13..<20:
+	fmt.println("teens")
+case 20..<30:
+	fmt.println("twenties")
+}
+
+// partial switch w/ enum values
+
+Foo :: enum {
+	A,
+	B,
+	C,
+	D,
+}
+
+f := Foo.A
+switch f {
+case .A: fmt.println("A")
+case .B: fmt.println("B")
+case .C: fmt.println("C")
+case .D: fmt.println("D")
+case:    fmt.println("?")
+}
+
+#partial switch f {
+case .A: fmt.println("A")
+case .D: fmt.println("D")
+}
+
+
+// partial switch w/ union types
+
+Foo :: union {int, bool}
+f: Foo = 123
+switch _ in f {
+case int:  fmt.println("int")
+case bool: fmt.println("bool")
+case:
+}
+
+#partial switch _ in f {
+case bool: fmt.println("bool")
+}
+
+
+
+// defer statement defers the execution of a statement until the end of the scope it is in
+
+
+package main
+
+import "core:fmt"
+
+main :: proc() {
+	x := 123
+	defer fmt.println(x)
+	{
+		defer x = 4
+		x = 2
+	}
+	fmt.println(x)
+
+	x = 234
+}
+
+// defer an entire block
+{
+	defer {
+		foo()
+		bar()
+	}
+	// This is equivalent to `defer { if cond { bar() } }` because the `if` is
+	// a statement in its own right.
+	defer if cond {
+		bar()
+	}
+}
+
+// defer statements are executed in reverse order that they were declared
+defer fmt.println("1")
+defer fmt.println("2")
+defer fmt.println("3")
+
+// real-world use case for defer
+f, err := os.open("my_file.txt")
+if err != os.ERROR_NONE {
+	// handle error
+}
+defer os.close(f)
+// rest of code
+
+//// acts akin to explicit C++ destructor but error handling is basic control flow
+// its important to tnote that defer cannot be used to change a procedure's named return values
+// as it run after exit when the values have already been returned
+foo :: proc() -> (n: int) {
+	defer {
+		n = 456 // This won't affect `n`
+	}
+	n = 123
+	return
+}
+// note defer construct in odin differs from Go's defer which is function exit and relies on closure stack system
+
+
+//// The when statement is almost identical to the if statement but with some differences:
+// Each condition must be a constant expression as a when statement is evaluated at compile time.
+// The statements within a branch do not create a new scope
+// The compiler checks the semantics and code only for statements that belong to the first condition that is true
+// An initial statement is not allowed in a when statement
+// when statements are allowed at file scope
+when ODIN_ARCH == .i386 {
+	fmt.println("32 bit")
+} else when ODIN_ARCH == .amd64 {
+	fmt.println("64 bit")
+} else {
+	fmt.println("Unsupported architecture")
+}
+// the when statement is very useful for writing platform specific code
+// this is akin to the #if construct in C's preprocessor, however in odin it is type-checked
+
+//// branch statements
+
+// A for loop, conditional, or a switch statement can be left prematurely with a break statement
+// it leaves the innermost construct, unless a label of a construct is given
+
+for cond {
+	switch {
+	case:
+		if cond {
+			break // break out of the `switch` statement
+		}
+	}
+
+	break // break out of the `for` statement
+}
+
+loop: for cond1 {
+	for cond2 {
+		break loop // leaves both loops
+	}
+}
+
+outer: if cond {
+	ok := check_something()
+	if !ok {
+		break outer // label names are required with conditionals
+	}
+}
+
+exit: {
+    if true {
+        break exit // works with labeled blocks too
+    }
+    fmt.println("This line will never print.")
+}
+
+// a continue statement starts the next iteration of a loop prematurely
+for cond {
+	if get_foo() {
+		continue
+	}
+	fmt.println("Hellope")
+}
+
+// fallthrough can be used to explicitly fall through into the next case block
+switch i {
+case 0:
+	foo()
+	fallthrough
+case 1:
+	bar()
+}
+
+#+end_src
+
