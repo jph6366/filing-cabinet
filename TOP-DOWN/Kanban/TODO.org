@@ -16,16 +16,23 @@ SCHEDULED: <2026-04-18 Sat>
 ** TODO PeppiMCP: BAML
 ** TODO Geograpic Weighted Decomposition
 ** TODO SAS Regression Project
+SCHEDULED: <2026-04-19 Sun>
 ** TODO Peppi.jl Imitation Learning
 SCHEDULED: <2026-04-19 Sun>
 ** TODO BitNet.jl: Initialize
 SCHEDULED: <2026-04-19 Sun>
+0:05:47
+- 0:00:04 :: 0:00:00
+- 0:19:29 :: 
+  
 ** TODO BitNet: BitNetWrapper
 SCHEDULED: <2026-04-19 Sun>
 ** TODO BitNet: MBBP/MBJP Benchmark
 ** TODO Attention Residuals: ZettleKasten
 ** TODO MPI Kurs: ZettleKasten
+SCHEDULED: <2026-04-19 Sun>
 ** TODO Flynn's & Duncan's Taxonomy: ZettleKasten
+SCHEDULED: <2026-04-19 Sun>
 ** TODO Odin Programming: ZettleKasten
 SCHEDULED: <2026-04-18 Sat>
 ** TODO Rust Programming: ZettleKasten
@@ -39,3 +46,11 @@ SCHEDULED: <2026-04-19 Sun>
 ** TODO Cartesian-to-Polar Embeddings: ZettleKasten
 ** TODO Game Jam Practice Karl2D
 SCHEDULED: <2026-04-18 Sat>
+** TODO rev: testing custom reV exceptions
+SCHEDULED: <2026-04-19 Sun>
+- 0:00:09 :: 0:00:00
+- 0:52:29 :: 
+- 1:21:44 :: 
+  
+** TODO dsc592: Initiaize Py Project and Prototype Diagram
+SCHEDULED: <2026-04-19 Sun>
