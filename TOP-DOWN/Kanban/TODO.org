@@ -55,20 +55,12 @@ SCHEDULED: <2026-04-24 Fri>
 ** TODO rev-contributions: testing custom reV exceptions
 SCHEDULED: <2026-04-22 Wed>
 
-** TODO dsc592: Automate AzureML Jobs via GitHub Actions
-SCHEDULED: <2026-04-22 Wed>
-:LOGBOOK:
-CLOCK: [2026-04-23 Thu 11:29]--[2026-04-23 Thu 13:25] =>  1:56
-CLOCK: [2026-04-22 Wed 11:48]--[2026-04-22 Wed 13:28] =>  1:40
-:END:
-
-** TODO dsc592: Architecture Diagram
-SCHEDULED: <2026-04-23 Thu>
-
 ** TODO revgas Resource Data Input: Investigation
 SCHEDULED: <2026-04-22 Wed>
+
 ** TODO reV-tutorials: ZettleKasten
 SCHEDULED: <2026-04-22 Wed>
+
 
 ** TODO Python Clean Code and OOP: ZettleKasten
 ** TODO Python Repo Study: requests
@@ -94,3 +86,4 @@ SCHEDULED: <2026-04-22 Wed>
 ** TODO LinkedIn Post: Map Ideas
 ** TODO Design Patterns: ZettleKasten
 *** TODO Facade Pattern
+** TODO Claude CoWork: Financial Trading Agents
