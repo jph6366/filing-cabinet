@@ -1,12 +1,7 @@
 #+title: Todo
 
 * Tasks
-** TODO lemoncxxwrap.cpp: Sweeping
-
-** TODO LEMONGraphs.jl: Sweeping
-
 ** TODO MCP for SensorThings: System Design
-** TODO MCP for OGC APIs: System Design
 ** TODO GeoPackage Benchmark: Initialize
 ** TODO PeppiMCP: Benchmark
 SCHEDULED: <2026-04-25 Sat>
