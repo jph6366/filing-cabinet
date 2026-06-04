@@ -1,0 +1,1022 @@
+#+title: Nrl Meetings
+
+* NRL Meetings
+
+** 4-2-2026
+
+- Paul Pinchuk and Travis William
+
+  expect monthly meeting SAM
+  bi-weekly meetings with paul and travis, also NG experts
+
+
+- newer hire
+
+
+- funding changes
+  - research output
+
+
+/recognized need for maintenance and dev budget/
+
+200k a year for reV
+- money for feature requests
+
+700k Natural gas new model
+- RE potential non-renewable fire generation model
+
+
+
+_technical work for foreign_
+- moroccan utility
+
+
+- site specific tools
+
+- large broad analysis insights
+
+electrical engineering terms
+
+SAM - losses
+
+land-use modeling may need to be more detailed
+- for natural gas models
+
+global horizontal irraddiance
+
+
+*** how natural gas fits in?
+
+_natural gas modeling_
+- moving from regional-scale
+
+- where to start?
+
+
+model framework
+- estimates deliverability thru pipeline
+- technical energy generation and cost potential data
+
+- downstream models deploy reV plants in market scenario modeling
+
+  *NLR power system models lack detailed spatial and temporal representaiton of NG delviery and generation*
+
+**** NEMS
+gas availability modeling
+
+**** FINITO
+gas deliverability modeling
+
+
+**** SAM needs electricy generation modules for natural gas
+- develop model framework
+  - model design
+
+- scraping data we need
+
+  *bi-weekly meeting with NG subject matter experts*
+
+**** COMPASS
+land use and zoning information via LLms
+
+** 4-6-2026
+
+
+no specific agenda today
+
+getting up to speed with project and lab
+
+working with data centers a lot
+
+GDS onboarding wiki
+- Timesheets
+- non-budgeted items
+
+HPC user-accounts
+- getting admin status to HPC setup
+  - allocation rev
+    - Travis Williams
+      - or Paul Pinchuk
+
+
+weekly topics with Paul
+- good first issues
+- reV maintenance
+- brainstorm changes
+
+  deadline for natural gas module
+  - End of Next December and a release with SAM
+    - economic outputs and energy generation
+
+Professional Devleopment
+- data scientist
+- academic journal publications and technical reports
+- NRL trainings
+
+
+Contribute to GDS when available
+- goldilocks zone in asking for help
+
+*** Technical Potential
+
+
+_OIL AND GAS_
+- Remaining resources in earth -> technically recoverable -> economically recoverable -> proven reserves
+  - estimated volume (uncertain) -> extractable volume -> project tech costs -> competition with energy sources
+
+    *Delierable Potential*
+    -
+
+/ReEDS uses balacing area or state level representation of gas-fired capacity/
+- reV will simulate capacity at the plant level
+
+- technical flow rate based on more than the diameter???
+
+  **hitachi private natural gas data**
+*Resource*
+- will be represented as a combination of available gas supply and deliverable gas volumes
+- each potential power plant will have access to the deliverable capacity of tbe nearest service line
+
+
+/SAM will handle the system generation modeling/
+
+*Public Utility Data Library*
+
+**land use issue**
+- lot more zoning restrictions
+- air quality and emissions
+  - historical emissions
+    - required to record on smokestacks
+
+
+
+we'll start with a grid
+- maximum size of target plant
+  - grid will line black linear area
+    - each point associate dwith max amount of delvierable gas
+      - will the set the capacity of the plant
+      - capacity-reduced features
+        - land use and emission
+
+          /specific zones from parcel data/
+          - parcel categories
+            - for aggregation
+
+        may work with munincipalities
+
+** 4-9-2026
+
+_Tag up with Paul_
+
+- physics background
+  - mathematica
+- Java Course
+- PHD programming
+  - python
+    - c++
+
+
+_Prep notes_
+
+- heavily invested in HDF5 and NLR specific toolings
+
+- python class visualization
+
+- software lifecycle and software architecture
+
+- better reV errors and custom exceptions
+- documentation and tutorials
+
+
+_reV prototype_
+
+- iterative or incremental or evolutionary prototype
+  - the final product is built on top of discarded prototypes
+  - the final product evolves over prototypes without discarding
+  - the final product is an integration of separate prototypes
+
+
+_vision_
+- do it in pieces
+- iterate fast initially
+- prototype with plan to discard
+- iterative prototyping
+
+
+
+
+*** custom reV exceptions
+
+- exception module (custom class)
+  - very thorough
+
+    _idea_
+    - developing libraries
+      - gaps
+        - exceptions
+          - custom errors, subclasses of @error
+          - exceptions raised
+            - they call run method and we give them domain-specific errors
+
+/replace ValueErrors with rev-specific errors/
+
+** 4-10-2026
+
+_Kestrel Tour_
+
+- the filesystem can be slow,
+
+  - 50 GB limit
+
+- 3 major partitions `kfs1/2/3`
+
+- kfs2 is most of stuff
+
+  /kfs2/datasets/
+  - RE national datasets
+  - sup3rcc
+    - downscale global circulation models
+      - Grant B. Adversarial NN
+
+/kfs2/datasets/WIND/
+- maps, select here in these coverage map
+
+/conus/
+- h5 files
+  - h5ls
+
+projects
+
+read README rev in HPC for organization of files
+
+reV template in projects folder
+
+/environments/
+- look around revruns and revreports
+
+  `conda activate revruns/`
+  - update and maintain envs
+
+fastx instance
+- run qgis through qgis
+
+QGIS run on the HPC better and faster
+
+/bash/
+- little things to help
+
+.bashrc
+
+bm -l (good alias)
+
+sq (for submitting via SLURM)
+- squeue
+
+fy fiscal year
+
+Nrel build uses hitachi velocity suite
+
+Public build
+
+/rev/projects
+
+liberally use the README
+
+use rev not reV
+
+*ssh-copy-id*
+
+*add me into teams channel*
+
+
+** 4-13-2026
+
+extensive presentation for natural gas
+
+- setup on project directory kestrel
+
+
+- (Renewable/Non-renewable) Energy potential modeling team
+
+_contextualize the goal of the project_
+
+1. develop a natural gas model which estimates gas fired genreation potential across landscapes
+
+2. Maintain same spatial and temporal detail as ex
+
+3.
+
+
+
+_motivation_
+- grwoth in electricity after low-growth period
+
+- mandate to model more generation tech
+
+- 20 yeras of increasing gas-fired energy consumption as coal falls
+
+- NG expected to be important to meet coming energy challenges
+
+/conceptual quandry/
+
+*capacity expansion* - important to know
+- full grid simulator
+  - expansion models
+    - take in supply curves for source material
+    - much rougher supply curves for natural gas
+  - each model represents a potential plant
+    - sort of, typically operate on much broader regional level
+    - they do aggregate stuff, but we can provide much more detailed inputs
+
+*how does this work with fossil fuels*
+- low certainty point for potential resource
+  - recoverability
+
+
+*deliverable potential*
+- the amount of natural gas we can deliver
+
+/FINITO/ - gas deliverability modeling
+- provides state-level gas supply (AEO)
+- handles fuel conversion, transport, cross-sector fuel use
+- currently linked with ReEDS to handle interstate gas transport and gas demand
+
+/SAM/
+- developing an initial set of NG generation modules for use in reV-gas
+  - base combustion turbine model
+  - base combined cycle model
+- system design will be based on a NETL baseline case
+- power cycle modeling will recreate dedicated chemical process models such as IPSEpro
+- SAM's NG models will be integrated directly into reV with existing mechanism
+
+*Cost and Performance Reading*
+
+
+*Try to figure out what other siting constraints will require regulations on natural gas sites*
+
+/eia NEMS/ - gas availability modeling
+
+
+
+    e.g. given field of potential site locations
+    - reeds will take complete supply curve
+      - and year-by-year
+
+/COMPASS/
+- collect a bunch of data at a large scale for a bunch of unstructured documents
+
+/ReEDS/
+- main datastream recipients of our reV outputs
+- currently uses regional supply curves from EIA'S AEO to present natural gas supply and demand
+
+
+**seasonally derating**
+
+
+
+*** Scenario Analysis Interface for Energy Systems
+- linking relationships between gas supply and generation
+
+*** NLR BlendPath
+- pipeline delivery simulation
+- hydrogen-natural gas blending
+
+
+
+
+*** SSH MORE TOUR OF KESTREL
+- always get an allocation name for project
+
+**** allocation units
+- maybe use sinfo for more info
+  /great if we can get managed way to see these units/
+
+  check the lex site
+
+
+**** salloc
+
+
+**** sbatch
+--partition=debug
+/FASTER QUEUE/
+
+**** sinfo
+
+
+**** snodes
+
+
+*** revgas
+
+/kfs2/projects/rev/projects/oe/fy26/revgas/
+
+- excel needs data cleaning
+  - potential value for useful information
+
+- access the eia API
+
+  /THIS would be great to have added/
+  - state-by-state natural gas output
+
+- sam will handle a lot of power generation stuff
+  - dont worry about it for now
+
+/centralize revruns module to some package/
+
+
+- PATHS is just a list of package data
+
+*Public utility data lbirary**
+- anything after 2006
+  - will have some emissions monitoring
+    - CEMS
+      - tracks emissions and power generation
+
+- different forms give you regulatory forms and commisions
+  - useful for land use constraints
+- requestor pays s3 bucket
+/PUDL would be cool to build out an extension/
+
+
+- GEMs has a flow rate data
+- Velocity suite is good truth source and for generally how big they are and where they are
+/Missing gaps between these two data sources/
+- super local sources
+  - and utility data sets
+- flow rate is probably really complex
+  - lots of covariates in that model
+/exploration is warranted but dont spend too much time/
+
+
+
+/STAC implements a substitute for file organization/
+- future task, not a priority
+
+
+
+** 4-16-2026
+
+*** BlendPath, reV, and RNG supply curves
+
+- region-to-region pipeline data
+
+
+Kevin Topolski - blendpath
+- evaluating reutilization natural gas pipelines for transporation
+- developing techno economic model
+  - hydraulic simulation
+- assessing the cost of model without hydraulic modeling
+Jamie Kee - blendpath
+- good for developing code on blendpath
+Burcin Erdener - ReEDs
+Omar Fernandez- ReEDS
+- techno economic analysis
+- gas availability space
+Alex Badgett
+- strategic analysis cetner
+- integration of fuel gas into energy sector
+  - mostly hydrogren
+- natural gas supply curve characterization
+  - back in 2017 , organic wet waste materials
+  - CO2 resource data, RNG mapping
+    /Anelia Millbrandt/
+Jesse Cruce
+- leading lab-funded PNA effort
+  - coordinate NLR seed center how they do fuel gas modeling
+  - missing data...
+
+
+_lack of public data_
+- GEMS
+  - has big gaps in data
+
+OGM - very detailed for texas , but rest of the country is lacking in the same detail
+
+- discontinued datasets :(
+
+we'd prefer a built-in gas network
+
+geometries are in the EIA database
+- just gonna see the diameter
+
+EIA dataset is potentially better
+
+spatial attributes
+
+- distance to physical infratructure
+
+*blendpath considers mainly pipeline design*
+- approximate flows from segments to various power plants
+  - populating these flow...
+    - its tricky, were supply side model
+      - were not competing different locations for different sectors
+- we get max possible generation
+  - flow is split across multiple users and consumers
+
+pipeline delivery flow rates
+
+
+
+_BlendPath and reV_
+
+- runnning entirly new transmission
+  - wht happens to capacity and supply curve
+
+- little more geographic modeling
+
+
+_blendpath at a high level_
+- given a existing pipeline network
+  - what modification could be made to adhere to pressure boundaries, composition changes, velocity boundaries, deamand changes, etc.
+
+  - includes visualization, hydraulic modeling, financial anaylsis of pipeline networks
+
+- built-in module model network hydraulics
+- uses *redlich-....*
+
+  _modifcation methods_
+  - BlendPath can make modifications to the network
+    - performed on segment-by-segment basis
+      - identifies lowest level of cost
+
+_new pipeline requires_
+- tarnsport length
+  - offtake locations and magnitude
+    - supply pressure
+      - composition
+- determines the lowest LCOT network design
+  - explore diameters, steel grades, thickness, numbers of compressors
+  - satisfy pressure, velocity, and compression ratio constraints
+- LCOT includes
+  - pipe costs, compressor costs, fuel costs, ILI, meters, valves, taxes, financing
+
+HiBlend is the concertium and BLendPath is the program
+- repurpose existing pipelines for hydrogen
+  - material compatibility
+  - technical economic anaylsis
+  - lifecycle analysis
+
+
+***Independent national scale pipeline network***
+- understand linkages of national scale pipleine
+- throughput of that pipeline
+- what degree of representation we could follow?
+  - consultants did input and output basis for tracking that does not account for hydraulics
+- if you add the load then pressure drop wont exceed thresholds for downstream users
+- national transmission planning study
+  - transmission lines and line capacities
+/GDS SUPPORT of this/
+- some assumptions for distributed loads
+  - if a new load is added to existing network
+    - we can measure downstream pressure from new load
+- topologies, flow rates (dynamic demand)
+  - assess pressures
+
+
+*** build a composite dataset of as much data we can find
+- transport length
+  - offtake locations and magnitude
+    - supply pressure
+      - composition
+
+
+** 4-20-2026
+
+_GUIDANCE ON REVGAS PROTOTYPE_
+
+- choosing what modules to translate over to revgas
+  - SAM module
+- pull in supporting modules
+  - supply curve, etc.
+
+- supply curve requires exclusion files
+
+- pysam needs special h5 format
+  - pulls incilliary data adjusting resource
+
+- getting subsets of test data in a test folder
+  - TESTDATADIR
+  - *copy over to revgas*
+
+
+- pull in land use components first
+  - much more bespoke
+
+- prioritizing data input wrappers
+  - pipeline data
+  - input supply for NEMS
+  - EIA
+  - AEO
+  - PUDL
+  - Hitachi Velocity
+  - Woods Mckenzie
+    - LENS
+
+**PULL ANYTHING IN FOR NATURAL GAS**
+
+
+_PAULS FEEDBACK on tutorials for analysts_
+- tutorials are useful going forward
+
+**rev-tutorial**
+- python cli
+
+- tutorial for the API itself if it gets funded
+
+- start with tutorial 2
+
+
+**catch windows errors as you are working**
+- write PRs for rev
+- just push to tutorials
+
+
+IT ticket for SAM GUI
+
+
+
+** 4-21-2026
+
+GDS monthly group meeting
+
+gradient-boosted regression testing
+
+human impacts on energy systems
+
+distributed energy sources
+power restoration scenario
+
+hurricane data
+
+flooding data
+- flood boundaries impacting road network
+
+water and fuel pipelines are not considered
+
+backup grid generation is very complex to consider
+
+continue to expand to figure out what the consequences are
+
+synthetic populace data
+- impacts that people may not have access to services
+
+real human impacts of the work
+- measure of peoples ability to access services they need
+  - measure it in bluesky normal conditions
+  - measure how it changes in outage scenario
+- were measuring an increase from your baseline
+  - the burden that you are facing to access these services increases
+
+/based on FEMA lifelies.../
+
+amount of food in your grocery store
+
+amount of beds in your hospital
+
+
+
+what the resolution your're modeling outages on ?
+- feeder level or circuit level?
+  - feeder level
+    - how granular the utlity data gets
+
+how do you simulate what goes and when it goes out given the data
+- were parterned with researchers in the gradi planning and analysis center
+  - they have hazard models and overlay with fidelity
+- Stochastic or determinisrtic simulations of a given ....
+
+
+whats the temporal modeling component behind each of these
+- were showing every timestamp during restoration process
+  - it is continuous
+- cyber scenarios
+  - 3 scenarios
+    1. switch
+       2-3 hours
+    2. brick
+       2-3 days
+    3. obscure
+       need for assessment
+
+
+** 4-23-2026
+
+IT TICKET FOR SAM GUI
+
+IT TICKET FOR ADMIN
+
+
+** 4-27-2026
+
+- new task numbers for timesheet
+
+  - GDOP.12495.61.01.02
+
+
+- inputs will look different
+
+  - temperature air pressure, etc from original resource data
+
+  - what envisioned for dispatchability?
+    - stick w/ technical potential
+
+Travis
+- build out data access methods
+- look at the tutorial (analyst pov)
+
++ conceptualize high-level concepts
+
+  /notesbooks in rev folder is dev-focused, while rev-tutorials is analyst-focused/
+
+
+_Annual Technology Baseline_ (ATB)
+
+- bigger public project put out
+- every year we have a list of new technologies
+- we get a projection for a technology scenarios
+  - specific iterations of tech
+    - price, costs, performances,
+
+      ... it is out of date
+      - costs are skyrocketed
+      - issues with 2025 releas
+
+
+        /capacity is different from energy/
+
+
+** 4-30-2026
+
+subclassing for natural gas
+
+
+useful routine and acquire data into kestrel
+-
+
+revX
+- data handling utilities
+- formal module for natural gas resource will happen
+
+
+_Get the download process done_
+- then figure out how to shape it.
+
+
+use dedicated node
+
+
+
+** 5-2-2026
+
+reV Profile Metric,PUDL / Data Source,Table/Field
+Hourly Dispatch,EPA CEMS,hourly_emissions_epacems / gross_load_mw
+Ramp Constraints,EPA CEMS,Hourly Δ in gross_load_mw
+Emissions Intensity,EPA CEMS,nox_mass_lbs / heat_content_mmbtu
+Unit Efficiency,EIA 923,fuel_consumed_mmbtu vs net_generation_mwh
+
+
+1. *EIA Form 923 (Generation and Fuel)*
+   - While CEMS is hourly, EIA-923 provides the "ground truth" for fuel consumption and net generation at a monthly level. It is useful for cross-referencing CEMS data, which measures gross load.
+     - *Net vs. Gross:*
+       - Use the net_generation_mwh field to calculate the parasitic load of the plants, allowing you to tune your reV generation profiles to reflect what actually hits the grid.
+     - *Heat Rates:*
+       - You can derive operational heat rates ($MMBtu/MWh$) using the fuel consumption data. This helps validate the efficiency assumptions of the natural gas "supply" you are modeling.
+
+2. *EIA Form 860 (Plant & Generator Inventory)*
+   To associate your supply curve points with specific technologies, EIA-860 provides the metadata.
+   - *Prime Movers:* Differentiate between "CA" (Combined Cycle Steam Part), "CT" (Combined Cycle Combustion Turbine), and "GT" (Gas Combustion Turbine).
+   - *Operational Constraints:* Data on nameplate capacity and status (existing vs. retired) allows you to filter your validation set to only include modern, high-efficiency plants that reflect current natural gas potential.
+
+
+
+
+_Meeting notes_
+
+
+talking about inputs and outputs
+
+- supply curve from NEMS and AEO
+  - distribution gas centers with FINITO
+
+
+problems with ATB
+- much higher cost per KWh
+- evaporative cooling?
+  - what is most common and real-life and what does atb represent
+    - makes distinctions on frame of turbine
+      - how many turbines in cycle
+        - ccs?
+
+water impacts are missing
+- water avaiability for decision on cooling method
+
+
+more used to ambient conditions
+- pressure, temperature, humidity, etc.
+
+we'll look into hooking up NSRDB
+
+
+types of outputs (addressing shortcomings)
+- part-load output
+  or
+  - maximum load output
+
+- dispatchability
+  - model max energy possible
+
+  -
+
+- system defintion
+  - 500 Mwh turbine
+    - geographic varability
+
+      - we pick one and model it everywhre
+      - and we consider how far it is from service line
+
+
+
+- duct-burning? (need to be tasked)
+  - for model runs
+
+- for combution and combine cycle
+  - duct burning and etc.
+
+    - we want to exhaust these supplies
+
+- let reV batch all these process selection and allow ReEDS and others for optimization and fine-tuning
+
+- can we place holder the duct burning efficiecny scaling? (For now)
+
+**BIG OPP FOR ADDITIONAL FUNDING FOR DATA CENTER STAKEHOLDERS**
+
+/focus on coherent tools that can be extensible and cross-functional/
+
+
+/what would industry expect us to do?/
+- range of configs
+  - one that arent there are future work
+
+** 5-7-2026
+
+SAM inputs for generation
+
+- transmission(o&g) is configured into SAM Generation
+  - may define new config for rev generation
+
+high proritiy
+- kestrel dagster job
+  - document data dict and dagster assets
+
+** 5-14-2026
+
+
+
+- just focus on parquet now after trailblazing to a hdf5 solution
+
+- finish documenting FORMs and IRREGULARITIES
+
+
+** 5-18-2026
+
+200k allocated in reV and 250k allocated for SAM
+
+model - sushmita
+
+data - jackson
+
+technical report -
+
+
+
+What we are lacking expertise
+
+- cherokee generating station
+  - operations side
+    - helps integrate with downstream model
+
+  - curious about the development building side
+
+
+- systematic way
+
+  - dataset sources pointed out for supported items
+    - used for validation
+
+    - identify clearly the big parts
+      - critical missing parts
+      - addressing operating space
+      - track legal documents
+
+excel sheet for specification of dataset sources
+
+- local run for ease of use
+
+
+industry engagement
+- systematic approach for interspersing collection of information
+  - fairly informal
+    - standardized questions for customer discovery
+    - this group of people are saying this
+      - for a balanced approach for contract development process
+
+  - lets get started with this...
+    - focus on budget effect
+
+
+- Document datasets of what we have
+  - how to access
+  - ...
+
+
+INGAA - representing interstate natural gas companies
+- this would be
+NEMS - make some questions for them for RESOURCE AVAILABILITY
+
+how down we DOWNSCALE state-level to site-level
+
+- carrying capacity for natural gas supply
+
+
+incoporate factors that encourage competitiveness based on geographic and regionalized variables
+- e.g. pricing state-to-state
+
+
+- keep gas very cheap
+- keep the rise in growth very high
+
+  - gas type generator changing
+    - need more reliability
+
+
+
+how flexible will sam be?
+
+
+
+---
+
+pipeline flow and costs (hold off for burcin)
+
+proximity of plant capacities, flow rate
+
+
+1. GIS workflow
+   - QGIS ready analysis
+
+
+   - rev-rev
+     - capacity is determined by amount of avaialble area
+       - wind is more complex
+   - rev-gas
+     - size and or type of a plant
+     - proximitiy to a pipeline
+       - correlate these distances
+         - THOROUGH pipeline diameter from Hitachi
+
+
+
+   starting with Texas
+
+   - MAXIMUM amount of capacity at an area
+
+
+
+   better spatial representation is what we want in non-renewable energy sector
+
+   AEO already has the gas availability supplied
+
+
+** 5-19-2026
+
+GDS monthly meeting
+
+JianYu managing portfolio on supply curve work on solar and beyond
+- recent proposal developments on remote sensing
+Hannah organized cherokeee generation tour
+- walked through plant and discussing coal and natural gas
+Travis managing and on the forefront for revgas
+- navigating and harmonizing the this project
+Billy Roberts
+- killing the map game
+
+Alexi working under Evan and Victor
+- started yesterday
+  - masters thesis in hydrology
+    - groundwater and subsurface
+  - hydro pump storage portfolio
+
+
+AWS funding 1 mil
+- for reVeal
+
+Agile Framework
+-
+
+
+Hitachi Energy Velocity Suite
+- natural gas
+  - 2 seats
+- additional modules and data licensing
+  - they should budge ?

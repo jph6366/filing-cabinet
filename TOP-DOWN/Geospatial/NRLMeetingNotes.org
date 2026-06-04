@@ -1,0 +1,78 @@
+#+title: Nrl Meeting Notes
+
+
+* Meeting with Galen McLaurin
+SCHEDULED: <2026-03-30 Mon>
+
+
+
+** housekeeping
+
+_work schedule_
+- trainings and onboardings
+
+- biilable hour system
+  - every hour and half hour (no less)
+  - charge code or task code
+    - string of chars, starst with a letter for project code
+      - or overhead meeting starts with number
+
+
+- 2 week pay periods
+  - submit every other friday
+
+- review and submit and send to Galen for approval
+
+
+- charge code for this week
+  ""
+
+- 2 forms
+  1. env, safety, and health
+just top page 'EMPLOYER/WORKER INFO'
+
+  2. site-specific """"
+remote-is awkward
+- facility specific
+- sign and date !!!
+- check the boxes
+
+** timesheets
+
+workday
+- hit time
+  - enter my time (this week)
+
+  - actions
+    - enter time by type
+      - enter charge code here <-
+
+
+its ok to put nothing just discuss it Galen...
+
+remote workday arrange
+- ask Hannah P. for help
+
+
+** HPC
+
+- Allocation Units (monetary units)
+
+  - maybe some cloud stuff
+
+
+** environment
+
+request with help from travis
+- will need some approvals to get setup since im not admin
+
+
+** geothermal portfolio
+
+- travis
+model lead
+- paul
+tech lead
+
+
+coming soon pump-storage hydropower
