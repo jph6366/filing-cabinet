@@ -3,7 +3,6 @@
 
 * Tasks
 ** TODO MCP for SensorThings: System Design
-** TODO MCP for OGC APIs: System Design
 ** TODO GeoPackage Benchmark: Initialize
 ** TODO PeppiMCP: Benchmark
 ** TODO Peppi.jl and peppi-jlrs review
