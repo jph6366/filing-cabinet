@@ -1,3 +1,14 @@
 #+title: Geographic Weighted Matrix Decomposition
 
 *PySAL and GeoStats implementation*
+
+* IDEATION
+
+_Python version:_
+
+Implement geographically weighted matrix decomposition algorithms like Geographically Weighted Principal Component Analysis (GWPCA) on top of libpysal.graph.Graph to be included in the gwlearn sub-package of the PySAL federation, with scikit-learn compatible API.
+
+_Julia version:_
+
+implement geographically weighetd matrix decomposition on top of Graphs.jl AbstractGraph to be compatible with GeoInterface.jl and GeoStats.jl.
+- to be included JuliaGeo or SciML or JuliaGraphs?

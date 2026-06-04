@@ -131,3 +131,25 @@ _Generic activities_
 - organizational and political factors may influence the system requirements
 - the requirements change during the analysis process
   - new stakeholders may emerge and the business environment may change
+
+** data science and software engineering requirements engineering
+_new processes_
+- data acquisition
+  - data analysis
+    - use case consildation
+
+AUC diagrams -> actionable use case diagrams
+
+
+** quality (non-functional) requirements
+- big data characertistics
+  - volume, velocity, variety, veracity, value
+- quality attributes
+  - performance, reliability, privacy, security
+- quality requirements description
+
+  e.g.
+  requirement (body)
+  property (characteristic)
+  property (attribute)
+  descriptions

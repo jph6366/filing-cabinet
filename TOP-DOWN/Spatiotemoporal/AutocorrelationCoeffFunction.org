@@ -78,3 +78,143 @@ soln:
         $R_X(t_1,t_2) = \mathbb{E}[A^2] cos (2\pi t_1)  cos(2\pi t_2)]$
 
         $R_X(t_1,t_2) = \frac{1}{3} cos (2\pi t_1) A cos(2\pi t_2)]$
+
+
+** ACF Properties
+*** Symmetry property
+the ACF $R_{xx}$ is an even function stated as...
+- an even function is a real function such that
+  - $f(-x)=f(x)$ for every $x$ in its domain
+
+${\displaystyle \operatorname {R} _{XX}(t_{1},t_{2})={\overline {\operatorname {R} _{XX}(t_{2},t_{1})}}}$
+
+*** Maximum at zero
+for a wide sense stationary process...
+${\displaystyle \left|\operatorname {R} _{XX}(\tau )\right|\leq \operatorname {R} _{XX}(0)}$
+Notice that ${\displaystyle \operatorname {R} _{XX}(0)}$ is always real.
+
+*** Cauchy-Schwarz inequality
+inequality for stochastic processes
+${\displaystyle \left|\operatorname {R} _{XX}(t_{1},t_{2})\right|^{2}\leq \operatorname {E} \left[|X_{t_{1}}|^{2}\right]\operatorname {E} \left[|X_{t_{2}}|^{2}\right]}$
+
+*** Autocorrelation of white noise
+
+autocorrelation of a continuous-time white noise signal will have a strong peak
+- at $\tau = 0$ and will be exactly 0 for all other $\tau$
+
+*** Wiener-Khinchin theorem
+relates the ACF to the power spectral density $S_{xx}$ via the fourier transform
+
+${\displaystyle {\begin{aligned}\operatorname {R} _{XX}(\tau )&=\int _{-\infty }^{\infty }S_{XX}(\omega )e^{i\omega \tau }\,{\rm {d}}\omega \\[1ex]S_{XX}(\omega )&=\int _{-\infty }^{\infty }\operatorname {R} _{XX}(\tau )e^{-i\omega \tau }\,{\rm {d}}\tau .\end{aligned}}}$
+
+for real-valued functions
+- the symmetric ACF has a real symmetric transform
+  - so it can be re-expressed in terms of real cosines only
+
+    ${\displaystyle {\begin{aligned}\operatorname {R} _{XX}(\tau )&=\int _{-\infty }^{\infty }S_{XX}(\omega )\cos(\omega \tau )\,{\rm {d}}\omega \\[1ex]S_{XX}(\omega )&=\int _{-\infty }^{\infty }\operatorname {R} _{XX}(\tau )\cos(\omega \tau )\,{\rm {d}}\tau .\end{aligned}}}$
+
+
+** Ljung-Box test
+
+** Box-Pierce test
+
+** Box-Cox transformation
+
+The one-parameter Box–Cox transformations are defined as
+
+${\displaystyle y_{i}^{(\lambda )}={\begin{cases}{\dfrac {y_{i}^{\lambda }-1}{\lambda }}&{\text{if }}\lambda \neq 0,\\\ln y_{i}&{\text{if }}\lambda =0,\end{cases}}}$
+and the two-parameter Box–Cox transformations as
+
+${\displaystyle y_{i}^{({\boldsymbol {\lambda }})}={\begin{cases}{\dfrac {(y_{i}+\lambda _{2})^{\lambda _{1}}-1}{\lambda _{1}}}&{\text{if }}\lambda _{1}\neq 0,\\\ln(y_{i}+\lambda _{2})&{\text{if }}\lambda _{1}=0,\end{cases}}}$
+
+*** confidence interval
+
+can be asymptotically constructed using Wilk's theorem
+- on the profile likelihood function
+  - to find all possible values of $\gamma$
+    - that full the restriction:
+      ${\displaystyle \ln {\big (}L(\lambda ){\big )}\geq \ln {\big (}L({\hat {\lambda }}){\big )}-{\frac {1}{2}}{\chi ^{2}}_{1,1-\alpha }}$
+
+**** wilk's theorem
+
+The likelihood ratio test statistic for the null hypothesis
+${\displaystyle H_{0}\,:\,\theta \in \Theta _{0}}$ is given by:
+
+${\displaystyle \lambda _{\text{LR}}=-2\ln \left[{\frac {~\sup _{\theta \in \Theta _{0}}{\mathcal {L}}(\theta )~}{~\sup _{\theta \in \Theta }{\mathcal {L}}(\theta )~}}\right]}$
+
+- the likelihood-ratio test is a hypothesis test
+  - that involves comparing the goodness of fit
+    - of two competing statistical models
+
+/typically found by maximization over the entire parameter space and another found after imposing some constraint, based on their likelihoods/
+- if more constrained model (i.e. $H_0$) is supported by observed data
+  - the 2 likelihoods should not differ by more than _sampling error_
+
+*the likelihood ratio tests whether this ratio is significantly different from one, or equivalently whether its natural logarithm is significantly different from zero*
+
+_expressed as difference between the log-likelihoods_
+
+${\displaystyle \lambda _{\text{LR}}=-2\left[\ell (\theta _{0})-\ell ({\hat {\theta }})\right]}$
+
+***** sampling error
+- sampling errors are incurred
+  - when the statistical characteristics of a population
+    - are estimated from a subset, or sample, of that population
+
+- Since the sample does not include all members of the population, statistics of the sample
+  - such as means and quartiles
+    - generally differ from the statistics of the entire population
+- The difference between the sample statistic and population parameter is called the _sampling error_
+
+
+***  example
+
+** Box-Tidwell transformation
+
+** Augmented Dicker-Fuller test
+- tests the null hypothesis that a unit root is present in a time series sample
+
+/augmented version of the Dickey-Fuller test for a larger and more complicated set of time series models/
+
+The procedure for the ADF test is the same as for the Dickey–Fuller test but it is applied to the model
+
+${\displaystyle \Delta y_{t}=\alpha +\beta t+\gamma y_{t-1}+\delta _{1}\Delta y_{t-1}+\cdots +\delta _{p-1}\Delta y_{t-p+1}+\varepsilon _{t},}$
+- where $\alpha$ is constant
+  - $\beta$ the coefficient on a time trend
+    - and $p$ the lag on the order of the autoregressive process
+- imposing constraints $\alpha=0$ and $\beta = 0$
+  - corresponds to modeling a random walk
+    - and using the constraint $\beta = 0$
+      - corresponds to modeling a random walk with a drift
+- by including lags of the order $p$
+  - the ADF formulation allows for higher-order autoregressive processes
+    - this means lag length $p$ must be determined in order to use the test
+
+1. one approach is to test down from high orders and examine t-values on coefficients
+
+   2. an alternative approach is to examine information criteria
+      - such as AIC, BIC, or HQC
+
+
+** Kwiatkowski-Phillips-Schmidt-Shin (KPSS) tests
+- contrary to most *unit root tests*
+  - the presence of a unit root is not the null hypothesis but the alternative
+  - the absence of a unit root is not proof of stationarity but of trend-stationarity
+
+/in unit root and trend-stationarity processes, the mean can be growing or decreasing over time/
+- however in the presence of a shock
+  - trend-stationary processes are mean-reverting
+  - while unit-root processes have a permanent impact on the mean
+
+*** unit root tests
+- tests whether a time series variables is non-stationary and possesses a unit root
+  - the $H_0$ is generally defined as the presence of a unit root
+    - and alternative hypothesis is either _stationarity, trend-stationarity, or explosive root_ depending on the test used
+
+- the approach to unit root testing implicitly assumes that the time series
+  - to be tested ${\displaystyle [y_{t}]_{t=1}^{T}}$ can be written as
+    $y_t = D_t + z_t + \varepsilon_t$
+    - where $D_t$ is the trend, seasonal component, etc.
+      - $z_t$ is the stochastic component
+        - $\varepsilon_t$ is the stationary error process
+/the task of the test is to determine whether the stochastic component contains a unit root or is stationary/
