@@ -1,0 +1,71 @@
+#+title: Software Evolution
+
+* Software Evolution
+
+** Overview
+
+- Maintenance can be due to:
+  - user requirements changed
+  - functionality of the software is no more valid
+    - inputs change
+    - added functions
+    - removed functions
+
+- supervised models in ML needs to be maintained to catch up with the change in the systems they are applied to
+
+- those models can be updated by:
+  - retraining, etc..
+
+
+- retraining can be proper if the output is not very far away from the target
+
+- reconstructing the model is when the results are far off from the target
+
+
+**Evolution is a heuristic-based approach to solve problems that cannot be solved analytically in polynomial time**
+- evolution in the software realm is the the assimilation of nature's optimization techniques
+
+** Evolutionary Algorithms
+
+- Evolution strategy
+- Genetic algorithms
+- Genetic programming
+
+can be used to solve problems like...
+- parameter optimization
+- multi-variable optimization
+- code generation
+- ANN structural design
+
+
+** Evolution as a concept
+evolution methods have:
+- population
+- population entities
+- generations
+- objective function
+- selection criteria
+- constraints
+- exploitive/exploratory search
+
+other types of optimization algorithms
+- Random Search
+- Hill climbing
+- Particle Swarm Optimization
+- Ant Colony Optimization
+
+
+** Types of EA in SW Engineering
+
+e.g. Traveling Salesman problem
+
+- Random Search will randomly pick connections between cities while keeping track of the shortest route
+- PSO will have a swarm of agents who will evaluate different solution in parallel in each iteration
+  - each particle will adjust its solution based on the best solution in obtained during the iterations and the best global solution among all the particles
+
+- ACO will
+  - swarm over the connection and create a route
+  - the route will be accessed
+  - if the better than the worst in the population
+    - the connections of the route will be rewarded by pheromone depositing
+  - ants tend to take the routes which have higher pheromone levels

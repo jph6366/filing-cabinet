@@ -1,0 +1,12 @@
+#+title: Ensemble Spatial Analysis
+
+* Adaptive Ensemble Spatial Analysis
+
+** Overview
+
+- a novel spatial analysis technique
+  - an extension of the ensemble spatial interpolation model
+    - useful geosciences and provides estimates
+      - without a need for classical geostatistical expertise, like variographic analysis
+
+https://www.nature.com/articles/s41598-025-08844-z

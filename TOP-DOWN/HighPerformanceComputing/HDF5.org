@@ -1,0 +1,90 @@
+#+title: Hd F5
+
+
+
+* HDF5
+
+Hiearchical Data Format
+- data format specification
+- application support library implementation
+
+/designed to address old HDF and anticipate modern system requirements/
+- single file could not store >20k objects or >2GB
+- data models are less consistent than desired
+  - there are more object types than desired
+    - datatypes are too restricted
+- does not support parallel I/O
+  - difficult for multithreading
+
+++++
+- a new file format for larger files and larger object capacity
+- simple data model
+  - multidimensional array of record structs
+  - grouping structure
+- simple API for parallel I/O, threading, and more
+
+
+** HDF5 File Organization and Data Model
+
+organized into hiearchical structures, groups and datasets
+- groups and group members is similar to working with directories and files in UNIX
+
+  i.e.
+  - UNIX directories and files are described by their absolute path names, like objects in HDF5 file
+
+  e.g.
+    `/` signifies the root group
+    `/foo` signifies a member of the root group called "foo"
+    `/foo/zoo` signifies a member of the group "foo" which in turn is a member of the root group
+
+/any HDF5 group or dataset may have an attribute list/
+- an HDF5 attribute is a user-defined HDF5 structure
+  - providing extra information about an hdf5 object
+
+
+*** HDF5 Groups
+a structure containing zero or more objects
+- a group header
+  - containing a group name and list of group attributes
+- a group symbol table
+  - a list of the HDF5 objects that belong to the group
+
+*** HDF5 Datasets
+a dataset stored in a file
+- a header contains information to interpret the array portion of the dataset, as well as metadata that describes the dataset
+  - includes...
+    - name of the object
+    - its dimensionality
+    - its number-type
+    - information about how the data itself is stored on disk
+    - other info to speed up access or maintain file integrity
+
+/four classes of information are in any header: name, datatype, dataspace, and storage layout/
+
+- *name* is a sequence of alphanumeric ASCII characters
+
+- *datatype* allows two categories of datatypes
+  - atomic datatypes are not decomposed at the datatype interface level
+    - e.g. float, integer, string, bitfield, and opaque
+
+  - native datatypes are system-specific instances of atomic datatypes
+    - e.g. predefined datatypes supported by their compiler
+      - C-like datatypes supported by hardware of the machine on which the library was compiled
+      - when describing data values in memory use the "native" designation
+
+        "H5T_NATIVE_CHAR" -> signed char (in C datatype)
+        "H5T_NATIVE_UCHAR" -> unsigned char (in C datatype)
+
+  - compound datatypes are made up of atomic datatypes
+    - e.g. similar to a `struct` in C
+      - the parts of this datatype are called members
+        - members of this datatype may be any datatype including compound datatypes
+        - you can read members from a compound datatype w/o reading the whole type
+
+  - named datatypes are either atomic or compound datatypes
+    - designated to be shared across datasets
+    - e.g. stored in a file independently of any dataset
+      - referenced by all datasets that have this datatype
+      - may have associated attributes list
+
+- *dataspace*

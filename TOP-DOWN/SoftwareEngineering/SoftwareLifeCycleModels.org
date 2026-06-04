@@ -1,0 +1,159 @@
+#+title: Software Life Cycle Models
+
+
+* Software Life Cycle
+
+** Overview
+
+Software Development Life Cycles are a series of phases
+- which provide a common understanding of the software building process
+
+- overseeing the flow of software as a project/product
+  - from its inception as an idea through its development and testing
+    - til its delivery and maintain its shelf-life
+
+Software Engineer should have enough knowledge and experience to choose which SDLC model to use based on the project context and project requirements
+
+/Verification - are we buidling the product right/
+/Validation - are we building the right product/
+
+Requirements Analysis ---> Specifications ---> high level design
+^Maintenance                                   low level design
+^Delivery   <---       testing           <---- implementations
+                       unit testing
+                       integration testing
+                       system testing
+*2 ways of quality engineering*
+1. quality assurance
+   - designing a process for a schematic for product of how it should go
+     - how its done, whos doing it, ...
+       - manual for raw to product
+2. quality control
+   - matches the specs for product at the end
+     - try to break the product
+       - sample the product from the manuafacture and perform extreme testing
+       -  check if it operates within the boundaries
+
+** Waterfall model
+
+- a linear sequential flow
+  - for a phase to start, previous phases have to be finished
+    - earliest model; introduced by Dr. Winston Royce in 1970
+- suitable for project which do not change requirements
+  - when a consumer has a very clear documented requirements
+
+_Advantages_
+- easy to follow
+- well-defined and structured
+- concise plan and schedule
+- verifying each step ensures early detection of defects
+- each phase has specific defined deliverables
+
+_Disadvantages_
+- assuming requirements will not change
+- expensive to step-back through stages
+- planning process is costly or infeasible
+
+** V model
+
+- modified waterfall model
+  - linearity is preserved but the process steps are bent upwards after the implementation phase
+- early testing
+- suitable for project which have clearly defined requirements
+- SW dev tech stack and tools are well known
+
+_Advantages_
+- simple, easy
+- each phase has deliverables
+- high chance of success due to early testing
+- verification and validation are done in early stages
+
+_Disadvantages_
+- adjustments are difficult and expensive
+- no clear path for the problems during testing phase
+- planning process is expenseive
+
+
+** Prototyping model
+
+- creates incomplete prototypes of the final product
+  - visualizes some components of the final product
+    - to narrow the gap between requirements of the user
+      - and understanding of the SW engineers
+- flexible because requirements are built up as product is developed
+- different types:
+  - iterative prototyping
+  - evolutionary prototyping
+  - incremental prototyping
+
+- can be used with any SDLC
+- user interaction is crucial for success of this model
+
+_Advantages_
+  - reduces time and cost as product validation is carried out early in the product lifecycle
+  - increases user involvement
+    - more clarification for SW engineers and greater satisfaction for the user
+
+_Disadvantages_
+  - user might confuse prototype to final product and give negative feedback
+  - negative feedback can lead to misunderstanding of user objectives
+  - prototypes implementation can be expenseive and exhaustive
+  - developers can get drifted to keep enhancing prototypes rather than focusing on the final product
+
+*** Iterative prototyping model
+
+- prototypes are built to easure the satisfaction of the user
+  - and they are discarded after getting user's feedback
+- prototypes are not functioning versions of the product/sub-product
+
+
+*** Evolutionary prototyping model
+
+- like iterative prototyping model but the prototypes represent evolutions of the final product and are not discarded
+
+*** Incremental prototyping model
+
+- the final product is an integration of separate prototypes
+
+
+** Spiral model
+
+- combines both design and prototyping in its stages
+  - Barry Boehm in 1986
+
+- combines features of the waterfall and prototyping models
+
+- difference between this model and waterfall
+  - is that it is planning and prototyping at each stage with a risk assessment
+
+- used for large projects associated with much more risk
+- suits projects that can be built in small phases and segments
+
+_Advantages_
+- estimates become more realistic as work progresses because of the early discovery of issues while studying risks and planning for it
+- early involvement of developers
+
+_Disadvantages_
+- high cost for planning and risk management
+- needs special skills and domain experts for risk analysis
+- highly customized, which limits re-usability
+
+
+** Agile model
+- based on iterative, incremental development
+- requirement and solutions evolve through the collaboration between cross-functional teams
+- engages the user with the developing teams
+- can be used with any type of project
+- can deliver some of the requirement before the final product is finished
+
+_Advantages_
+- development can go side by side with the requirement analysis
+- face-to-face communications and continuous input from user limits the gap of misunderstanding
+- final product is high quality software in the least time possible and customer satisfaction
+
+_Disadvantages_
+- scalability; big project might be a challenge for this model
+- needs spontaneous high communications skills
+- documentations might also be a challenge
+  - leaving the specfication and conditions ambiguous
+    - which leads to delivery delays and conflicts

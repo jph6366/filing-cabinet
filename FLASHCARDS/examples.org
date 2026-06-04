@@ -1,0 +1,13 @@
+#+title: Examples
+
+* Sample note
+:PROPERTIES:
+:ANKI_NOTE_TYPE: Basic
+:ANKI_DECK: Practice Questions for SWE
+:ANKI_NOTE_ID: 1777300366306
+:ANKI_NOTE_HASH: 404a81f0a85026aa75eacb546b609c9c
+:END:
+** Front
+Question
+** Back
+Answer

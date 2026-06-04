@@ -1,0 +1,9 @@
+#+title: Re Eds
+
+* ReEDS
+
+** overview
+
+ReEDS is a capacity planning and dispatch model for the U.S. electricity system.
+
+As NLR’s flagship long-term power sector model, ReEDS has served as the primary analytic tool for many studies of electricity sector research questions. Example model results are available in the Scenario Viewer.

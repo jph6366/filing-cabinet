@@ -1,0 +1,13 @@
+#+title: Energy Technical Potential
+
+* energy technical potential
+
+- the energy technical potential of a technology is its achievable energy generation given system performance, topographic, environmental, and land-use constraints
+
+
+*assessing technical potential establishees an upper-boundary estimate of development potential*
+- there are multiple types of potential
+  1. resource
+     2. technical
+        3. economic
+           4. market

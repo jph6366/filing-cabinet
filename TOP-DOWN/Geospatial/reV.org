@@ -1,0 +1,367 @@
+#+title: Re V
+
+* reV
+
+** overview
+an open-source geospatial platform
+- for examining the barriers and opportunities
+  - to deploy energy assets at regional to continental scales
+
+_Qs_
+- how do social/ecological/technical considerations impact energy siting?
+- how do spatial dynamics of system performance, costs, and interconnection drive deployment?
+- to what extent can these constraining factors be mitigated through cost reductions, technology, innovation, and careful siting?
+
+  1. land availability and siting constraints
+     2. system performance and costs
+        3. grid interconnection
+
+_reV provides..._
+
+*multi-resolution and detail at scale*
+- native data resolution; spatiotemporal resource
+  - e.g. building footprints
+
+*technology and cost insights*
+- site-level parameterization
+  - evaluation of technology innovation and R&D investments
+
+*seamless model integration*
+- capacity expansion, production cost/stabilty
+  - e.g. NEMS, ReEDS ---- e.g. Plexos, Sienna
+
+
+_reV outputs..._
+
+*technical potential*
+- total available land and generation potential given a set of land exclusion assumptions
+
+*transmission routing and costs*
+ - estimated distance and interconnection costs for new spur line (gen-tie line)
+
+*supply curves*
+- potential capacity, site-based + interconnection costs, time series generation profiles
+
+
+_reV users and stakeholders_
+
+*energy planners and developers*
+- ISOs/RTOs, utilities, state and local govt, project developers
+*energy analysts*
+- unis, natl labs, other FFRDCs, consultants, R&D nonprofits
+*federal agencies*
+- DOE, BLM, USFS, DoD, EPA, BOEM, USFWS, USGS, EIA
+
+
+
+
+** what does reV do?
+
+- reV estimates technical potential and transmission interconnection to produce supply curves given user-defined technology assumptions and land access constraints
+
+  _tech modeled:_
+  - geothermal
+  - pumped storage hydropower
+  - data centers
+  - natural gas
+  - utilty scale solar
+  - distributed solar
+  - transmission routing
+  - land-based wind
+  - offshore wind
+
+
+
+** reV supply curves
+
+
+1. geothermal resource data
+   - e.g. sub-surface temperature data to a depth of 10km
+2. system generation modeling
+   - SAM (System Advisor Model)
+     - SAM integration and user-defined systems specs model LCOE and generation
+3. siting barriers
+   - barriers reduce or eliminate development potential
+     - e.g. Natl parks, military lands, wildlife, urban areas, forested areas, waterbodies, etc.
+4. LCOE is supplemented with transmission costs
+
+
+
+** reV energy technical potential
+
+
+
+** reV Ecosystem
+
+
+
+*** walking thru the code
+
+**** pyproject.toml
+
+#+begin_src toml
+authors = [
+  {name = "Galen Maclaurin", email = "galen.maclaurin@nlr.gov"},
+]
+maintainers = [
+  {name = "Grant Buster", email = "gbuster@nlr.gov"},
+  {name = "Paul Pinchuk", email = "ppinchuk@nlr.gov"},
+]
+#+end_src
+
+_Dependencies_
+- NLR-GAPS
+- NLR-NRWAL
+- NREL-PySAM
+- NLR-rex
+- numpy
+- packaging
+- plotly
+- plotting
+- shapely
+
+_Documentation_
+- Sphinx
+- Myst parser
+- github pages
+
+*HSDS* is a web service that implements a REST-based web service for HDF5 data stores. Data can be stored in either a POSIX files system, or using object-based storage such as AWS S3, Azure Blob Storage, or MinIO.
+
+
+
+*** reVX
+
+_Renewable Energy Potential(V) Exchange tool_
+- provides a set of tools to extract data from *reV* model outputs
+  - as well as *ReEDS* *RPM* and *PLEXOS*
+
+
+*** rex
+
+_Resource eXtraction tool_
+- enables efficient, scalable extraction, manipulation, and computaiton
+  - with NLR's flagship renewable resource datasets
+    - e.g. WIND toolkit, NSRDB, Sup3rCC
+
+        _rex.resource.BaseDatasetIterable_
+      - base class for file that is iterable over datasets
+
+      _rex.resource.ResourceDataset_
+      - h5py.dataset wrapper for Resource .h5 files
+
+      _rex.resource.BaseResource_
+      - Abstract Base class to handle resource .h5 files
+
+      _rex.resource.Resource_
+      - base class to handle resource .h5 files
+
+      _rex.resource.SAMResource_
+      - Resource container for SAM
+      - Resource handlers preload datasets
+        - for sites of interest
+      - handles all ETL needed before pipelined to SAM
+
+          #+begin_src python
+  class BaseDatasetIterable(ABC)
+  class ResourceDataset(h5py.dataset)
+  class BaseResource(h5_file)
+  class Resource(h5_file)
+  class SAMResource(sites, tech, time_index):
+      def sites() # preload sites
+      def sites_slices() # get sites in slice format if possible
+      def shape() # shape of variable arrays
+      def var_list() # return variable list associated with SAMResource type
+      def time_index
+      def meta
+      def h # height for wind
+      def d # depth for geothermal
+      def lat_lon
+      def sza # solar zenith angle
+
+          #+end_src
+
+*** reVRt
+routing tool used to compute transmission costs
+
+*** NRWAL
+Equation library for detailed cost analysis
+
+*** reVeal
+reV extension for load analysis and land characterization
+
+*** reVReports
+tool for generating publication-ready maps of supply curve outputs
+
+*** reView
+dashboard for interactive visualization supply curve outputs
+
+*** gaps
+geospatial analysis pipelines
+- a framework for adding execution tools to their geospatial python models
+  - born from _reV_ models
+    - CLI
+      - HPC
+        - monitoring and more...
+
+*GAPs can automatically distribute the execution of models over a large geospatial extent across many parallel HPC nodes*
+
+/GAPs is not a workflow management system/
+
+**** how to use gaps
+
+- pov
+  - you are model developer looking to scale your model to HPC
+
+    #+begin_src python
+# model.py
+
+def run_model(lat, lon, a, b, c):
+    """Example model that runs computation for a single site."""
+
+    # simple computation for example purposes
+    x = lat + lon
+    return a * x**2 + b * x + c
+    #+end_src
+
+- now couple with GAPs
+
+  #+begin_src python
+# model.py
+import numpy as np
+from rex import Outputs
+
+...
+
+
+def run(project_points, a, b, c, tag):
+    """Run model on a single mode."""
+
+    data = []
+    for site in project_points:
+        data.append(run_model(site.lat, site.lon, a, b, c))
+
+    out_fp = f"results{tag}.h5"
+    with Outputs(out_fp, "w") as fh:
+        fh.meta = project_points.df
+        fh.write_dataset("outputs", data=np.array(data), dtype="float32")
+
+    return out_fp
+  #+end_src
+
+  1. first input `project_points` is a parameter provded by GAPs based on user input
+     - user will provide csv `project_points` where each row is a single location
+       - by iterating over GAPs projectpoints object
+         - you can access the `panda.Series` of the location to process
+  2. we request the `tag` input from GAPs
+     - special input that GAPs can pass to our fn call (in the fn signature)
+/tag value is a unique string that you can append to your output file to make it unique compared to other nodes running the same function/
+- this way no race condition for writing data when the user executes the model on multiple HPC nodes in parallel
+
+  3. once data is processed, we use the `rex.Outputs` class to write the results to an HDF5 file (you can use other formats as well)
+     - GAPs supports HDF5 outofthebox though!
+
+4. to write the output data
+   - we need to specify a meta `DataFrame` (using project_points input)
+     - and output data as a dataset in a `numpy` array format (we can also give a `time_index` if our output data has a temporal component)
+
+5. we return the path to the output HDF5 file so that GAPs can record it as our results ouput
+   - now use GAPs to build a cli
+
+     #+begin_src python
+# cli.py
+from model import run
+from gaps.cli import CLICommandFromFunction, make_cli
+
+
+commands = [
+    CLICommandFromFunction(
+        function=run,
+        name="runner",
+        add_collect=True,
+        split_keys=["project_points"],
+    )
+]
+
+cli = make_cli(commands)
+
+
+if __name__ == "__main__":
+    cli(obj={})
+     #+end_src
+
+     - To construct our CLI, we start by creating a CLI Command Configuration for our run function
+       - run function is designated to execute on each node
+         - and assign "runner" as the name of the CLI command associated with this function
+           - we also request GAPs to include a "collect" command as our function generates output data saved to an HDF5 file
+
+6. we specify that the `project_points` input should be utilized to distribute execution across nodes
+   - enabling users to define how many nodes that they want for parallel execution
+     - GAPs takes care of the distribution of project points to designated node
+
+7. Congrats! you have a GAPS-powered model
+   - ready for scalable execution on the hpC
+
+#+begin_src
+ $ python cli.py
+Usage: cli.py [OPTIONS] COMMAND [ARGS]...
+
+Command Line Interface
+
+Options:
+    -v, --verbose  Flag to turn on debug logging. Default is not verbose.
+    --help         Show this message and exit.
+
+Commands:
+    batch             Execute an analysis pipeline over a parametric set of...
+    collect-runner    Execute the `collect-runner` step from a config file.
+    pipeline          Execute multiple steps in an analysis pipeline.
+    reset-status      Reset the pipeline/job status (progress) for a given...
+    runner            Execute the `runner` step from a config file.
+    script            Execute the `script` step from a config file.
+    status            Display the status of a project FOLDER.
+    template-configs  Generate template config files for requested COMMANDS.
+#+end_src
+
+**** multiprocessing
+relying on a single CPU core on an HPC node dedicated to running your model is inefficient and inconsiderate to other HPC users
+
+*The only rare exceptions to this rule involve processes that demand a very large amount of memory and can only run one at a time to avoid exceeding memory limits*
+- its critical to parallelize your model execution when operating on the node itself
+
+Python provides `concurrent.futures` to make use of all available CPU cores
+
+#+begin_src python
+# model.py
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from rex import Outputs
+
+...
+
+def run(project_points, a, b, c, tag, max_workers=None):
+    """Run model on a single node with multiprocessing."""
+
+    out_fp = f"results{tag}.h5"
+    Outputs.init_h5(
+        out_fp,
+        ["outputs"],
+        shapes={"outputs": (project_points.df.shape[0],)},
+        attrs={"outputs": None},
+        chunks={"outputs": None},
+        dtypes={"outputs": "float32"},
+        meta=project_points.df,
+    )
+
+    futures = {}
+    with ProcessPoolExecutor(max_workers=max_workers) as exe:
+        for site in project_points:
+            future = exe.submit(run_model, site.lat, site.lon, a, b, c)
+            futures[future] = site.gid
+
+    with Outputs(out_fp, "a") as out:
+        for future in as_completed(futures):
+            gid = futures.pop(future)
+            ind = project_points.index(gid)
+            out["outputs", ind] = future.result()
+
+    return out_fp
+#+end_src

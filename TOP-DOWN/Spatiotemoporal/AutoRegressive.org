@@ -1,0 +1,206 @@
+#+title: Auto Regressive
+
+* AutoRegressive model
+
+** Overview
+
+a modelled representation of a type of random process
+_can be used to describe time-varying processes_
+- from many natural and artificial sources
+
+- the model specifies output variables
+  - that dependent linearly on their own previous values on a stochastic basis
+
+/the model is in the form of a stochastic difference equation (recurrence relation)/
+- which should not be confused with a differential equation
+
+The autoregressive model is not always stationary
+- non-stationarity can arise either due to the presence of a unit root
+  - or due to time-varying model parameters, as in time-varying autoregressive models
+
+
+*** recurrence relation
+an equation according to the n-th term of a sequence for numbers
+- is equal to some combination of the previous terms
+
+- Often, only $k$ previous terms of the sequence appear in the equation
+  - for a parmaeter $k$ that is independent of $n$
+    - the number $k$ is called _the order of the relation_
+- if the values of the first $k$ numbers in the sequence have been given
+  - the rest of the sequence can be calculated by repeatedly applying the equation
+
+e.g. in /linear recurrences/ the n-th term is equated to a linear function of $k$ previous terms
+
+_Fibbonacci numbers_
+
+$F_n = F_{n-1} + F_{n-2}$
+- where the order of $k$ is two and the linear function merely adds the two previous terms
+        *linear recurrence with constant coefficients*
+
+**solving a recurrence relation means obtaining a closed-form solution: a non-recursive functions of $n$ **
+- this concept can be exteneded to multidimensional arrays
+  - that is, indexed families that are indexed by tuples of natural numbers
+
+_DEFN_
+
+A recurrence relation is an equation that expresses each element of a sequence as a function of the preceding ones
+
+- in the case where only the immmediately preceding element is involved
+  - recurrence relation has the form
+
+    $u_n = \varphi(n, u_{n-1})$ for $n>0$
+
+    where
+
+    $\varphi: \mathbb{N} \times X \rightarrow X$
+    - is a function where $X$
+      - is a set to which the elements of a sequence must belong.
+    - for any $u_0 \in X$
+      - this defines a unique sequence with $u_0$ as its first element, called *initial value*
+
+This defines recurrence relation of first order. A recurrence relation of order k has the form
+
+${\displaystyle u_{n}=\varphi (n,u_{n-1},u_{n-2},\ldots ,u_{n-k})\quad {\text{for}}\quad n\geq k,}$
+
+where
+
+${\displaystyle \varphi :\mathbb {N} \times X^{k}\to X}$
+- is a function that involves $k$ consecutive elements of the sequence. In this case, $k$ initial values are needed for defining a sequence.
+
+
+**** fibbonaci numbers
+The recurrence of order two satisfied by the Fibonacci numbers
+- is the canonical example of a homogeneous linear recurrence relation with constant coefficients
+
+  The Fibonacci sequence is defined using the recurrence
+
+
+${\displaystyle F_{n}=F_{n-1}+F_{n-2}}$
+
+with initial conditions
+
+${\displaystyle F_{0}=0}$
+
+${\displaystyle F_{1}=1.}$
+
+Explicitly, the recurrence yields the equations
+
+${\displaystyle F_{2}=F_{1}+F_{0}}$
+
+${\displaystyle F_{3}=F_{2}+F_{1}}$
+
+${\displaystyle F_{4}=F_{3}+F_{2}}$
+
+the recurrence can be solved by methods involving powers of the two roots of the characteristic polynomial
+ $t^2 = t + 1$
+the generating function of the sequence is the rational function
+ $\frac{t}{1-t-t^2}$
+
+
+
+
+** Defintion
+
+The notation $AR(p)$ indicates an autoregressive model of order $p$
+
+${\displaystyle X_{t}=\sum _{i=1}^{p}\varphi _{i}X_{t-i}+\varepsilon _{t}}$
+
+where ${\displaystyle \varphi _{1},\ldots ,\varphi _{p}}$ are the parameters of the model, and ${\displaystyle \varepsilon _{t}}$ is white noise
+
+*equivalent using backshift operator $B$ as*
+${\displaystyle X_{t}=\sum _{i=1}^{p}\varphi _{i}B^{i}X_{t}+\varepsilon _{t}}$
+
+- so that moving the summation term to the left side and using polynomial notation
+
+$\varphi(B)X_t=\varepsilon_t$
+
+- an autoregressive model can be viewed as the output of an all-pole infinite impulse response filter whose input is white noise.
+
+*** finite geometric series
+
+ For a finitely many terms, the geometric sequence consists of the elements up to ${\displaystyle n}$ -th term, which is written as
+ ${\textstyle a,ar,ar^{2},ar^{3},\ldots ,ar^{n}}$
+
+ Summing all terms above produces a finite geometric series, expressed as
+
+${\displaystyle a+ar+ar^{2}+ar^{3}+\cdots +ar^{n}=\sum _{k=0}^{n}ar^{k}.}$
+
+For ${\displaystyle r\neq 1}$ , the sum of a finite geometric series ${\displaystyle S_{n}}$ starting from 0-th term up to ${\displaystyle n}$-th term is formulated as:
+
+${\displaystyle S_{n}={\frac {a(1-r^{n+1})}{1-r}}.}$
+
+** Graphs of $AR(p)$ processes
+
+1. simplest is $AR(0)$
+   /corresponds to white noise/
+   - which has no dependencies between the terms
+   - only error/noise term contributes to the output of the process
+2. for an $AR(1)$ process
+   /results in smoothing or integration of output similar to *low-pass filter* ./
+   - with a positive $\varphi$
+     - only the previous term in the process and noise term contribute to output
+   - if $\varphi$ is close to 0
+     - then the process still looks like white noise
+       - but as $\varphi$ approaches 1
+       - the output gets a larger contribution from previous term relative to the noise
+3. for $AR(2)$ process
+   /can be linked to edge detection or detection of change in direction
+   - previous two terms contribute to the output
+   - if both $\varphi_1$ and $\varphi_2$ are positive
+     - output will resemble a low pass filter with the high frequency part of the noise decreased
+   - if $\varphi_1$ and $\varphi_2$ is negative
+     - then the process favors changes in sign between terms of the process
+   - the output oscillates
+
+     
+
+** autoregressive moving-average
+
+** autoregressive integrated moving-average
+
+** Vector autoregression
+
+a statistical model to capture the relationship between multiple quantities as they change over time
+- it is a type of stochastic process model
+- often generalizes the univariate autoregressive model
+  - by allowing for multivariate time series
+
+- similarly to the autoregressive model, each variable has an equation modeling its evolution over time
+  - this equation includes the variable's lagged values, the lagged values of other variables in the model, and the error term
+
+/only prior knowledge required is a list of variables which can be hypothesized to affect each other over time/
+
+*** Definition
+
+a VAR model describes the evolution of a set of $k$ variables, called endogenous variables, over time
+- each period of time is numbered. $t= 1,...,T$
+- the variables are collected in a vector. $y_t$ which is length $k$
+  - this vector might be described as $(k \times 1)$ -matrix
+  - the vector is modelled as a linear function of its previous value
+  - the vector's components are referred to as $y_{i,t}$
+    - meaning the observation at time $t$ of the $i$ -th variable
+
+a VAR model is characterized by their order, which refers to the number of earlier time periods the model will use
+- a lag is the value of a variable in a previous time period
+- so in general a $p$ -th order VAR refers to a VAR model which includes lags for the last $p$ time periods
+  - a $p$ -th order VAR is denoted as $VAR(p)$ and written as:
+
+        $y_t = c + A_1y_{t-1}+A_2y_{t-2}+...+A_py_{t-p} + e_t$
+
+- the variables of the form $y_{t-i}$ indicate the variable's value $i$ time periods earlier and are called the $i$ -th lag of $y_t$
+- the variable $c$ is $k$ -vector of costants serving as the intercept of the model
+- $A_i$ is a time-invariant $(k \times k)$ -matrix and $e_t$ is a $k$ -vector of error terms
+
+  _error terms must satisfy three conditions_
+  1. $E(e_t) = 0$  every error term has a mean of zero
+  2. $E(e_t e_t^{'}) = \Omega$ the contemporaneous covariance matrix of error terms is a $k \times k$ positive semidefine matrix denoted $\Omega$
+  3. $E(e_t e_{t-k}^{'}) = 0$ for any non-zero $k$. there is no correlation across time
+     - in particular there is no serial correlation in individual error terms
+
+/process of chossing maximum lag $p$ in the VAR model requires special attention because inference is dependent on correctedness of the selected lag order/
+
+
+
+** time-varying autoregressive
+- applied in cases where the underlying dynamics of the system are not constant
+  - such as in sensor time series modeling, signal processing, radar systems, telecommunications

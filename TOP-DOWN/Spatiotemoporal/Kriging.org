@@ -1,0 +1,32 @@
+#+title: Kriging
+
+* Kriging
+
+** Overview
+
+Kriging is advanced geostatistical procedure that generates surface from a scattered set of points with z-values
+
+- to use Kriging effectively involves an interactive investigation of the spatial behavior of the phenomenom
+  - represented by the z-values before you select the best estimation method for generating the output surface
+
+- IDW and Spline interpolation are deterministic interpolation methods
+  - because they are directly based on the surrounding measured values
+  - or on specified mathematical formulas that determine the smoothness of the resulting surface
+
+- Kriging is in another family of interpolation methods
+  - based on statistical models that include autocorrelation
+  - provides some measure of the certainty or accuracy of the predictions
+
+- Kriging assumes the distance or direction between sample points reflects a spatial correlation that can be used to explain variation in the surface
+
+/Kriging is a mult-step process; including exploratory data analysis, variogram modeling, creating the surface, and optionally exploring a variance surface/
+
+**Kriging is most appropriate when you know there is a spatially correlated distance or directional bias in the data**
+
+** Definition
+
+$\hat{Z}(s_0) = \sum_{i=1}^N \lambda_i Z(s_i)$
+- where $Z(s_i)$ = the measured value at the i-th location
+  - $\lambda_i$ = an unknown weight for the measured value at the i-th location
+    - $s_0$ = the predicted location
+      - $N$ = the number of measured values

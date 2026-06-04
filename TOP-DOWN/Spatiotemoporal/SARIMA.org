@@ -1,0 +1,19 @@
+#+title: Seasonal Arima
+
+
+* Seasonal ARIMA
+
+
+** Definition
+
+$ARIMA(p,d,q)$ model is a non-seasonal forecasting model
+- to incoroporate seasonality we need seasonal terms
+  - whose order is indicated by capital letters $(P,D,Q)$
+
+*Seasonal ARMA model* data shows seasonal pattern every $s$ observations
+- but after taking seasonal difference
+  - the data behaves like ARMA model (stationary)
+
+*Seasonal ARIMA model* data shows seasonal pattern every $s$ observations
+- but after taking seasonal difference
+  - the dat behaves like ARIMA model (non-stationary)

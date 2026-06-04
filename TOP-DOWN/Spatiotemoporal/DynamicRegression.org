@@ -1,0 +1,87 @@
+#+title: Dynamic Regression
+
+* Dynamic Regression
+
+
+** Overview
+
+Consider regression models to time series data with covariates
+
+$y_t = \beta_0 + \beta_1 x_{1,t} + \beta_2x_{2,t} + ... + \beta_k x_{k,t} + \varepsilon_t$
+
+- where $y_t$ is a linear combination of $p$ predictors
+  - and $\varepsilon_t$ is assumed to be an uncorrelated error term (like white noise)
+
+Consider the case where $\varepislon_t$ are correlated (hence *dynamic*)
+- and we'll fit regression model where error terms follows ARIMA model, including seaonality
+
+  $y_t = \beta_0 + \beta_1 x_{1,t} + \beta_2 x_{2,t} + ... + \beta_k x_{k,t} + \mu_t$
+
+
+for example, $\mu_t = \varepsilon_t + \phi_1 \mu_{t-1} + \theta_1 \varepsilon_{t-1}$
+- this is called *dynamic regression*
+
+
+*Dynamic regression can be formulated in very general terms by using a state space representation of the observations and hidden state of the system*
+- with sequential definitions of the processes
+  - having conditional dependence only on the previous time step
+- the classical recursive Kalman filter algorithms can be used to estimate the model states given the observations
+/when the operators involved in the definition of the system are linear we have so called *dynamic linear model* (DLM)/
+
+
+
+1. make all varables $y_t, x_{1,t}, x_{2,t}, ..., x_{k,t}$ stationary
+   - if it needs difference $y_t$
+     - then difference all other predictors too
+
+2. fit a regression model on the stationary data
+
+3. draw ACF and PACF plots of the residuals from the regression model
+   - this is to have an estimate on the orders $(p, q, P, Q)$
+
+4. Fit with severable reasonable dynamic regression models
+   - and pick one based on the AIC/BIC/other criterions....
+
+5. check residuals of $\mu_t$
+
+
+
+/Dynamic regression avoids assuming that there is an underlying change in the background mean that stay approximately constant over time/
+- it explicitly allows temporal variability in the regression coefficient
+  - and by letting some of the system properties to change in time
+
+
+_A basic model for time series in geodetic_ consists of four elements:
+1. a slowly varying background
+2. a seasonal component
+3. external forcing from known processes modelled by proxy variables
+4. stochastic noise
+   - noise component might contain an autoregressive structure to account for temporally correlated model residuals
+
+
+* Dynamic Linear Models for Time Series Anaylsis
+
+
+** Overview
+
+Dynamic linear models (DLM) offer generic framework to analyze time-series data
+
+- classical time series models can be formulated as DLMs
+  - ARMA models and multiple linear regression models
+- general regrression models
+  - where coefficients can vary in time
+  - in addition they allow for a *state space representation*
+    - and a formualation as hiearchical statistical models
+/key for efficient estimation by Kalman formulas and by Markov chain Monte Carlo methods/
+/can handle non-stationary processes, missing values, and non-uniform sampling/
+- as well as observations with varying accuracies
+
+
+** Intro to DLMs
+
+_Typical statistical analysis of time-series_
+- we need to assume that some distributional properties of the process
+  - that generate the observations do not change with time
+
+_Dynamic regression avoids this by explicitly allow temporal visibility in the regression coefficient_
+- and by letting some of the system properties to change in time

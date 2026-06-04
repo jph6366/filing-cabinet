@@ -1,0 +1,62 @@
+#+title: Inverse Distance Weighted Interpolation
+
+* IDW interpolation
+
+** Overview
+- explicitly makes the assumption that things are close to one another are more alike than those that are farther apart
+
+- to predict a value for any unmeasured location
+  - IDW uses the measured values surrounding the prediction location
+
+/measured values closest to the prediction location have more influence on the predicted value that those farther away/
+- it is assumed each measured point has a local influence that diminishes with distance
+
+
+*** Definition
+
+the expected result is a discrete assignment of the unknown function $u$ in a study region:
+
+$u(x): x \rightarrow \mathbb{R}, x \in D \subset \mathbb{R}^n$
+
+where $D$ is the study region
+
+The set of $N$ known data points can be described as a list of tuples
+
+$[(x_1,u_1),(x_2,u_2),...,(x_N,u_N)]$
+
+the function is to be "smooth" (continuous and once differentiable),
+to be exact $(u(x_i)=u_i)$ and to meet the user's intuitive expectations
+about the phenomenom under investigation.
+
+*** Power function
+
+Weights are proportional to the inverse of the distance
+- raised to the power value $p$
+
+- as a result, as the distance increases, the weights decrease rapidly
+  - the rate at which the weights decrease is dependent on the value of $p$
+    - if $p = 0$ , there is no decrease with distance
+      - and because each weight $\gamma_i$ is the same
+        - the prediction will be the mean of all data values in the search neighborhood
+- as $p$ increases, the weights for distant points decrease rapidly
+  - if the $p$ value is very high, only the immediate surrounding points will influence the prediction
+
+/when $p=2$ the method is known as the inverse distance squared weighted interpolation/
+
+*** Search Neighborhood
+Things close to one another are more alike than those that are farther away
+- as the locations get far away, the measure values will have little relationship to the value of the prediction location
+
+  /exclude more distant points that have little influence for speedup/
+
+  - it is common practice to limit the number of measure values by specifying a search neighborhood
+    - restricting how far and where to look for the measured values to be used in the prediction
+
+*** when to use IDW
+- a surface calculated using IDW depends on selection of power value $p$ and the search neighborhood strategy
+
+- the output surface is sensitive to clustering and the presence of outliers
+  - IDW assumes that the phenomenom being modeled is driven by local variation
+    - which can be modeled by defining an adequate search neighborhood
+- since it does not produce prediction standard errors
+  - justifying its use is problematic

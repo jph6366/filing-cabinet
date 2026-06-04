@@ -1,0 +1,18 @@
+#+title: Software License Models
+
+
+* Software License models
+
+** GPL
+
+- means that if you open source that is licensed under GPL must make that software open source
+
+** LGPL
+
+- GPL variant license where you can write components that link to open source code
+  - without having to publish the source code
+
+** BSD
+
+- you are not obliged to re-publish any changes or modifications made to open source code
+  - you can include the code in proprietary systems that are sold

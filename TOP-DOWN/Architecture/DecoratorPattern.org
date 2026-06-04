@@ -1,0 +1,15 @@
+#+title: Decorator Pattern
+
+* Decorator Pattern
+
+** Overview
+
+a design pattern that allows behavior to be added
+- to an individual object dynamically
+  - without affecting the behavior of other instances of the same class
+
+/adheres to Single Responsibility Principle and Open-Closed Principle/
+- enabling functionality to be distributed across classes with distinct concerns
+- and since a class's functionality can be extended without modifying its source code
+
+/more flexible and efficient than subclassing without creating a new hierarchy/

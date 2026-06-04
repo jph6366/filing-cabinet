@@ -1,0 +1,26 @@
+#+title: Amdahls Law
+
+
+* Amdahl's Law
+
+** overview
+
+$speedup = \frac{1}{(1-P)+\frac{P}{n}}$
+- where $P$ is a fraction of the program that can be parallelized
+  - and $n$ is the number of parallel thread/processes
+
+
+${\displaystyle {\text{Speedup}}_{\text{overall}}={\frac {1}{(1-{\text{time}}_{\text{optimized}})+{\frac {{\text{time}}_{\text{optimized}}}{{\text{speedup}}_{\text{optimized}}}}}}}$
+where...
+${\displaystyle {\text{Speedup}}_{\text{overall}}}$ represents the total speedup of a program
+${\displaystyle {\text{Time}}_{\text{optimized}}}$ represents the proportion of time spent on the portion of the code where improvements are made
+${\displaystyle {\text{Speedup}}_{\text{optimized}}}$ represents the extent of the improvement
+
+/speedup depends on how much the program is parallel and how many processing resources are avaiable/
+
+other limiting factors for parallel processing code...
+- *synchronous parallel programming*
+  - the fastest task is limited by the slowest task
+- *asynchronous parallel programming*
+  - contingent on previous tasks and order of processes
+    - "work stealing", worker processes steal jobs from master
