@@ -1,0 +1,48 @@
+#+title: Categorical Analysis
+
+* Categorical Data Analysis
+Categorical Data Anaylsis is concerned with the analysis of categorical responses measures, regardless of whether any accompanying explanatory variables are also categorical or are continuous.
+
+- An important consideration is the appropriate analysis of categorical variables is their scale of measurement
+
+- Another consideration is the sampling framework that produced the data
+  - determining the possible analyses and possible inferences
+
+- Target populations generally assumed for each type of analysis
+  - and what types of inferences you are able to make them
+
+
+
+
+* CategoricalArrays.jl
+
+julia Pkg designed for either unorderded/nominal or ordered/ordinal categorical data
+
+`CategoricalArray{T}` `CategoricalValue{T}`
+
+- it maintains a pool of the levels which can appear in the given data
+  - levels are stored in a specific order
+  - for unordered arrays
+    - this order is only used for pretty printing
+  - for ordered arrays
+    - it also allows comparing values using the `<` and `>` operators
+      - comparison is then based on the ordering of levels stored in the array
+    - for ordered `CategoricalValue` can also be compared with a value
+      - that when converted is equal to one of the levels of this `CategoricalValue`
+
+`ordered`, `ordered!` `levels`, `levels!` `droplevels!`
+
+
+* Categorical Data in DataFrames.jl
+
+we have to deal with columns that take on a number of levels
+
+we can represent the data more efficiently by replacing a naive encoding of every entry as a string with indices into a small pool of levels
+- uses less memory!
+- they can be grouped using `groupby`
+
+
+* PooledVector v.s. CategoricalVector
+
+`PooledVector` is intended for cases where data compression is the only objective
+`CategoricalVector` is designed to additionally provide full support for working with categorical variables, both with unordered (nominal variables) and ordered categories (ordinal variables)

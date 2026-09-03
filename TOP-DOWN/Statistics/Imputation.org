@@ -1,0 +1,94 @@
+#+title: Imputation
+
+
+* Imputation
+
+** Descriptive Statistics
+Suppose $Y = (y_1, y_2, ..., y_n)^'$ is the $(n \times p)$ matrix of complete data
+- which might not be fully observed
+$n_0$ is the number of observations fully observed and $n_j$ is the number of observations with observed values for variable $Y_j$
+
+With complete cases, the sample mean vector is
+$\bar{y} = \frac{1}{n_0} \sum{y_i}$
+
+and the CSSCP matrix is
+$\sum(y_i-\bar{y})(y_i - \bar{y})^'$
+Where each summation is over the fully observed observations...
+The sample covariance matrix is
+$S=\frac{1}{n_0 -1}\sum(y_i - \bar{y})(y_i - \bar{y})^{'}$
+And is an unbiased estimate of the covariance matrix
+
+The correlation matrix $\mathbb{R}$
+- which contains the Pearson product-moment correlations of the variables
+is derived by scaling corresponding covariance matrix
+$\mathbb{R}=D^{-1}S D^{-1}$
+Where $D$ is a diagonal matrix whose diagonal elements are the square roots of the diagonal elements of $S$
+With available cases, the corrected sum of squares for variable $Y_j$ is
+$\sum(y_{ij}-\bar{y}_j)^2$
+Where $\bar{y}_j = \frac{1}{n_j}\sum y_{ji}$ is the sample mean
+- and each summation is over observations with observed values for variable $Y_j$
+
+The variance is
+$s^2_{jj} = \frac{1}{n_j - 1} \sum(y_{ij} - \bar{y}_j)^2$
+The correlations for available cases contain pairwise correlations for each pair of variables
+- Each correlation is computed from all observations that have nonmissing values for the corresponding pair of variables
+
+
+** Practical Guide to Modern Imputation
+
+
+** Imputation Methods
+
+- To impute missing values for a *continous variable* data sets with monotone missing patterns:
+  _you should use either..._
+  1. A parametric method that assumes multivariate normality
+     - includes regression method and predictive mean matching method
+  2. A nonparameteric method that uses propensity scores
+
+- To impute missing values for a *classification variable* in data sets with monoton missing patterns
+  _you should use either..._
+  1. A logistic regression method
+     - when the classification variable has a binary, nominal, or ordinal response
+  2. A discriminant function method
+     - when the variable has binary or nominal response
+
+- To impute missing values for data sets with arbitrary missing patterns
+  _you can use either..._
+  1. Markov chain Monte Carlo (MCMC) method
+     - that assumes multivariate normality
+  2. fully conditional specification (FCS) method
+     - that assumes the existence of a joint distribution for all variables
+
+- For continuous variables in data sets with arbitrary missing patterns
+  _you can use either..._
+  1. MCMC to impute all missing values or just enough missing values to enable monotone missing paterns
+  2. Regression method
+  3. Specify a different set of covariates for each imputed variable
+
+
+- To impute missing values for continuous and classification variables in data sets with arbitrary missing patterns
+  _you can use either..._
+  1. FCS method
+  2. Regression and predictive mean matching method(s)
+     - for continouous variables(s)
+  3. Logistic Regression method
+     - for classification variable(s)
+  4. Discriminant Function method
+     - for classification variable(s)
+
+
+** Missing data
+
+**** MCAR, MAR, MNAR, Structured missingness, Planned missingness
+
+** Mulitple Imputation
+- One replaces missing values with multiple predictions from an imputation model
+  - Those $M > 1$ complete datasets can be used to assess the uncertainty of imputed values
+
+
+** High-level Imputation Programming
+*** SAS MI Procedure
+
+
+
+*** Julia Impute.jl

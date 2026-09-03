@@ -1,0 +1,28 @@
+#+title: Forest
+
+
+* Random Forest
+
+** ScienceDirect
+
+- A random forest is a _supervised ML_ classifier that consists of tree-like structure, unique independent vector, and input for most famous class of x
+
+
+* SAS HPFOREST Procedure
+
+https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.5/emhpprcref/emhpprcref_hpforest_toc.htm
+
+
+
+* Random Forests ~ Leo Breiman(2001)
+
+https://www.stat.berkeley.edu/~breiman/randomforest2001.pdf
+
+_Random forests_ are a combination of tree predictors such that each tree depends on the values of a random vector  sampled independently and with the same distribution for all trees in the forest.
+
+
+- the _generalization error_ for forests converges a.s. to a limit
+  - as the number of trees in the forest becomes large
+- the _generalization error_ of a forest of tree classifiers
+  - depends on the strength of the individual trees in the forest
+    - and the correlation between them
