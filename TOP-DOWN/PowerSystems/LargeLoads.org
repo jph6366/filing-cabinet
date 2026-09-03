@@ -1,0 +1,123 @@
+#+title: Large Loads
+
+* Large Loads
+
+large loads on the U.S. electricity system is impacting planning, operations, and reliability. Data centers are driving growth that are demand large loads unlike the traditional large load.
+- Plans for gigawatt-scale facilities and geographically-concentrated developments are not uncommon
+  - many new loads desire fast timelines
+  - also much harder to plan for in load forecasting
+    - as utilities receive many more applications for interconnection from large (such as data centers that are likely to materialize)
+  - data centers interface with the grid through power electronics and can change their power consumption at unprecendented speeds
+    - lots of unpredictability/uncertainty for the grid operator
+
+- modern large loads require novel capabilities like load flexibility and more sophisticated use of on-site generation and storage that may require revisions to existing grid planning and operating practices
+
+characteristics of modern large loads, and emerging practices and opportunities for integration into the grid
+
+1. large load forecasting and tariffs
+2. large load interconnection processes
+3. resource adequacy and large load flexibility
+4. transmission service
+5. large load behavior and operational flexbility
+6. load and resource configurations
+
+
+
+** Background
+
+- 2022 eletricity demand started growing quickly
+  - regions with data centers, oil & gas, manufacturing industries, and other modern large loads
+- potential for unprepared grid planning and operations
+
+- Many data centers are very large, with single facilities requiring approximately as much electricity as a medium-sized city
+
+- forecasted load-growth will exceed 5% per year from 2025 to 2030
+
+**An aggregation of most recent utilty and regional forecasts, as reported FERC, projects U.S. peak demand growth of 166 GW between 2025-2030 -- which would be ~20% increase over 2025 coincident peak demand**
+- forecasts are uncertain but the flat demand growth is no more
+  - they do no capture instances of significantly larger local load growth in regions where data centers are concentrated
+
+
+- currently there is a timing mismatch between how long it takes to *build a new data center (2-3 years)* and how long it takes to *plan, permit, and acquire equipment and build new generation (3-10 years)* and *transmission (10+ years)*
+
+- there is plenty supply options
+  - generation and storage, both centralized and distributed
+- building sufficient resources and associated infrastructure to meet load growth is challenged by supply chain bottle-necks
+  - siting and permitting barriers, and other factors
+
+- the U.S. electricity system now includes a complex mix of vertically integrated utilities, independent system operators and regional transmission organizations that operate under different planning and operational practices and rules
+
+- operation and planning of North American bulk power system is set forth and enforced by the NERC
+  - state policies can also influence system planning and operations for both generation and loads
+    - state regulators have explicit jurisdiction over retail loads and customers
+
+
+
+** Historical Loads
+
+*** Large Load types
+
+- historically large loads came from the manufacturing sector
+  - chemical processing, petroleum refining, pulp and paper, and metals manufacturing
+  - all very predictable power usage
+
+- modern large load interconnections serve data centers for computing or AI training and inference, or cryptocurrency mining
+  - roughly half of peak demand is from data centers
+
+- electricty demand from oil and gas is also growing
+  - ERCOT and SPP through the continued electrification of fossil fuel production and processes
+  - hydrogen production and vehicle, battery, and semiconductor manufacturing, may also become future drivers of growth
+
+*** Size and Geographical Concentration
+
+- largest invidual facilities are often sized less than 200 MW and added over a long time period
+  - existing large facility includes steel mills, aluminum smelters, etc.
+
+- facilities for energy-intensive uses (other than aluminum smelting) are smaller and load growth tended to be geographically dispersed and paced by multi-year industrial development cycles
+  - allowing transmission expansion and resource planning to adjust gradually
+
+- Data centers are clustering in specific regions or at single substation to take advantage of transmission capacity and land availability, fiber or water access, tax, or other incentives, or proximity to existing generation
+  - data centers raise new challenges for transmission planning, resource adequacy, and operational risk management
+
+*** Physical Interface with the Grid
+
+- traditionally the interaction with the grid is largely passive and predictable with slow electrical response times (10 to 100 milliseconds)
+  - driven by electromechical physics
+- new interactions with the grid through power electronics which move rapidly in milliseconds or microseconds
+  - driven by software logic
+- transmission and current generators cannot match the speed of what technology is capable of via software
+
+**the appropriate technical requirements for integrating data centers has yet to be fully developed**
+
+*** Demand Profiles and Potential for Load Flexibility
+- traditional loads use electricity in generally predictable ways with relatively stable load profiles that follow hourly, weekly, or seasonal patterns
+
+- energy use of data centers and other large loads are uncertain
+  - but new large loads have variability across facility types and uses
+
+- today we can offset load by shifting non-urgent computing tasks to other times and locations
+  - using gas generators, battery energy storage, or other back-up resources to reduce grid loading
+  - or reduce cooling loads with thermal storage
+
+
+** Modern Response to Large Loads
+
+- given novel characteristics of modern large loads
+  - we need to meet challenges without compromising the reliability and affordability of the grid for all customers
+
+*** Large Load Forecasting and Tariffs
+
+- the size and characteristics of new large loads
+  - establishes load forecasting as insufficient
+- substantial uncertainty for load forecasting
+  1. many interconnection requests may be exploratory or speculative
+  2. land owners, multi-tenant facility developers, and others may be requesting interconnection to attract data centers but lack knowing of load at the time of application
+  3. improvments in computational science and technology contribute to uncertainties in future consumption
+
+- There are new large load forecasting methods
+  - includes disclosure of multiple requests for a single facility
+  - weighting or derating factors and thresholds can be applied at different stages of a large load project in a forecast
+    - to reflect the relative certainty for a load, and these are being refined as forecasters gain experience with new large loads
+
+
+** Summary

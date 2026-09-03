@@ -3,9 +3,789 @@
 * reV Contributions
 
 
-** custom reV errors/exceptions
+** revgas rapid prototyping gas modeling
 
-<2026-04-10 Fri>
+*** summary
+we are trying to imply max potential using daily implied flow, supply, demand, and deliverability of natural gas in order to determine a suitable site for site gas-fired generation plant for maximal load delivery during peak consumption days
+
+Knowing this is our goal we would like to maximize gas flow rate in the deliverability phase before moving to capacity phase. We require assumptions for hydraulic efficiency of the pipeline and the efficiency of the compressor stations components
+
+Also to incoporate GasModels.jl code which implements a steady-state model of gas flow based on Weymouth and uses 1-D hydrodynamic equations for natural gas flow in a pipe. Which requires our given CONUS data to be transferred to Matgas Format:
+- junctions
+- pipes
+- compressors
+  - just horsepower
+- short pipes
+- resistors
+- loss resistors
+- regulators
+- valves
+- transfers
+- receipts
+  - are power plants
+- deliveries
+  - disaggregated EIA estimates
+- storage
+- network parameters
+
+*** implementation
+
+1. Overture Maps for counting buiilding(s) for classifying our level of consequnce for a given area
+   - Class location offers insight into federal regulations on pipeline design and classification for general requirements
+
+2. Now to imply flow rates for a given network or even a segment(s) using PUDL tables
+   - We use the monthly gas storage and monthly generator attributes
+     - calculate a network-level ratio for each month
+     - disaggregate down to weekly and daily
+
+        *This will become some PUDL refactors*
+        *Working in Pure julia for GasModels*
+
+
+
+*** comments
+
+
+WERE on max delvierabiliy right now
+- next thread is translating deliverability to capacity
+
+AVAILABLE land use
+- next biggest research areas (HCAs)
+
+relationship of a max deliverability for a max plant capacity
+- max flow rate
+
+regulations on their capacities (HOLD OFF on this)
+
+
+grug forward and note future directions
+
+push data forward to help assist our advisory team to unload more value
+- get it working first and clean it up
+
+Characterize an appropriate sized subnetwork to imply the flow rate with least amount of influence
+- flow is restricted to size of network
+- help reduce computation time
+
+- molecule tracing (how far mass goes)
+
+
+
+**** Interstate Natural Gas Pipeline Efficiency
+
+https://ingaa.org/wp-content/uploads/2010/10/10929.pdf
+
+*Pipeline System Design*
+- The initial design normally is based on peak day contractual
+commitments plus an accommodation for future demand that can be reliably forecast
+
+*J-Curves* - compares the delivered cost of fuel to the cost of pipe
+- To determine the optimum combination of pipeline diameter and horsepower requirements
+
+*Optimal Compressor Spacing*
+- To determine optimal compressor spacing the trade off between delivered transportations cost for natural gas v.s. pipe mileage
+
+*Transportation Efficiency of the pipeline system* - $\eta_{sys}$
+- a combined product of the pipeline hydraulic efficiency $\eta_{pipeline}$
+  - which measures losses between compressor units and the compressor unit efficiency $\eta_{stations}$
+    - which includes both driver efficiency and compressor efficiency
+- higher pressure loss equates to more actual work
+  - which lowers the transportation efficiency
+- compressor stations boost the pressure of gas to compensate for pressure losses along the line
+  /pressure loss is related to friction, the length, and diameter of the pipe and the individual pressure losses due to obstructions such as bends, valves, or flow meters/
+  - When designing its system, a pipeline company tries to optimize hydraulic efficiency
+    - through pipeline routing, diameter and operating pressure selections, and unit efficiency
+      - through its compressor unit selections
+        - (including the engines, turbines, or electric motors that power the compressors).
+
+
+*Compressor Selection*
+- After determining the desired ratio between pipeline specifications and horsepower requirements
+  - one can select compresor units that best meet its load profile and operating needs
+    1. forecasted operating conditions
+    2. unit's air emissions compliance
+    3. installation costs
+    4. projected operating costs
+    5. projected maintenance costs
+    6. unit's compatibiility with fleet of compressors
+    7. overall efficiency of the compressor unit
+       - combination of thermal efficiency of the prime mover and compression efficiency of the compressors themselves
+    8. reliability of compressor unit components
+    9. expertise of pipeline personnel with equipment
+
+- Installation of one or more large units per compressor station versus several smaller units affects pipeline efficiency
+  - to address variable market area customer demands, sometimes select smaller compressor units can be switched on and off to meet throughput and pressure needs
+_Assuming the same configuration and location, two smaller compressor units will have a higher cost per horsepower compared to larger unit due to economies of scale_
+- one fully-loaded, big unit uses fuel more efficiently and cost less than 2 small units
+- in contrast, one fully-loaded small unit will be more fuel efficient and offer more flexibility than partially-loaded big unit
+- similarly, operating mulitple small compressors achieves better fuel efficiency than a single large compressor
+  - if the pipeline operates at less than max throughput (typically for a given a location)
+
+*Pipeline Operations*
+- Pipeline companies employ a number of techniques and procedures to maximize system efficiency
+  - while satisfying the level of required customer flexibility and fulfilling contractual commitments
+    1. flow simulation software for transient and real time modeling
+       - for operations that rely on higher linepack
+    2. shortening the outage time of high efficiency equipement
+    3. seek approval for increase in MAOP through PHMSA
+       - therefore reducing compressor fuel usage
+
+
+
+
+*Conclusion*
+/The greatest opportunity for maximizing both the economic and transportation efficiencies of a pipeline system is during the initial design and construction stage, when the optimum combination of pipe size, compression, and compressor unit components is chosen to meet projected demand/
+
+
+
+
+** revgas duckdb
+
+** revgas excel spreadsheet extractor for raw, unprocessed data
+** revgas refactor pudl.py
+
+*** summary
+
+PUDL.py is a wrapper to PUDL's Zenodo archives which are cached and also available via S3 catalog.
+- We would like to provide a thin wrapper to PUDL data
+  - and also document interfaces and transform data to fit desired natural gas component
+We are incorporating pandapipes and developing an acceptable way to model the pipeline flow network inside the network module so we want align idioms across these libraries.
+There is also the reV idioms across the typical reV workflows (e.g. generation -> aggregation -> supply curve -> rep-profiles)
+We also are communicating across defining gas components as well as electricy generation components
+- these have overlapping terms like `transmission`.
+
+
+*** implementation
+
+1. consult the best option for requesting remote storage
+2. offer critical inputs relevant spec sheet
+   0. supply
+   a. production
+   b. deliverability
+   c. generation
+   d. demand
+3.
+
+*** success criteria
+
+
+*** comments
+
+*linting* !
+
+
+
+** revgas refactor network module
+
+** reView cleanup dependencies issues
+
+*** summary
+loosen or strict dependencies? or offer `uv` for a easily accessible and separable env without configuration
+
+*** implementation
+
+- note outdated python project practices
+- offer loose set of dependencies as requirements-dev.txt
+- dependabot automatic version updates
+
+** revgas pipeline map visualization
+
+
+*** summary
+
+- pipeline network
+
+- click on a point and highlight a subgraph
+
+- reachability metric given a point
+  - theoretical
+
+- hide-show layers of offtake nodes
+
+
+*** implementation
+
+_plotly dash python_
+
+
+1. visualize pipline network via dash component
+   - use existing code in reView and cart for reference implementation
+   - replace sample component with sample geoparquet, and trial & error
+
+        /validating travis's code for successful runs/
+        - read
+        - build_network
+
+   _mapbox basemap_
+   _dash_deckgl_ & _pydeck_
+
+
+1. add interactive feature for hover/select event
+
+   - the tooltip upon hovering a feature displays pertinent information for idenitification
+
+   - characterize the subgraph via `revgas/network/graph.py` using networkit
+   /waiting on valid data otherwise we need to refactor travis's code/
+   - travis shares his zipped data folder so we got valid data now and we run graph.py
+
+     *fixed multiprocessing bug with updated `connect_to_nodes()`*
+
+   - trying out `identify_subgraph` manually
+
+2. add more symbology for different nodal representation and relationships to the network
+
+   - added compressor stations, processing plants, and power plants
+     - use these to characterize subgraph upon selection
+
+3. reorganize code or write tests
+
+   - refactor code to isolate abstract
+     - 100 or 300 loc
+     - clean code and idiomatic code/comments
+
+   - write test for visualizing layers
+     - including selection for update_map callback
+   - write test for tooltip
+   - write test for selection event
+   - write test for validating Graph class?
+     - possibly need a base test first
+4. add pyproject DX for easy-to-use dashboard
+   - update README
+   - optional dependencies
+   - test setup/installation instructions
+
+
+_optional_
+- aggregation layers
+  - (deck.gl) contour, grid, heatmap, a5, h3, s2
+  - state, county, balancing authority
+  - company, operator,
+
+_added_
+- heatmap layer
+  - color maps, and slight mods for smooth callback
+
+*** success criteria
+
+*** comments
+
+** revgas dash application CONUS/EUROPE refactor
+
+*** summary
+
+Travis has refactored to a MVC for the revgas dash app.
+We have the original US setup but we want the EU visualization setup as well.
+Just add a modification to the existing code to allow for the EU to be toggled on and off.
+
+_rabbit hole_ /but actually might be better design/
+
+- make a draft in `trame`
+  - offers cross platform distribution
+  - HPC
+  - funded maintenance
+  - we can send testimonials for marketing
+
+- continue in `trame-flow` to design revgas graph nodes
+  - enable visualization of network/graph parquet
+
+
+
+_too complex_ (geoarrow better support for javascript rather than python)
+- utilize geoarrow in deck.gl to make layer visualization less cumbersome
+  - we can store geometry in Parquet files as GeoArrow encoding
+    - instead of WKB
+
+
+*** implementation
+
+1. identify the code that needs to be modified and the code to be created
+   - europe`page`
+     - Model View Callback
+   - map `component`
+
+2. refactor MVVM and scigridgas and revgas controllers
+
+
+*** success criteria
+
+visualize the SciGridGas Network and implement code cleanly into the MVC structure
+
+*** comments
+
+note that `dash` is stateless
+
+
+
+
+** fix brute-force multiprocessing with geopandas
+
+*** summary
+
+the `connect_to_nodes` class method has a nested _init_worker() function that pools processes for parallelized processing of connecting lines in a network to create a undirected graph. The immediate conflict is that it only works on Linux and MacOS presumably so windows can't spawn threads the same way also we need to some applied computation measurement to understand whether multiprocessing is necessary and if it even is a speedup?
+
+
+*** implementation
+
+1. quantify the entire network based on number of pipeline segments and nodes
+   - compute a combinatorial of connections that would take bounds for time and space
+len of `velsuite` pipeline data: 40883
+""      ""      processing plants: 667
+""      `eia`      storage: 32
+
+                Texas    US
+`build_network`  ~200s    ~450s
+
+
+- single-threaded ~20% faster on Windows
+- test on HPC for linux
+
+System Manufacturer:           Dell Inc.
+System Model:                  Latitude 7450
+System Type:                   x64-based PC
+Processor(s):                  1 Processor(s) Installed.
+                               [01]: Intel64 Family 6 Model 170 Stepping 4 GenuineInte
+l ~1700 Mhz
+Total Physical Memory:         32,213 MB
+Available Physical Memory:     17,639 MB
+Virtual Memory: Max Size:      37,077 MB
+Virtual Memory: Available:     17,713 MB
+Virtual Memory: In Use:        19,364 MB
+
+Result: Multiprocessing was 12.50s FASTER than single-threaded on Kestrel HPC Linux
+Speedup ratio: 1.47x
+
+*** success criteria
+
+- definitely will need a visual check by travis
+  - but I assume nodes that look like they should be connected (because of the trivial distance to a pipeline)
+
+
+*** comments
+
+** modeling natural gas research contributions
+
+- MAOP Reconfirmation
+
+  https://ingaa.org/wp-content/uploads/2018/08/35005.PDF
+
+
+** rev: running downscaled climate models
+
+*** summary
+This project is demonstrating using downscaled climate models in reV. These outputs were downscaled using WRF and are part of a larger effort with Grant Buster who uses adversarial neural networks to downscale these GCMs (Su3rcc). It's a fairly straightforward set of runs, but will require us to make sure we're matching Grant's run designs and account for any bias correction steps or other oddities that might come up with this new WRF dataset
+
+We are running reV for both the Sup3rcc and WRF downscaled resource data. this will include UPV LBW and OSW. this run will use a bias-corrected 18-model CMIP-based dataset as its resource
+
+_dynamical downscaling_ is an approach to obtaining fine-scale weather and climate information
+- simulations often degraded by biases in the large-scale forcing itself
+/bias-corrected data has an mean climate and interannual variance/
+
+
+Shared Socioeconomic Pathways
+- 2 sets for climate scenarios
+  - emissions scenario
+  - SSps
+
+
+
+
+
+*** implementation
+
+SAME RESOURCES AND SAME YEARS AS ORIGINALS
+
+
+1. document work thus far by travis and grant
+
+   _model notes!_
+        `/datasets/NCDB/ncdb_wrf_conus/v1.0.0_preliminary`
+   - WRF-downscaled resource data
+   - to be updated with CMIP6 global dataset ?
+
+   `/projects/alcaps/rev`
+   - Grants rev configs for the sup3rcc runs
+     - start with FY24 then FY25 runs after matching all of original configs
+       - except for the resource data
+
+     _review!_
+     - Sup3rCC, super resolution for renewable energy resource data with climate change impacts
+       - 4km hourly wind, solar, temperature, humidity, and pressure fields for the contiguous U.S.
+         - under various climate change scenarios
+     /Sup3rCC is downscaled Global Climate Model data/
+   - performed using a generative ML approach called sup3r
+
+           _double review!_
+     - sup3r, super resolutioun for renewable energy resource data
+       - generative model learns from patterns and generates high detail temp, humiditiy, wind speed, solar irradiance, etc.
+     - produces synthetic high-res spatiotemporal energy resource data from low-res inputs
+       - includes historical and future weather years
+         - historical years represent the historical climate, not actual weather we experienced
+   /you cannot use sup3rcc data to study historical weather events/
+
+
+1. We should replace the new `RESOURCE_DIR` with v2.0.0 and other new versioned datasets
+   - NOTE: may need to aggregate h5 files for each year if not already done
+     - ask paul for operation
+
+- lines 138-141
+  - should only apply to != lbw
+
+- read in original csv
+  - explore supply curve py
+
+2. run with test project points .csv
+
+
+`rrlogs` `rev status`
+- logs/stdout/jobid
+- shows steps and status on pipeline
+
+**** _FY24 LBW_
+
+
+    annual_energy-2007       Dataset {52965}
+    ... 2013
+    annual_energy-means      Dataset {52965}
+
+    annual_gross_energy-2007 Dataset {52965}
+    ... 2013
+
+    annual_gross_energy-means Dataset {52965}
+    annual_wake_loss_internal_kWh-2007 Dataset {52965}
+    ... 2013
+    annual_wake_loss_internal_kWh-means Dataset {52965}
+    annual_wake_loss_internal_percent-2007 Dataset {52965}
+    ... 2013
+
+    annual_wake_loss_internal_percent-means Dataset {52965}
+    annual_wake_loss_total_percent-2007 Dataset {52965}
+    ... 2013
+
+    annual_wake_loss_total_percent-means Dataset {52965}
+    capital_cost-2007        Dataset {52965}
+    ... 2013
+
+    capital_cost-means       Dataset {52965}
+    cf_mean-2007             Dataset {52965}
+    ... 2013
+
+    cf_mean-means            Dataset {52965}
+    cf_profile-2007          Dataset {8760, 52965}
+    ... 2013
+
+    fixed_charge_rate-2007   Dataset {52965}
+    ... 2013
+
+    fixed_charge_rate-means  Dataset {52965}
+    fixed_operating_cost-2007 Dataset {52965}
+    ... 2013
+
+    fixed_operating_cost-means Dataset {52965}
+    lcoe_fcr-2007            Dataset {52965}
+    ... 2013
+
+    lcoe_fcr-means           Dataset {52965}
+    meta                     Dataset {52965}
+    system_capacity          Dataset {52965}
+    system_capacity-2007     Dataset {52965}
+    ... 2013
+
+    system_capacity-means    Dataset {52965}
+    time_index               Dataset {8760}
+    time_index-2007          Dataset {8760}
+    ... 2013
+
+    variable_operating_cost-2007 Dataset {52965}
+    ... 2013
+
+    variable_operating_cost-means Dataset {52965}
+    wake_loss_internal_kW-2007 Dataset {8760, 52965}
+    ... 2013
+
+    wake_loss_internal_percent-2007 Dataset {8760, 52965}
+    winddirection-2007       Dataset {8760, 52965}
+    ... 2013
+
+    ws_mean                  Dataset {52965}
+
+
+**** _FY24 OSW_
+
+- config_gen.json
+
+  {
+    "log_directory": "./logs",
+    "execution_control": {
+        "allocation": "wetosa",
+        "memory_utilization_limit": 0.6,
+        "option": "kestrel",
+        "sites_per_worker": 100,
+        "walltime": 4,
+        "memory": 240,
+        "qos": "high"
+    },
+    "log_level": "INFO",
+    "analysis_years": [
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013
+    ],
+    "technology": "windpower",
+    "output_request": [
+        "cf_profile",
+        "ws_mean",
+        "system_capacity",
+        "wake_losses",
+        "annual_gross_energy",
+        "annual_energy"
+    ],
+    "project_points": "/projects/rev/projects/weto/fy24/standard_scenarios/osw/data/tab
+les/site_data.csv",
+    "site_data": "/projects/rev/projects/weto/fy24/standard_scenarios/osw/data/tables/s
+ite_data.csv",
+    "sam_files": {
+        "WC_fixed": "./sam_configs/12MW_fixed.json",
+        "Gulf_fixed": "./sam_configs/12MW_fixed.json",
+        "MA_fixed": "./sam_configs/12MW_fixed.json",
+        "SA_fixed": "./sam_configs/12MW_fixed.json",
+        "NA_fixed": "./sam_configs/12MW_fixed.json",
+        "GL_fixed": "./sam_configs/12MW_fixed.json",
+        "WC_floating": "./sam_configs/12MW_floating.json",
+        "Gulf_floating": "./sam_configs/12MW_floating.json",
+        "SA_floating": "./sam_configs/12MW_floating.json",
+        "MA_floating": "./sam_configs/12MW_floating.json",
+        "NA_floating": "./sam_configs/12MW_floating.json",
+        "GL_floating": "./sam_configs/12MW_floating.json"
+    },
+    "resource_file": "/datasets/WIND/conus/v1.0.0/wtk_conus_{}.h5"
+  }
+
+**** _FY24 UPV_
+ac-1998                  Dataset {8760, 522497}
+...
+ac-2023                  Dataset {8760, 522497}
+base_capital_cost        Dataset {522497}
+base_fixed_operating_cost Dataset {522497}
+base_variable_operating_cost Dataset {522497}
+capital_cost             Dataset {522497}
+capital_cost_multiplier  Dataset {522497}
+cf_mean-1998             Dataset {522497}
+...
+cf_mean-2023             Dataset {522497}
+
+cf_mean-means            Dataset {522497}
+cf_mean-stdev            Dataset {522497}
+cf_mean_ac-1998          Dataset {522497}
+...
+cf_mean_ac-2023          Dataset {522497}
+
+cf_mean_ac-means         Dataset {522497}
+cf_mean_ac-stdev         Dataset {522497}
+cf_profile-1998          Dataset {8760, 522497}
+...
+cf_profile-2023          Dataset {8760, 522497}
+
+cf_profile_ac-1998       Dataset {8760, 522497}
+...
+cf_profile_ac-2023       Dataset {8760, 522497}
+
+clipped_power-1998       Dataset {8760, 522497}
+...
+clipped_power-2023       Dataset {8760, 522497}
+dc-1998                  Dataset {8760, 522497}
+...
+dc-2023                  Dataset {8760, 522497}
+dc_ac_ratio              Dataset {522497}
+fixed_charge_rate        Dataset {522497}
+fixed_operating_cost     Dataset {522497}
+ghi_mean-1998            Dataset {522497}
+...
+ghi_mean-2023            Dataset {522497}
+ghi_mean-means           Dataset {522497}
+ghi_mean-stdev           Dataset {522497}
+lcoe_fcr-1998            Dataset {522497}
+...
+lcoe_fcr-2023            Dataset {522497}
+lcoe_fcr-means           Dataset {522497}
+lcoe_fcr-stdev           Dataset {522497}
+meta                     Dataset {522497}
+system_capacity          Dataset {522497}
+system_capacity_ac       Dataset {522497}
+time_index-1998          Dataset {8760}
+...
+time_index-2023          Dataset {8760}
+variable_operating_cost  Dataset {522497}
+
+
+
+**** FY24 DPV
+
+
+
+
+**** setup.py
+
+setups runs and build input data for downscaled gcm rev runs
+- techmap didn't work as intended so it is created manually here.
+- old supply curves were input into rep-profiles bc of post-process script used
+
+LBW:
+- no need for project points
+- exclude invalid supply-curve points
+OSW:
+UPV:
+- exclude invalid supply-curve points
+DPV:
+- ?
+
+`rev.supply_curve.tech_mapping import TechMapping`
+
+
+
+*** success criteria
+
+- check for bias correction in existing data
+- new data set run
+  - mirror grants runs in FY24
+- exact same turbine placements
+  - what does the new data show
+
+*** comments
+
+/all revruns are nonstandard but we sticking to standards/
+- for representative profiles
+  - then ReEDS writes a research report
+- potential gridsize issues mismatching other data
+
+_working with h5py_
+- HDF5 shape
+- scale factor / offset
+
+
+NOTES FROM Grant
+- rev-sup3rcc generation inputs is all i need
+/ALCAPS/
+- lbw and osw upv references folders
+- scenario folders naming convention
+  - energy_scenarioname_year
+  - 6 directories for each scenario
+    - 10 year output files
+
+- validate output generation
+- reView
+- look at maps to see if patterns are reasonable
+  - check out spatial and temporal patterns
+
+_when you finish each of a tech_
+- give grant a headsup for pair programming and analysis
+
+double check w/ jame-o
+ - bias correction?
+
+
+ _post-process-supply-curvew_
+ - before running this double check with gabe
+
+script module
+"script": "./config_scriptjson5"
+
+log-level for debugging
+
+**rev bash**
+- rev pipeline -c config_pipeline.json
+
+rex.utilities.exceptions.ResourceRuntimeError: At lea
+st 2 irradiance variables (dni, dhi, or ghi) are need
+ed to run SAM!
+
+
+dpv is not run on every site scenario,
+- /projects/alcaps/rev/dpv
+
+  add a new techmap in config when generating new project points
+  - caused by mismatch of dimensions in resource data
+  - for supply curve error
+
+
+
+** revgas data spec sheet
+
+*** summary
+
+the natural gas modeling team in reV needs a specification sheet of our existing indicators for the deliverability of gas, and perhaps other oil and gas potential signals. In this spec sheet we shall identify the most relevant and significant, also listing various available datsets
+
+*** implementation
+
+1. prototype list of data dictionaries and their relevant data columns
+2. provide writeups on usecases for varying indicators and variables
+3. Develop template for specification sheet in excel
+4. Develop data standards for assets in gold and silver assets, bronze for investigation and raw assets
+5. Fill in page 1 with assets that use silver assets to construct wide and complete tables suitable for analysts to perform analysis on
+6. Fill page 2 with assets that are building blocks for downstream wide tables and analyses
+7. Fill page 3 with assets in investigation or that extract directly from spreadsheets and databases
+
+*** success criteria
+
+- excel sheet
+  - revgas spec sheet versioning
+
+- provide specifications
+  - PUDL
+    - EIA
+    - FERC
+    - ATB
+  - raw EIA
+    - eia912
+    -
+  - raw ATB
+  - GEMS
+  - GSAM
+  - NEMS
+  - NGMM
+  - FINITO
+  - BlendPath
+  - SAInt
+  - INGAA
+  - HITACHI VELOCITY
+  - WOODS MACKENZIE LENS
+
+- include concepts
+  - oil & gas reserve data
+  - gas-generated profiles
+  - generation ramp rates
+  - atmospheric & environmental effects
+  - transmission interconnection
+  - plant ownership
+  - turbine technologies
+  - financing costs, capital costs, operating costs,
+  - construction & equipment acquisition period
+  - land use constraints
+  - nature
+  - artificial
+  - regulatory
+  - outage/maintenance downtime
+  - estimate for deployment time
+    - time to acquire turbine, materials, permits, finances, etc.
+  - gas pipeline data
+  - gas pipeline flow data
+  - gas pipeline compressor data
+  - geospatial modeling of pipeline routes
+  - gas pipeline capacity constraints & deliverability
+  - natural gas prices
+  - gas delivery and energy conversion formulae
+  - fuel offtake locations and magnitude
+  - transport length
+  - linepack
+  - compressors
+  - roughness
+  - loss coefficient
+
+
+** custom reV errors/exceptions
 
 ***  story
 
@@ -18,6 +798,7 @@ _unused exceptions_
 - NearestNeighborError
 - JSONError
 
+**** documented exceptions
 _SAM_
 
 /SAM.py/
@@ -522,8 +1303,10 @@ _utilities_
 
 *** testing
 
-*** foresight
+revruns using sample `project_points`
 
+
+*** foresight
 
 
 *** certificate of origin
@@ -546,4 +1329,177 @@ Assisted-by: Claude:claude-sonnet-4-6 [grep] [glob]
 - “User code can raise built-in exceptions. This can be used to test an exception handler or to report an error condition “just like” the situation in which the interpreter raises the same exception; but beware that there is nothing to prevent user code from raising an inappropriate error.”
 - “ It’s recommended to only subclass one exception type at a time to avoid any possible conflicts between how the bases handle the args attribute, as well as due to possible memory layout incompatibilities.”
 
-- Allows downstream users of reV to catch reV exceptions explicitly
+  - Allows downstream users of reV to catch reV exceptions explicitly
+
+
+** reVgas dagster job for natural gas
+
+*** story
+
+We are only interested in a subset of datasets of the entire PUDL output.
+
+We can launch PUDL jobs with custom configured `etl.yaml` file, assuming all upstream dependencies are materalized correctly.
+
+*** implementation
+
+1. write and document a yaml detailing a list of jobs to run
+
+*** success criteria
+
+works on my machine, your machine, and kestrel
+
+*** comments
+
+
+
+
+** reVgas pudl data access routine
+
+*** story
+`revgas` repository initially for  prototyping a natural gas module in reV which will store documents, sample datasets, and sample code to help understand how we might approach this technology in reV, which is a fundamentally different modeling problem than for renewable energy technologies.
+
+The initiation of a prototype requires a complete pudl module to quickly retrieve all relevant gas related data
+
+*** implementation
+1. add environement variables
+   - pudl paths
+2. augment PUDL class to pull from local `pudl_output` mirroring the current method
+3. write code examples using the extent of gas-related PUDL data
+   - based on data's stage in pipeline we will offer zen pythonic interface
+   - built-in meta analysis and irregularity handling
+     - eia, aeo, ferc, etc.
+
+
+*** success criteria
+_pudl parquets_
+- eia yearly generators
+- eia 923
+- eia 860
+- eia 176
+- eia 191
+- __scd
+
+_duckdb_
+- ...
+
+*** comments
+
+
+** reVgas time-varying analyis example
+
+*** story
+PUDL pipeline infra and natural gas generation output data requires exploratory analysis to initially confirm irregularities that jeopardize the integrity of statistical inferences made from the output of public utility data that is ready for distribution.
+
+Exploring the patterns, outliers, and taking the completeness of time-series into account before performing any form of systematic learning or hypothesis tests.
+
+
+
+*** implementation
+
+1. lets extend the PUDL clasarjunis to use the local kestrel data
+
+- ESDA
+
+_spatial anaylsis_
+-
+
+_time-series analysis_
+- plot the time series data
+- plot ACF and PACF
+- apply transformation if needed for stationarity assumption
+
+_geostatistical analysis_
+- define elements of statistical learning in geospatial setting
+- describe the learning tasks that leverage properties of the underlying spatial domain
+- assess widely used methods for estimating generalization error of learning models, under covariate shift and spatial correlation
+
+
+
+*** success criteria
+
+geographically discrete estimate of xxx
+
+perform seasonal derating
+
+incorporate and document pudl's coincidental and peak generation
+
+
+
+*** comments
+
+
+
+** reVgas spatial analyis example
+
+*** story
+PUDL pipeline infra and natural gas generation output data requires exploratory analysis to initially confirm irregularities that jeopardize the integrity of statistical inferences made from the output of public utility data that is ready for distribution.
+
+Exploring the patterns, outliers, and taking the completeness of time-series into account before performing any form of systematic learning or hypothesis tests.
+
+
+
+*** implementation
+
+1. lets extend the PUDL class to use the local kestrel data
+
+- ESDA
+
+_spatial anaylsis_
+-
+
+_time-series analysis_
+- plot the time series data
+- plot ACF and PACF
+- apply transformation if needed for stationarity assumption
+
+_geostatistical analysis_
+- define elements of statistical learning in geospatial setting
+- describe the learning tasks that leverage properties of the underlying spatial domain
+- assess widely used methods for estimating generalization error of learning models, under covariate shift and spatial correlation
+
+
+
+*** success criteria
+
+geographically discrete estimate of xxx
+
+perform seasonal derating
+
+incorporate and document pudl's coincidental and peak generation
+
+
+
+*** comments
+
+
+
+
+
+
+
+** reVgas pudl geoparquet to qgis
+
+*** story
+
+given new resource datasets for natural gas the GDS team will need a geospatial workflow for further visualization using flagship GIS softwares like QGIS, GDAL, ArcGIS, etc.
+
+This calls for documenting a consistent routine for geospatial analysis, transforms, and visualizations. Requires a support for standard geospatial formats compatible with QGIS first and foremost, but ideally something easily extensible for vector analysis.
+
+
+*** implementation
+
+
+_GeoParquet_
+- will require a script to aggregate parquets into geoparquet
+  - anchor spatially using `yearly_plants` `yearly_generators`
+- DuckDB or PyArrow
+
+Web GIS will be best visualization
+
+
+
+*** success criteria
+
+*** comments
+
+** revgas texas aggregate generation example

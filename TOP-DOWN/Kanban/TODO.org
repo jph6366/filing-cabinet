@@ -9,24 +9,18 @@
 ** TODO MCP for OGC APIs: System Design
 ** TODO GeoPackage Benchmark: Initialize
 ** TODO PeppiMCP: Benchmark
-SCHEDULED: <2026-04-25 Sat>
 
 ** TODO Peppi.jl and peppi-jlrs review
-SCHEDULED: <2026-04-24 Fri>
 
 ** TODO PeppiMCP: Containerization
 ** TODO PeppiMCP: HuggingFace
-SCHEDULED: <2026-04-25 Sat>
 ** TODO PeppiMCP: Code Review
-SCHEDULED: <2026-04-25 Sat>
 
 ** TODO PeppiMCP: BAML
-SCHEDULED: <2026-04-25 Sat>
 
 ** TODO Geograpic Weighted Decomposition
 ** TODO SAS Regression Project
 ** TODO Peppi.jl Imitation Learning
-SCHEDULED: <2026-04-24 Fri>
 
 ** TODO BitNet.jl: nanogpt
 
@@ -34,49 +28,120 @@ SCHEDULED: <2026-04-24 Fri>
 ** TODO BitNet: MBBP/MBJP Benchmark
 ** TODO Attention Residuals: ZettleKasten
 ** TODO MPI Kurs: ZettleKasten
-SCHEDULED: <2026-04-25 Sat>
 ** TODO MPI HW: MPI.jl
-SCHEDULED: <2026-04-25 Sat>
 
 ** TODO Flynn's & Duncan's Taxonomy: ZettleKasten
 ** TODO Odin Programming: ZettleKasten
-SCHEDULED: <2026-04-24 Fri>
 
 ** TODO Rust Programming: ZettleKasten
 ** TODO Clojure Programming: ZettleKasten
 ** TODO Cpp Programming: ZettleKasten
+** TODO Python Programming: ZettleKasten
+SCHEDULED: <2026-05-20 Wed>
 
 ** TODO Lisp Programming: ZettleKasten
 ** TODO Oil&Gas Potential Modeling: ZettleKasten
 ** TODO Cartesian-to-Polar Embeddings: ZettleKasten
 ** TODO Game Jam Practice Karl2D
-SCHEDULED: <2026-04-24 Fri>
 
-** TODO rev-contributions: testing custom reV exceptions
-SCHEDULED: <2026-04-22 Wed>
+** TODO [#B] rev: testing custom reV exceptions
+SCHEDULED: <2026-05-06 Wed>
 
-** TODO revgas Resource Data Input: Investigation
-SCHEDULED: <2026-04-22 Wed>
+
+** TODO [#A] revgas: dagster job for natural gas
+SCHEDULED: <2026-05-22 Fri>
+:LOGBOOK:
+CLOCK: [2026-05-08 Fri 06:23]--[2026-05-08 Fri 06:59] =>  0:36
+:END:
+** TODO [#A] revgas: pudl data access routine
+SCHEDULED: <2026-05-21 Thu>
+:LOGBOOK:
+CLOCK: [2026-05-28 Thu 08:06]--[2026-05-28 Thu 15:26] =>  7:20
+:END:
+
+** TODO [#A] downscaled climate models in reV
+SCHEDULED: <2026-05-29 Fri>
+
+** HOLD [#A] revgas: Energy, Electricity, and Gas Pipeline Spec Sheet
+SCHEDULED: <2026-06-01 Mon>
+:LOGBOOK:
+CLOCK: [2026-06-01 Mon 19:42]
+:END:
+
+
+** TODO [#B] revgas: gis workflow
+SCHEDULED: <2026-05-22 Fri>
+
+** TODO [#B] revgas: add examples
+**** TODO [#B] revgas: time-varying analysis
+SCHEDULED: <2026-05-21 Thu>
+
+**** TODO [#B] revgas: spatial analysis
+SCHEDULED: <2026-05-21 Thu>
+
+
+**** TODO [#B] revgas: geostatistical definition
+SCHEDULED: <2026-05-22 Fri>
+
+**** TODO [#B] revgas: texas sample
+SCHEDULED: <2026-05-22 Fri>
+
+***** TODO revgas: pipe flow capacity
+
+***** TODO revgas: geoparquet visualization
+
+***** TODO revgas: generation & validation profiles
+
+
+
 
 ** TODO reV-tutorials: ZettleKasten
-SCHEDULED: <2026-04-22 Wed>
+SCHEDULED: <2026-05-04 Mon>
+*** DONE rev-tutorials: reV Inputs
+SCHEDULED: <2026-05-05 Tue>
+:LOGBOOK:
+CLOCK: [2026-05-05 Tue 13:48]--[2026-05-05 Tue 14:26] =>  0:38
+:END:
+
+*** DONE rev-tutorials: installing reV
+SCHEDULED: <2026-05-05 Tue>
+*** DONE rev-tutorials: reV inputs
+SCHEDULED: <2026-05-06 Wed>
+:LOGBOOK:
+CLOCK: [2026-05-06 Wed 09:57]--[2026-05-06 Wed 10:59] =>  1:02
+:END:
+
+*** TODO [#C] rev-tutorials: reV Generation
+SCHEDULED: <2026-05-05 Tue>
+:LOGBOOK:
+CLOCK: [2026-05-07 Thu 11:18]--[2026-05-07 Thu 12:23] =>  1:05
+CLOCK: [2026-05-06 Wed 17:58]--[2026-05-06 Wed 20:16] =>  2:18
+:END:
+
+*** TODO [#C] rev-tutorials: reV muli-year
+SCHEDULED: <2026-05-05 Tue>
+
+
+
+** TODO [#C] revgas AlphaEarth Embeddings: Investigation
+SCHEDULED: <2026-05-07 Thu>
+** TODO [#C] rev emacs lisp function
+** TODO [#C] rev Anki Deck
+SCHEDULED: <2026-05-14 Thu>
+
+** TODO [#C] pudl Anki Deck
+SCHEDULED: <2026-05-14 Thu>
 
 
 ** TODO Python Clean Code and OOP: ZettleKasten
 ** TODO Python Repo Study: requests
-** TODO Python Repo Study: rev
-SCHEDULED: <2026-04-23 Thu>
-
 ** TODO Python Repo Study: PySAM
 ** TODO Python Repo Study: bottle
 ** TODO revgas cookiecutter template and code style guidelines
-SCHEDULED: <2026-04-23 Thu>
 
 ** TODO Spatial Kriging Interpolation: ZettleKasten
-SCHEDULED: <2026-04-24 Fri>
 
 ** TODO Dynamic Linear Models for Time Series Analysis: ZettleKasten
-SCHEDULED: <2026-04-22 Wed>
 ** TODO ARMA, ARIMA, SARIMA, Vector SARIMA: ZettleKasten
 ** TODO Spatial Autocorrelation: ZettleKasten
 

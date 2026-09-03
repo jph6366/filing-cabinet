@@ -1,0 +1,64 @@
+#+PROPERTY: ANKI_DECK reV Modeling
+#+PROPERTY: ANKI_NOTE_TYPE Basic
+
+* Resource
+:PROPERTIES:
+:ANKI_NOTE_TYPE: Basic
+:ANKI_NOTE_ID: 1778106375157
+:ANKI_NOTE_HASH: 7d4a008b1bd3510983678ba102b792e9
+:END:
+** Front
+What is a resource?
+** Back
+The input utilized for energy generation by a generator.
+
+* Resource Potential
+:PROPERTIES:
+:ANKI_NOTE_TYPE: Basic
+:ANKI_NOTE_ID: 1778106375166
+:ANKI_NOTE_HASH: 5c359731273a493293815ec332c0aa1e
+:END:
+** Front
+Define "resource potential".
+** Back
+- Theoretical availability of renewable energy across an area.
+- Quantifies the energy constant of a resource at a specific location.
+
+* Technical Potential
+:PROPERTIES:
+:ANKI_NOTE_TYPE: Basic
+:ANKI_NOTE_ID: 1778106375172
+:ANKI_NOTE_HASH: d547882215bbdb8e953fa8dc1dc28cc0
+:END:
+** Front
+What is "technical potential" in the context of energy development?
+** Back
+# raw
+The maximum amount of capacity and generation possible in an area given physical, technological, and regulatory constraints.
+<br><br>
+It measures developable potential based on user assumptions (e.g., land-use overlaps) and establishes an <em>upper boundary estimate</em> of development potential.
+
+* Availability Potential
+:PROPERTIES:
+:ANKI_NOTE_TYPE: Basic
+:ANKI_NOTE_ID: 1778106375178
+:ANKI_NOTE_HASH: 7f05d08884a9cf0a543ae21f81383974
+:END:
+** Front
+How is "availability potential" represented?
+** Back
+# raw
+It is represented as a combination of available gas supply and deliverable gas volumes.
+<br><br>
+Each potential power plant will have access to the deliverable capacity of the nearest service line.
+
+* Deliverable Potential
+:PROPERTIES:
+:ANKI_NOTE_TYPE: Basic
+:ANKI_NOTE_ID: 1778106375183
+:ANKI_NOTE_HASH: c871d39c53593e7c7326009475054415
+:END:
+** Front
+What is "deliverable potential"?
+** Back
+Maximum amount of deliverable oil or gas based on delivery infrastructure and assumptions of available resources.

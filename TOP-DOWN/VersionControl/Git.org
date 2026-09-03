@@ -1,5 +1,23 @@
 #+title: Git
 
+* Misc.
+
+** HEAD detached at <branch>
+
+HEAD normally refers to a named branch
+- while each branch refers to a specfic commit
+
+It is sometimes useful to be able to checkout a commit that is not at the tip of any named branch
+- or even to create a new commit that is not referenced by a nmaed branch
+#+begin_src bash
+git checkout v2.0  # or
+git checkout master^^
+#+end_src
+- regardless of which checkout command we use
+  - HEAD now refers directly to a commit
+    - this known as being *detached*
+
+
 * Git
 
 ** git branch
