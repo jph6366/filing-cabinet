@@ -1,0 +1,232 @@
+#+title: Odin Game Jam 2026
+
+* Odin Game Jam 2026
+
+** Karl2D Game Jam
+
+_What_
+- Karl2D - 2D video Game framework
+- Odin - programming for joy
+- fun!
+
+_When_
+- end = May 3rd 2:00 PM
+
+_How_
+- download odin
+- download karl2d
+- if possible submit a web build
+
+
+_Rules_
+- Game must used Karl2D in a substantial way
+- only grug program, no ai. own the code
+- submit before 2:00 PM Sunday
+
+_Voting_
+- yada yada
+
+_Award_
+- rada rada
+           _____________
+HAVE FUN! (6((O)***(O))9)
+            (  **O**  )
+             (...|...)
+              ---|---
+                  |i|
+
+
+              
+*** Game Design Document
+
+**** Introduction
+Game Jam we have ~25 hours to log to submit a functional game.
+
+We will have to learn some things in odin along the way but maybe that can be included in some game design aspects through idioms and gameplay.
+
+I plan to make it my black pug dog the main character so I'll need to make his sprite and want to make it horror-ish genre and audio centric features, also make it hard to beat with enough play-testing.
+
+I want to include some basic ML from scratch in Odin if possible.
+
+
+**** Background
+
+I participated in last years but never finished with that intent and now I do want to finish but yea not a heap of time left.
+
+I want to also stir up my progrramming skills with AI left behind. Arbitrary code is lame. Artisinal code, yea thats more like it. Lets make it irreplaceable because its yours.
+
+**** Description
+
+Okay so Odin dog is who you play as where he is a wacky little fella with a hole lot of courage. He sneak around and he run when he hears or sees a scary.
+
+Odin interacts with the world in silly ways and can collect items for toggleable skills
+
+Maybe even take some cues from the official dorohedoro game.
+- pve fighter whatever this genre
+
+
+**** Key Features
+
+**** Genre
+- beat'em up scroller section
+- 2.5d resident evil/castle crasher puzzle section and action
+**** Platform
+- OpenGL and WebGL
+**** Story
+- Dorohedoro-esque hole vs sorcercer vs hell
+  - Odin's owner was practiced on
+    - and he went after the sorcerer to defeat him before his owner turned into a penguin
+  - sewer grates
+    - kitty merchant through the grates
+
+- hit the lab with professor to warp to the sorcerer world
+
+- hit the streets and fend yourself from bandits and find
+
+**** Characters
+
+_Playable_
+Odin dog
+
+_NPC_
+- owner (me)
+- professor
+- enemies
+  - bosses (2)
+  - mobs
+    - street
+  - spookies
+    - haunted house
+- merchants
+- customers (end-credits gyoza minigame)
+
+
+**** Level/Envrionment Design
+
+_side-scrolling beat'em up_
+- spawn enemeies
+- blood and gore
+- vendors
+- interactables
+  - weapons
+  - food
+  - one-time use static entities
+
+_alley way puzzle_
+- interactables
+  - puzzle entities
+  - clues
+- speak to npc
+- door?
+
+_night club_?
+- bartender
+
+_haunted house_
+- lights out
+- 2.5d?
+- first person shooter
+  - or first person sneak
+- positional audio
+- hide in [ ]
+
+_haunted house (basement)_
+- fixed boss room
+- boss?
+  - retronerd (CRT head)
+- to be continued!
+  - 5 horseman of apocalypese boss battles of evil corp
+- save sorcerer girl(dog?) who powers big tech evil corp
+  -
+
+**** Gameplay
+
+- expect initial gameplay to be simple side scroller
+
+- left and right
+  - up and down
+- jump
+  - jump attack rising (headbutt)
+  - jump attack falling (rko?)
+- bite
+  - ankle bite (mash)
+- punch
+  - interacts
+
+- vendor shops in-between rounds (randomize appearanaces?)
+  - stop and eat
+  - or purchase some items
+  - talk to random dude
+  - buy a ride to next level?
+  - idk fun stuff
+    - dorohhedoro reference
+
+
+- alley way puzzle will shift to slower gameplay looking for clues
+
+- non-aggresive npcs
+  - talk
+  - punch maybe aggro?
+- find clues by walk over them
+- push box to jump?
+- door to change level but nearby
+  - night club back entrance
+- interact with bartender
+  - they rotate cleaning glasses and serving customers
+- cant go to the dance floor
+  - you'll get stepped on
+  - maybe once the place is clear out we can dance"""
+
+
+- haunted house phase will shift gameplay towards FPS or smth else
+
+- flashlight?
+- hide
+- sneak
+- run
+
+
+- haunted house basement
+  - boss fight
+- fixed level screen and background
+- creepy basement for a scary retro gamer guy?
+  - some sonichu would suffice here
+    - amazing reference material here, wow gold
+
+- cutscene
+
+- if time then make minigame for serving gyoza to bar of dorohedoro characters?
+
+**** Art
+
+- pixel
+
+- inspo
+  - I have no mouth and I must scream
+    - this is quite good stuff to use
+      - I might do more of a light-hearted take on this world
+      - less grim dark more
+  - courage the cowradly dog
+    - bring in the funny and artstyle for memorable interactions
+    - humor
+  - dorohehdoro of course
+
+
+**** Sound and Music
+
+- dunno feel it out
+- steal dorohedoro OST
+- or curate my own stuff
+
+
+**** Game Controls
+
+support keyboard and mouse
+- attempt support for gamepad
+
+
+
+
+**** Accesibility
+
+dunno um maybe language translations

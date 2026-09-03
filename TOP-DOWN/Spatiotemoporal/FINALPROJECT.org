@@ -1,0 +1,109 @@
+#+title: Finalproject
+
+
+
+#+begin_src R :session *R*
+library(eia)
+library(gfwr)
+library(spatialreg)
+library(forecast)
+library(dplyr)
+library(tidyr)
+library(sf)
+library(gstat)
+
+# --- 0. CONFIGURATION ---
+eia_set_key("YkH3XDaYGnzEMKcnJJQIrzBIdtcrYhqRbTYDkmf7")
+test_start <- "2024-01-01"
+test_end   <- "2024-01-30"
+
+# Define a bounding box for a high-traffic area (e.g., Gulf of Mexico)
+# This prevents the GFW API from timing out on a global search
+# [min_lon, min_lat, max_lon, max_lat]
+bbox_coords <- c(-98, 18, -82, 30)
+region_wkt <- st_as_sfc(st_bbox(setNames(bbox_coords, c("xmin", "ymin", "xmax", "ymax")), crs = 4326)) %>%
+              st_as_text()
+
+# --- 1. DATA ACQUISITION: OIL PRICE SPREAD (Z_s2) ---
+## message("Fetching EIA Price Data...")
+## wti_spot <- eia_data(dir = "petroleum/pri/spt", data = "value",
+##                      facets = list(series = "RWTC"), freq = "daily",
+##                      start = test_start, end = test_end)
+# Grug use eia_get instead of eia_data.
+# eia_get is fast. It does not ask questions.
+wti_spot <- eia_get(
+  id = "petroleum/pri/spt/data", # Go straight to the data table
+  data = "value",
+  facets = list(series = "RWTC"),
+  start = test_start,
+  end = test_end
+)
+wti_spot
+## wti_future <- eia_data(dir = "petroleum/pri/spt", data = "value",
+##                        facets = list(series = "RWTC1"), freq = "daily",
+##                        start = test_start, end = test_end)
+
+## oil_spread <- inner_join(wti_spot, wti_future, by = "period", suffix = c("_spot", "_future")) %>%
+##   mutate(spread = value_future - value_spot,
+##          date = as.Date(period)) %>%
+##   select(date, spread) %>%
+##   arrange(date)
+
+
+# --- 2. DATA ACQUISITION: AIS LOITERING (Z_s1) ---
+## message("Fetching Regional AIS Loitering Events (This may take ~30 seconds)...")
+## loitering_events <- get_event(
+##   event_type = 'LOITERING',
+##   vessel_types = 'TANKER',
+##   start_date = test_start,
+##   end_date = test_end,
+##   region = region_wkt
+## )
+
+## # --- 3. INTEGRATION & TIME SERIES ANALYSIS (Logic A) ---
+## # Aggregate loitering events by day to join with prices
+## daily_loitering <- loitering_events %>%
+##   mutate(date = as.Date(start)) %>%
+##   group_by(date) %>%
+##   summarise(loitering_count = n())
+
+## # Create the merged dataframe for the model
+## merge_df <- oil_spread %>%
+##   left_join(daily_loitering, by = "date") %>%
+##   mutate(loitering_count = replace_na(loitering_count, 0))
+
+## # Convert to Time Series (Daily freq)
+## ts_data <- ts(merge_df$loitering_count, frequency = 7) # Using weekly seasonality for small window
+## oil_xreg <- as.matrix(merge_df$spread)
+
+## # Fit Vector Model (ARIMA with external regressor)
+## fit_vsarima <- auto.arima(ts_data, xreg = oil_xreg)
+## summary(fit_vsarima)
+
+## # --- 4. SPATIAL INTERPOLATION: UNIVERSAL KRIGING (Logic B) ---
+## message("Generating Spatial Risk Surface...")
+## loitering_sf <- st_as_sf(loitering_events, coords = c("lon", "lat"), crs = 4326)
+
+## # Create a more efficient grid (50x50)
+## grid <- st_make_grid(loitering_sf, n = c(50, 50), what = "polygons") %>% st_sf()
+## grid$intensity <- lengths(st_intersects(grid, loitering_sf))
+
+## # Kriging requires coordinates, so we extract centroids for the model
+## grid_coords <- st_centroid(grid) %>%
+##   st_coordinates() %>%
+##   as.data.frame()
+## grid$X <- grid_coords$X
+## grid$Y <- grid_coords$Y
+
+## # Fit Variogram and perform Kriging
+## # intensity ~ 1 (Ordinary Kriging) or intensity ~ X + Y (Universal)
+## v_mod <- variogram(intensity ~ 1, data = grid)
+## v_fit <- fit.variogram(v_mod, model = vgm(psill = var(grid$intensity), "Exp", 2, 1))
+
+## risk_surface <- krige(intensity ~ 1, as(grid, "Spatial"), as(grid, "Spatial"), model = v_fit)
+
+## message("Analysis Complete.")
+## plot(risk_surface, main = "Predicted Congestion Risk Surface (Z_t1)")
+#+end_src
+
+#+RESULTS:

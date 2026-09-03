@@ -1,0 +1,111 @@
+#+title: ARIMA
+
+* AutoRegressive Integrated Moving Average
+
+** Background
+
+the decomposition and smoothing methods are useful tools to study time series data and make forecsts
+- their methods are more or less weighted average of seasonal/trend/level components
+  - from past observations in time series data
+- and they do not utilize correlation structure in time series
+
+  /we need ARIMA to model time series data accounting for it correlation structure/
+
+** ARIMA
+
+- generally considered most popular forecasting method
+  1. use techniques such as transform, decomposition, and differencing to turn $y_t$ into a stationary time series
+  2. fit the stationary time series with an ARIMA model
+
+
+_ARIMA models are divided into 4 categories_
+
+- AR process - for stationary data
+- MA process - for stationary data
+- ARMA - for stationary data
+- ARIMA - for nonstationary data
+
+
+*** Examples
+
+**** ARIMA(0,0,0) models white noise
+
+A time series is called purely random process if it consists of random variables
+$\{Y_t, t = 0, 1, ..., .\}$
+
+purely random process has a constant mean $E(Y_t)=\mu$
+
+and a constant variance $V(Y_t)=\sigma^2$
+
+for any $t = 0,1,...,.$ since $Y_0, X_1, ...$ are independent
+- correlation (and covariance) is zero between any $Y_t$ and $Y_{t+k}$ for $k \neq 0$
+
+  $\rho_k = corr(Y_t, Y_{t+k} = 0, k = 1,2,...$
+
+- when we say white noise
+  - it refers to mean-zero purely random process $(\mu = 0)$
+
+
+**** ARIMA(0,1,0) model is a random walk
+
+A process $Y_t$ is called random walk
+- if $Y_t = Y_{t-1}+\varepsilon_t$
+  - where $\varepislon_t$ is white noise
+- the process starts at $t=0$ with $Y_0 = 0$
+  - then $Y_1 = \varepsilon_1$
+  - and $Y_t = \sum\limits_{i=1}^t \varepsilon_i$
+
+_mean_: $E(Y_t) = 0$
+
+_variance_: $Var(Y_t)=t\sigma^2$
+
+- where $\sigma^2 = Var(\varepsilon_t)$
+
+- since the variance of $Y_t$ changes as $t$ changes
+  - $Y_t,t = 0,1,...$ is non-stationary process
+
+- if we take a difference in successive values of $Y_t$
+  - we obtain $Y_t^{'} = Y_ - Y_{t-1} = \varepsilon_t$
+
+** Stationarity
+
+
+** Moving Averages Processes
+
+moving average processes are stationary
+
+** Autoregressive models
+
+Autoregressive processes are useful in describing in which the present values
+
+
+
+** Vector ARMA
+
+*** Definition
+Let $y_t$ be a stationary $d$ - dimensional mean-zero vector time series
+- it follows a $VARMA_d(p,q)$ model if...
+\[  $y_t = \sum_{\ell=1}^p \Phi_\ell y_{t-\ell} + \sum_{m=1}^q \Theta_m a_{t-m} + a_t \]
+- where $\{\Phi_\ell \in \mathcal{R}^{d\times d}\}_{\ell=1}^p$ are the autoregressive parameter matrices
+  - $\{\Theta_m \in \mathcal{R}^{d \times d}\}_{m=1}^q$ the moving-average parameter matrices
+    - and $\{a_t\}$ denotes a $d$ -dimensional mean-zero white noise vector time series
+      - with $d \times d$ nonsingular contemporaneous covariance matrix $\sum_a$
+
+- the VARMA model states that $y_t$ is a function of its own $p$ past values
+  - and $q$ lagged error terms
+    - model can be re-written as...
+      $\Phi(L)y_t = \Theta(L)a_t$
+
+- using compact AR and MA matrix polynomials in lag operator given by
+
+  $\Phi(L)=I-\Phi_1L - \Phi_2L^2 - ... - \Phi_pL^p$
+  and
+  $\Theta(L) = I + \Theta_1L+\Theta_2L^2 + ... + \Theta_qL^q$
+
+  - where the lag operator $L^\ell$ is defined as $L^\ell y_t = y_{t-\ell}$
+    - and $I$ denotes the $d \times d$ identity matrix
+
+** Seasonal VARMA
+- many time series contain a seasonal component that repeats itself after a regular period of time
+  - seasonal VARMA model is given by...
+    $$

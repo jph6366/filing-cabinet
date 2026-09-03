@@ -1,0 +1,5 @@
+#+title: Partial Autocorrelation
+
+
+------ $AR(P)$ ------------ $
+$PACF$ Cuts off after lag p

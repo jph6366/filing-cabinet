@@ -1,0 +1,138 @@
+#+title: Architecture For Data Science
+
+* Software Architecture for Data Science
+
+** Architectural design
+
+- how a software system is organized
+  - and how a software system is designed
+
+- the design is a link between design and requirements
+  - it identifies components in a system
+    - and relationships between them
+
+- the output of the design process is architectural model
+  - that describes how the system is organized
+    - as a set of communicating components
+
+
+** Agility and architecture
+- early stage of AGILE processes is to design a systems architecture moving forward
+
+- refactoring the system architecture is usually costly
+
+** Architecture of HDFS
+
+Hadoop
+
+- use virtualizations
+  - use distributed data ports as one data set
+    - one file system
+/dont worry about where it comes from/
+- hadoop takes care of it
+  - and the redundancy of the data
+
+- save the data in diff places and groups them in one location
+
+- some hardware in infra is failing
+  - hadoop will kick off and pull redundant data for fail-safe mechanism
+
+- it needs metadata to do this
+  - node name takes care of the data
+
+** Architectural abstraction
+
+/small architecture.../
+- architecture is concerned with architecture of individual programs
+  - an individual program is decomposed into components
+
+/large architecture.../
+- architecture is concerned complex enterprise systems that include other systems, programs, and program components
+  - e.g. enterprise systems are distributed over different computers
+    - which may be own and managed by different companies
+
+** Advantages of explicit architecture
+
+- stakeholder communication
+- system analysis
+- large-scale reuse
+
+** Architectural representations
+
+- simple informal block diagrams showing entities and relationships
+  - are the most frequently used method for documenting software architectures
+
+- criticized for lacking semantics and do not show types of relationships between entities, nor the visible properties of entities in the architecture
+
+- It also depends on the use of architecture models
+  - the requirements model semantics depends on how the models are used
+
+** Box and Line diagrams
+
+- very abstract
+  - do not show nature of component relationships
+    - nor the externally visible properties of the subsystems
+  - howevery useful for communication with stakeholders and for project planning
+
+** Use of architectural models
+
+- as a way of facilitating discussion about the system design
+  - useful for communicatinh with system stakeholders and project planning
+    - stakeholders can see abstract view of the system
+- as a way of documenting an architecture that has been designed
+  - produce a complete system model that shows different components in a system
+    - their interfaces and connections...
+
+** Architectural design decision
+
+- a creative process so the process differs
+  - depending on the type of system being developed
+
+- a number of common decisions span all design processes
+  - and these decisions affect the non-functional characteristics of the system
+
+*is there a generic application architecture that can act as a template for the system that is being designed?*
+
+*how will the system be distributed across hardware or processors?*
+
+*what will be the fundamental approach used to structure the system?*
+
+*how will the structural components in the system be decomposed into sub-components?*
+
+*what architectural patterns or styles might be used?*
+
+*what strategy will be used to control the operation of the components in the system?*
+
+*what architectural organization is best for delivering the non-functional requirements of the system?*
+
+*how should the architecture of the system be documented?*
+
+
+** Architectural resuse
+
+
+** Architecture & System
+
+- *Performance*
+
+- *Security*
+
+- *Safety*
+
+- *Availability*
+
+- *Maintainability*
+
+** Architectural views
+
+/what views or perspectives are useful when designing and documenting a system's architecture?/
+
+/What notations should be used for describing architectural models?/
+
+- each architectural model only shows one view or perspective of the system
+  - e.g.
+    - system decomposed into modules
+    - how the run-time processes interact
+    - in which system components are distributed across a network
+
+*it is recommended to present more than one view of the software architecture*

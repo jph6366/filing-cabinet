@@ -1,0 +1,31 @@
+#+title: Big Data Architecture
+
+
+
+
+
+* Big Data Architecture
+
+
+
+** scale changes the design problem space
+
+- Architecture components must be stateless, replicated, and tolerant of failures of dependent services
+
+- it can be regarded as tight coupling of the process, logical and physical views in the 4+1 view model
+
+** Some preliminary work
+
+- Lightweight Evaluation and Architecture Prototyping for Big Data (LEAP4BD)
+  - for decision-making and not real development
+
+
+1. specify reqs
+
+2. select candidate databases
+
+3. design and implement a prototype
+
+4. evaluate
+
+5. make best choice/decision

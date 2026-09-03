@@ -1,0 +1,3 @@
+#+title: Sequential Indicator Simulation
+
+https://geostatisticslessons.com/lessons/sequentialindicatorsim

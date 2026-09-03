@@ -1,0 +1,43 @@
+#+title: Probability
+
+* Probability Theory
+
+*Set theory*
+
+_Definition_: the set, $S$ , of all possible outcomes of a particular experiment is called the sample space for the experiment
+
+i.e.
+- flipping a coin
+
+$S = \{H,T\}$
+
+- reaction time to a stimulus
+
+$S = (0, \infty )$
+
+
+_Definition_: an event is any collection of possible outcomes of an experiments, that is, any subset of $S$ (include $S$ itself)
+
+        - *Union* is the set of elements that belong to either A or B or both
+          $A \cup B = \{x:x \in A or x \in B \}$
+
+        - *Intersection* is the set of elements that belong to both A and B
+          $A \cap B = \{x:x \in A or x \in B \}$
+
+        - *Complementation* is the set of all elements that are not in A
+          $A^c = \{ x:x \notin A\}$
+
+
+_Theorem_: for any three events, A, B, and C, defined on a sample space S
+
+        a. Commutativity
+        b. Associativity
+        c. Distributive Laws
+        d. DeMorgan's Laws
+
+
+
+_Definition_: Two events A and B are disjoint (or mutually exclusive) if $A \cap B = \emptyset$. The events $A_1, A_2, ...$ are pairwise disjoint (or mutually exclusive) if $A_i \cap A_j = \emptyset$ for all $i \neq j$
+
+
+_Definition_: If $A_1, A_2$ ... are pairwise disjoint and $\cup_{i=1}^\infty A_i = S$, then the collection $A_1, A_2$ ... forms a partition of $S$

@@ -94,3 +94,14 @@ during inference we simply quantize the weight to ternary values without rescali
   - then perform a matrix multiplication with an efficient kernel
     - followed by dividing by both the weight and activation scales
 /improves inference speed with optimized hardware/
+
+
+
+
+* BitNet.jl
+
+** IDEATION
+
+- Llama2.jl supports inference and training of Llama-style language models.
+
+- Introduce BitLinear as a drop in replacement of the Flux: Dense layer in order to train 1-bit weights from scratch.

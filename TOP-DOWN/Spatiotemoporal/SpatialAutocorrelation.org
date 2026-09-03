@@ -1,0 +1,104 @@
+#+title: Spatial Autocorrelation
+
+* Spatial Autocorrelation
+
+** Overview
+
+- there are scenarios where locations are arbitrary
+  - this data cannot be treated as a point process because locations of points are mostly meaningless
+    - but they cannot be modeled using off-the-shelf techniques because they break the i.i.d. assumption
+
+
+/Data is often collected by measuring quantities over space/
+
+*spatial autocorrelation* arises when the variation between values
+- of the datapoints is affected by their spatial distance
+  - the underlying reason for this is that many of the influence act as large spatial scales
+-  the result is that we *can not assume that spatially correlated data are i.i.d.*
+
+
+_Source of autocorrelation_
+
+anything that causes some data to be more similar to each other than others can result in autocorrelation
+
+- time: data that are close temporally are more related
+- space: data that are close spatially are more related
+
+_Impact of autocorrelation_
+
+- Sample size, $n$ is the denominator when calculating  SEs and CIs
+
+  $SE = \frac{\sigma}{\sqrt{n}}$                $95\%CI = \bar{x} \pm 1.96 \frac{\sigma}{\sqrt{n}}$
+
+  All else equal: $\uparrow n  = \downarrow SE \& \downarrow CI$
+
+  But with autocorrelated data each new datapoint is related to previously collected datapoint
+  - and does not bring a full independent datapoint worth of information
+    - e.g. 90% autocorrelation $\sim$ 10% new info
+
+/when data are autocorrelated $n_{effective} < n$ meaning SEs and CIs shrink faster than they should, resulting in a false sense of confidence/
+
+
+** Moran's I
+
+*Moran's I* is a correlation coefficient that measures the overall spatial autocorrelation of a dataset
+- think of it as $/sim$ weighted covariance
+
+  $I = \frac{N}{W} \frac{\sum_i \sum_j w_{ij}(x_i-\bar{x})(x_j - \bar{x})}{\sum_i(x_i - \bar{x})^2}$
+  - where $N$ is the number of spatial units indexed by $i$ and $j$
+  - $x$ is the variable of interest and $\bar{x}$ is the mean of $x$
+  - $w_{ij}$ is a matrix of spatial weights and $W$ is the sum of all $w_{ij}$
+
+/Values of $I$ usually range from -1(dispersed) to 0(random) to +1(clustered)/
+
+/useful for identifying the presence of autocorrelation/
+
+/Moran's I is very sensitive to how you define weights/
+
+“The idea is to construct a matrix that accurately reflects your
+assumptions about the particular spatial phenomenon in question. A
+common approach is to give a weight of 1 if two zones are neighbors, and
+0 otherwise, though the definition of ‘neighbors’ can vary. Another
+common approach might be to give a weight of 1 to k nearest neighbors,
+0 otherwise. An alternative is to use a distance decay function for
+assigning weights. Sometimes the length of a shared edge is used for
+assigning different weights to neighbors. The selection of spatial weights
+matrix should be guided by theory about the phenomenon in question.”
+– Wikipedia
+
+** Semi-variograms
+
+functions describing the degree of spatial dependence in a spatial stochastic process $Z(s)$
+
+*Semi-variance* $\gamma(h)$ is a measure of the degree of similarity
+- between pairs of points separated by distance $h$
+  - given by:
+    $\gamma(h) = \frac{1}{2V}\int\int_V [f(M+h)-f(M)]^2 dV$
+    - where $M$ is a point in the spatial field $V$
+      - $f(V)$ is the value at point $M$ (in arbitrary units)
+      - $h$ is the separation distance
+        - and the double integral is over 2 dimensions
+
+_properties_
+- $\gamma(h) \leq 0$ since it is expectation of a square
+- since $Z(s_1)-Z(s_1) = 0$ , $\gamma(0)$ is always 0
+- if the process is stationary, in the limit where $h \rightarrow \infty$
+- if a stationary process has no spatial dependence
+  - the semi-variogram is constant everywhere except at the origin
+    - where it is zero
+- the semi-variogram might be discontinuous at the origin
+  - the height of the jump at the origin is referred to as *nugget*
+
+
+
+*To obtain the semi-variogram for a given $\gamma(h)$ ,*
+- all pairs of points at that exact distance, $h$ , would need to be sampled
+  - in practice, this is impossible, so the empirical semi-variogram is used instead
+
+- for values of $Z(s)$ for all pairs separated by distance $h$
+  - $\gamma(h)$ is estimated as:
+    $\hat{\gamma}(h\pm \delta) := \frac{1}{2|N(h\pm\delta)|} \sum_{(i,j)\in N(h\pm\delta)} |z_i-z_j|^2$
+    - where $\delta$ is some bin width
+
+
+**

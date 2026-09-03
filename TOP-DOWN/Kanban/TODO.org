@@ -1,14 +1,11 @@
 #+title: Todo
 
+
 * Tasks
-** TODO lemoncxxwrap.cpp: Sweeping
-
-** TODO LEMONGraphs.jl: Sweeping
-
 ** TODO MCP for SensorThings: System Design
-** TODO MCP for OGC APIs: System Design
 ** TODO GeoPackage Benchmark: Initialize
 ** TODO PeppiMCP: Benchmark
+<<<<<<< HEAD
 
 ** TODO Peppi.jl and peppi-jlrs review
 
@@ -22,12 +19,22 @@
 ** TODO SAS Regression Project
 ** TODO Peppi.jl Imitation Learning
 
+=======
+** TODO Peppi.jl and peppi-jlrs review
+** TODO PeppiMCP: Containerization
+** TODO PeppiMCP: HuggingFace
+** TODO PeppiMCP: Code Review
+** TODO PeppiMCP: BAML
+** TODO Geograpic Weighted Decomposition
+** TODO SAS Regression Project
+** TODO Peppi.jl Imitation Learning
+>>>>>>> e83dab213fb822c5a3147e0dd299cfc96902143a
 ** TODO BitNet.jl: nanogpt
-
 ** TODO BitNet: BitNetWrapper
 ** TODO BitNet: MBBP/MBJP Benchmark
 ** TODO Attention Residuals: ZettleKasten
 ** TODO MPI Kurs: ZettleKasten
+<<<<<<< HEAD
 ** TODO MPI HW: MPI.jl
 
 ** TODO Flynn's & Duncan's Taxonomy: ZettleKasten
@@ -135,20 +142,50 @@ SCHEDULED: <2026-05-14 Thu>
 
 ** TODO Python Clean Code and OOP: ZettleKasten
 ** TODO Python Repo Study: requests
+=======
+** TODO Parallel Computing and SciML: ZettleKasten
+** TODO Flynn's & Duncan's Taxonomy: ZettleKasten
+** TODO Odin Programming: ZettleKasten
+** TODO Rust Programming: ZettleKasten
+** TODO Clojure Programming: ZettleKasten
+** TODO Cpp Programming: ZettleKasten
+** TODO Lisp Programming: ZettleKasten
+** TODO Oil&Gas Potential Modeling: ZettleKasten
+** TODO Cartesian-to-Polar Embeddings: ZettleKasten
+
+** TODO Karl2D Game Jam
+
+** TODO rev-contributions: testing custom reV exceptions
+
+** TODO revgas Resource Data Input: Investigation
+
+** TODO reV-tutorials: ZettleKasten
+** TODO Python Repo Study: requests
+** TODO Python Repo Study: rev
+>>>>>>> e83dab213fb822c5a3147e0dd299cfc96902143a
 ** TODO Python Repo Study: PySAM
+
 ** TODO Python Repo Study: bottle
 ** TODO revgas cookiecutter template and code style guidelines
+<<<<<<< HEAD
 
 ** TODO Spatial Kriging Interpolation: ZettleKasten
 
 ** TODO Dynamic Linear Models for Time Series Analysis: ZettleKasten
 ** TODO ARMA, ARIMA, SARIMA, Vector SARIMA: ZettleKasten
+=======
+** TODO Spatial Kriging Interpolation: ZettleKasten
+** TODO Dynamic Linear Models for Time Series Analysis: ZettleKasten
+** TODO Autoregressive Models: ZettleKasten
+>>>>>>> e83dab213fb822c5a3147e0dd299cfc96902143a
 ** TODO Spatial Autocorrelation: ZettleKasten
+** TODO Spatial Lag & Spatial Error: ZettleKasten
 
-** TODO dsc551: R project code templates
+** TODO [#C] Power Systems UTK Course
 
-** TODO Power Systems UTK Course
 ** TODO LinkedIn Post: Map Ideas
 ** TODO Design Patterns: ZettleKasten
 *** TODO Facade Pattern
-** TODO Claude CoWork: Financial Trading Agents
+** TODO Claude CoWork
+*** TODO Financial Trading Agents
+SCHEDULED: <2026-05-14 Thu>

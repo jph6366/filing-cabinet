@@ -4,25 +4,36 @@
 
 * BACKLOG
 
-Google Summer of Code 2026 Project Proposals
-1. MCP for OGC APIs
-2. MCP for OGC SensorThings APIs
-3. Implementation of Geographically Weighted Matrix Decomposition Algorithms
+- MCP for OGC SensorThings APIs
+- JuliaGeo + JuliaGraphs + SciML
+  - geographically weighted matrix decomosition algorithms
+  - geographically weighted principal component analysis
+  - geographically weighted factor analysis
+- FluxML + NeuralNetAttention.jl
+  - BitNet Architecture
+  - Attention Residuals
+
+https://github.com/JuliaGeo/GeoPackage.jl/issues/13
+- initial contribution to GeoPackage.jl
+
 
 [[https://github.com/FluxML/fluxml.github.io/issues/107][FluxML/fluxml.github.io#107 Create Machine Learning Tutorials with Flux.jl]]
+- 2D/3D CNN for Classification of 3D MRI Scans
 
 [[https://github.com/JuliaLang/julia/issues/24043][JuliaLang/julia#24043 Undocumented exceptions]]
+- BaseIOError
 
 * IN-PROGRESS
 
-[[https://github.com/JuliaGraphs/Graphs.jl/issues/447][JuliaGraphs/Graphs.jl#447 A reliable idiomatic wrapper for the C++ library `L...]]
+[[https://github.com/JuiaGraphs/Graphs.jl/issues/447][JuliaGraphs/Graphs.jl#447 A reliable idiomatic wrapper for the C++ library `L...]]
 
 * REVIEW
 
-[[https://github.com/JuliaEarth/GeoIO.jl/pull/193][JuliaEarth/GeoIO.jl#193 GeoPackage Writer by jph6366]]
 
 * DONE
 
 [[https://github.com/JuliaEarth/GeoIO.jl/pull/188][JuliaEarth/GeoIO.jl#188 squash GPKG reader by jph6366]]
 
 [[https://github.com/JuliaEarth/GeoIO.jl/pull/190][JuliaEarth/GeoIO.jl#190 squash GPKG write by jph6366]]
+
+[[https://github.com/JuliaEarth/GeoIO.jl/pull/193][JuliaEarth/GeoIO.jl#193 GeoPackage Writer by jph6366]]
