@@ -7,6 +7,44 @@
 
 *** Complete gas flow mathematical model
 
+**** BlendPATH
+***** network formulation
+- system of nonlinear equations
+  - applies mass balance for every node
+    $L_i + W_{fuel,i} = \sum\limits_{p=1}^{N_{Pipes}} a_{i,p}m_p \forall i \in N_{Nodes}$
+    - where $m_p$ is the mass flow rate through pipe p
+    - $a_{i,p}$ is a branch-node incident value of 1,0 or -1
+      - denoting the connection of pipe $p$ to node $i$
+        - with 0 denotes no connections
+        - and 1 or -1 denotes flow into or out of the node, respctively
+    - the summation of mass flow rates representing external supplies and demands at node $i$ is denoted as $L_i$
+    - fuel consumption at node $i$ is represented as $W_{fuel,i}$ if the node represents a compressor station inlet
+      $\mathbf{Am} = \mathbf{L} + \mathbf{W_{fuel}}$
+      - where $P_i$ is the square of pressure at node $i$
+      - and $\Delta P_p$ is the difference of the squared nodal pressures through pipe $p$
+        $-\mathbf{A^T}\mathbf{P}=\Delta\mathbf{P}
+        - where $\mathbf{P}$ is the vector of the squared nodal pressurse in dimension $N_{Nodes}$
+        - and $\Delta \mathbf{P}$ is the vector form of $\Delta P_p$ in dimension $N_{Pipes}$
+        - $A_T$ is the transpose of the branch-nodal incidence matrix
+        $m = \Phi(\Delta P)$
+        - where $\Phi(\Delta P)$ is the vector functions relating the pipe pressure drop to the mass flow rate
+          - substitue it in for $\Delta P$
+            $m=\Phi(-\mathbf{A^T P})$
+          - substitute above equation to relate nodal pressures to external mass flow rates at nodes representing supplies or demands
+            $\mathbf{A}[\Phi(-A^T P)]= L+W_{fuel}$
+          - could also be rearranged into a vector of nodal error functions $\mathbf{F(P)}$ of dimension  $N_{Nodes}$ as:
+            $\mathbf{F(P) = [\Phi(-A^T P)]- L - W_{fuel}}$
+            - where $\mathbf{F(P^*)=0}$ when simulation solution method determines the vector of nodal pressure $\mathbf{P}^*$ that satisfies the nodes representing supplies and demands
+              - can be expressed algebraicly:
+                $f(P_i) = -L_i - W_{fuel,i} + \sum\limits_{j=1}^{N_{Nodes}} a_{i,j} (A(\frac{M_w}{ZRT}\frac{D}{fL})^{0.5}\sqrt{a_{i,j}(P_i - P_j)}) \forall i \in N_{Nodes}$
+                - where $f(P_i)$ is the element-wise expression for the vector of nodal error functions
+                - and $j$ is an index representing an adjacent node connected by pipe $p$ to node $i$
+                  - pipe $p$ represents a branch connecting two nodes, $i$ and $j$
+                - the pipe index, $p$, is substituted with $j$, another node index of dimension $N_{Nodes}$
+                  - to represent adjacent node connected by pipe $p$
+                    $p \Leftrightarrow (i,j)$ and $(i,j) \in N_{Pipes}$
+                    - within this nodal model representation of pipeline network
+
 **** GasModels
 ***** network formulation
 - nonconvex models of all gas network components
@@ -368,6 +406,41 @@ $\frac{\partial \Delta p_b}{\partial p_{n_1}} \cdot \Delta p_{n_1} + \frac{\part
 
 
 *** Compressors
+
+- In *BlendPATH*'s pipeline network model, compressors are represented as a branch connecting the compressor's inlet and outlet nodes
+  - modeling compressors to estimate compressor shaft work and to determine shaft compression station capacity
+  - model inputs include gas mixture's thermodynamic properties at the compressor inlet and outlet and the mass flow rate of the gas being compressed
+  - the mass-basis enthalpy, $h_1$, and entropy, $s_1$, at the inlet of the compressor are estimated via /Cantera/, python library, as functions of temperature, pressure, and composition
+    $h_1 = f(T_1, p_1, X_1)$
+    $s_1 = f(T_1, p_1, X_1)$
+    - where $f$ denotes the thermodynamic property evaluation within Cantera
+    - and $T_1, p_1$ and $X_1$ are the temperature, pressure, and molar composition at the compression inlet
+    - conversely, the enthalpy at the compressor outlet, $h_{2,s}$
+      - for an isentropic process is given as:
+        $\Delta h_{isentropic} = h_{2,s} - h_1$
+        - the real change in enthalpy, $\Delta h_{real}$, is calculated by dividing the compressors's adiabatic head with an isentropic efficiency:
+        $\Delta h_{real} = \frac{\Delta h_{isentropic}}{\eta compressor}$
+        - where $\eta_{compressor}$ is the isentropic efficiency for compression
+          - compressor stations assume an isentropic efficiency of 0.78 for gas-driven compressors and 0.88 for eletricity-driven compressors
+        - compressor shaft power, $W_{shaft}$ is calculated as:
+          $W_{shaft} = \Delta h_{real} m_{compressor}$
+          - where $m_{compressor}$ is the mass flow rate of fluid exiting the compressor
+            - assuming that any gas fueling the compression station is extracted prior to the gas entering the compressor
+        - the driver fuel rate $W_{fuel}$ is given as:
+          $W_{fuel}=\frac{W_{shaft}}{\eta_{driver}}$
+          - where $\eta_{driver}$ is the driver efficiency for a gas-driven compressor
+            - compressor stations assume a driver efficiency of 0.357
+            - for electricity-driven compressor stations, the default driver efficiency is calculated as:
+              $\eta_{driver} = 8E-5x^4 - 0.0015x^3+0.0061x^2+0.0311x+0.7617$
+              - where $x = ln(W_{shaft})$, and $W_{shaft}$ is in units of kilowatts
+
+              
+
+- In *GasModels*
+
+
+- *Pandapipes* does not model compressors?
+
 
 **** $m$, Mass Flow Rate
 

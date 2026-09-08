@@ -40,11 +40,23 @@ Also to incoporate GasModels.jl code which implements a steady-state model of ga
 
         *This will become some PUDL refactors*
         *Working in Pure julia for GasModels*
+       - ok we got a julia project going
+   - We need a representative network, I'm going see if we can capture like the minimal-sized network?
+     - Williams-Transco (NC to NY)
+       - Control Method
+       - Pipeline Optimization
+
+i.e. to illustrate the topology of the network only
+- 4-node network
+   /network contains two compressors and gas is being withdrawn at nodes 2–4. The pressure at the slack node, 1, is fixed to 500 psi and gas is withdrawn at the withdrawal nodes in a time-periodic manner/
+- 25-node network
+  /a tree with five compressors and 24 pipelines/
 
 
 
 *** comments
 
+what you write is eventually going to be recycled into reV and what is unique to reV-external steps.
 
 WERE on max delvierabiliy right now
 - next thread is translating deliverability to capacity
