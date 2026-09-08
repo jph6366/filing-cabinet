@@ -1,0 +1,199 @@
+#+title: Value Oriented Programming
+
+
+* Value Oriented Programming
+
+Prior Lecture: A Possible Future of Software Development
+- Sean Parent (2007 BoostCon)
+
+Prior Lecture: Am I a good progammer?
+- Kate Gregory
+
+Prior Lecture: Simple Made Easy
+- Rick Hickey (Clojure)
+
+Prior Reading: Grokking Simplicity
+- Eric Normand
+
+Prior Reading: THE USE OF SUB-ROUTINES IN PROGRAMMES
+- David John Wheeler
+
+** Functions
+You say you want to write a function...
+
+- You don't want to write a function
+
+We just want to change the code
+- add a feature
+- fix a bug
+
+_example code_
+#+src_begin
+void firstCitizenFunction()
+{
+        Projector proj ...
+        proj.showPattern(delta)
+
+        // if facing North (0)
+        double tolerance = 5.0
+        if (proj.seria;Number() < 12345678)
+                tolerance *= 2;
+        Orientation dir = proj->getPose().orientation();
+        if (dir.yaw() < tolerance * M_PI / 180
+        || dir.yaw() > (360 * tolerance) * M_PI / 180)
+        ...
+};
+#+src_end
+
+#+src_begin
+void firstCitizenFunction()
+{
+        Projector proj ...
+
+        if (isFacingNorth(proj))
+        ...
+};
+
+bool isFacingNorth(Projector proj)
+{
+        auto dir = proj.orientation();
+        auto tolerance = proj...
+
+        proj.getMODEL()->getThing()->etc...
+
+        ... math on dir ...
+        if (... < tolerance ...)
+                return true;
+        return false;
+}
+#+src_end
+
+*Barrier to Complecting*
+
+`bool isFacingNorth(Orientation dir, double tolerance)`
+
+_Code top-down on the way down_
+- _And bottom-up on the way back up_
+
+*Keep Your Stuff Separate (KYSS)*
+
+*Place-Oriented Programming (PLOP)*
+- values you dont care about the address or identity
+
++ Testability + Safety
+
+
+_Complecting_
+
+Simple/Complex - plecto (latin) = fold/braid
+- simple = one fold
+- complex = many folds
+Easy - adjacens (latin) = close at hand
+- complecting = interweaving
+
+
+_C++ Koan_
+
+"Theres a functions for that"
+"Whats it called"
+"Guess"
+"<insertNestedIdiomaticFunctionName>"
+"It didn't compile"
+"Well write the function you want to see in the world"
+
+
+"Master, I am honoured"
+"I was walking my dog, your function grasshopper"
+"Why does it take a BasaeCommonStruct instead of just x and y?"
+"BCS is where we keep x and y master"
+<Bark>
+"He's Hungry"
+"Shall I prepare him food master?"
+"No just open the fridge, let him take what he wants"
+
+
+_Separate calculating from doing_
+
+- Takes input, MODIFIES it, produces output
+
+"returing void is a code smell"
+
+
+"pure functions"
+- same input gives same output
+  - no side effects
+
+void StarOn(Sneetch & sneetch, int num)
+{
+        vector locs = calcStarPos(sneetch, num);
+        applyStars(sneetch, locs);
+};
+
+"local reasoning"
+- changing the physical universe versus the digital interconnected processes
+
+
+_Sub-routines_
+- self-contained part of a programme
+  - an entity of its own
+
+- allows the coder to concentrate on one section of a programme at a time without the overall detailed programme continually intruding
+
+
+"functions are the fundamental building block of programming"
+
+
+
+class Device {
+        virtual bool isFacingNorth() const;
+}
+
+class MediaServer : Device {
+...
+}
+
+class Projector: Device
+{
+        bool isFacingNorth() const override;
+}
+
+class DirectionalDevice: Device {
+...
+}
+
+class Projector : DirectionalDevice
+{
+...
+}
+
+"good way of sharing functions? writing functions!"
+- functions are for sharing
+
+_Uses external Orientation API_
+`bool isFacingNorth(Orientation, double);`
+v.s.
+_Access internals_
+```
+class Orientation
+{
+        ...
+        bool isFacingNorth(double tol) const;
+        ...
+};
+````
+- everytime you add a new function to your class
+  - its gets heavier and denser
+    "classes are made of Velcro"
+
+"Classes are a nexus of Complecting"
+
+
+*Good Code* - begets good code - works (while bad code does not work)
+
+*Invariants in classes* are properties that will always hold true for all objects of a class
+- ensures state remains valid and maitained by class methods
+
+
+"No raw loops" - Sean Parent
+
+Map of Vectors or Multi-Map

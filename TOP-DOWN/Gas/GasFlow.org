@@ -1,0 +1,388 @@
+#+title: Gas Flow
+
+
+* CONUS Gas Flow
+
+** Pipeline Modeling
+
+*** Complete gas flow mathematical model
+
+**** GasModels
+***** network formulation
+- nonconvex models of all gas network components
+      _junctions_
+    - Each *junction* $i \in \mathcal{N}$ in the (natural gas transmission) network is _associated_ with a pressure variable, $p_i$
+      - Operational limits require that this pressure ranges between predefined
+        - _lower and upper bounds_, denoted by $\underline{p_i}$ and $\bar{p_i}$, respectively
+          i.e. $0 \leq \underline{p_i} \leq p_i \leq \bar{p_i}, \forall_i \in \mathcal{N}$
+      _pipes_
+    - Each *pipe* satisfies the _Weymouth Equation_
+      - which relates the mass flow rate $f_{ij}$ through the cross-sectional area of the pipe
+        - to the pressure $p_i$ and $p_j$ at the two end-points of the pipe
+          $p^2_i -p^2_j = w_{ij}f_{ij}|f_{ij}|, \forall(i,j) \in \mathcal{P}$
+          - where the mass flow resistance $w_{ij}$ is related to $\gamma_{ij} := (16\gamma_{ij})/(\pi^2 D^4_{ij})$
+      _compressors_
+    - Each *compressor* $(i,j) \in \mathcal{C}$ boosts the pressure at the down-stream junction $j \in \mathcal{N}$ by a variable scalar $\alpha_{ij}$
+      - and is assumed to have negligible length
+      - /bidirectional compressors do not exist/
+        - although each compressor may or may not allow for uncompressed flow in the reverse direction
+          - i.e., from $j$ to $i$
+      - In *GasModels* study these distinct behaviors of compressors are captured by three conditional sets of constraints
+        1. Where uncompressed reverse flow is prohibited
+           $\underline{\alpha_{ij}} \leq p_j \leq \bar{\alpha}_{ij}p_i, \forall(i,j) \in \mathcal{C} : \underline{f_{ij}} \geq 0$
+           - where $\underline{\alpha_{ij}}$ and $\bar{\alpha_{ij}} \in \mathcal{C}$ are minimum and maximum compressor ratios
+        2. Where reverse flow is allowed and the minimum compression ratio is equal to one
+           $\underline{\alpha_{ij}} \leq p_j \leq \bar{\alpha}_{ij}p_i, \forall(i,j) \in \mathcal{C} : \underline{f_{ij}} < 0 \wedge \underline{\alpha_{ij}} = 1$
+           $f_{ij}(p_i - p_j) \leq 0, \forall(i,j)\in \mathcal{C} : \underline{f}_{ij} < 0 \wedge \underline{\alpha}_{ij} = 1$
+           - if $f_{ij} < 0$ (i.e., where there exists reverse flow)
+             - then $p_i = p_j$ (i.e., there is no change in pressure across the compressor)
+        3. Where uncompressed reverse flow is allowed and the minimum compression ratio is not equal to one
+           - the behavior must be modeled disjunctively
+             - for each compressor, a binary variable $y_{ij} \in {0,1}$ is introduced to denote the direction of flow through the compressor
+               - where $y_{ij}=1$ implies flow from $i$ to $j$ and $y_{ij}=0$ implies flow from $j$ to $i$
+                 - the pressure at the junctions that connect each compressor are then modeled as:
+                   a. a$y_{ij} \in {0,1}, \forall(i,j) \in \mathcal{C} : \underline{f}_{ij} < 0 \wedge \underline{\alpha}_{ij} \neq 1$
+                   b. $p_j \leq \bar{\alpha}_{ij}p_i + (1-y_{ij})\bar{p}_j, \forall(i,j) \in \mathcal{C} : \underline{f}_{ij} < 0 \wedge \underline{\alpha}_{ij} \neq 1$
+                   c. $\underline{\alpha}_{ij}p_i \leq p_j + (1-y_{ij})\bar{p}_i, \forall(i,j) \in \mathcal{C} : \underline{f}_{ij} < 0 \wedge \underline{\alpha}_{ij} \neq 1$
+                   d. $p_i - p_j \leq y_{ij}\bar{p}_i, \forall(i,j) \in \mathcal{C} : \underline{f}_{ij} < 0 \wedge \underline{\alpha}_{ij} \neq 1$
+                   e. $p_j - p_i \leq y_{ij}\bar{p}_i, \forall(i,j) \in \mathcal{C} : \underline{f}_{ij} < 0 \wedge \underline{\alpha}_{ij} \neq 1$
+                      - b. and c. ensure that when a compressor's flow is positively directed
+                        - the pressure at node $j$ is modeled according to the compression ratio bounds
+                      - d. and e. ensure that when flow is reversed
+                        - the pressure on both sides of the compressor are equal
+        _valves_
+      - Each *valve* is modeled as a resistor
+        - the operating status of each valve $(i,j) \in \mathcal{V}$ is indicated using a binary variable $z_{ij} \in {0,1}$
+          - where $z_{ij}=1$ corresponds to an open valve and $z_{ij}=0$ to a closed valve
+            - These variables constrain the mass flow across each valve as:
+              $\underline{f}_{ij}z_{ij} \leq f_{ij} \leq \bar{f}_{ij}z_{ij}, z_{ij} \in \{0,1\}, \forall(i,j) \in \mathcal{V}$
+          - when a valve is open, the pressures at the junctions connected by that valve are equal
+          - when a valve is closed, these pressures are decoupled
+            - this phenomenom is modeld via the following set of disjunctive constraints:
+              $p_i \leq p_j + (1-z_{ij})\bar{p}_i, \forall(i,j) \in \mathcal{V}$
+              $p_j \leq p_i + (1-z_{ij})\bar{p}_j, \forall(i,j) \in \mathcal{V}$
+
+        _regulators_
+      - The operating status of a regulator is given using a binary variable $z_{ij} \in \{0,1\}$
+        - where $z_{ij} = 1$ and $z_{ij} = 0$ indicate active and inactive statuses
+          - mass flow across each regulator is then governed by:
+            $\underline{f}_{ij}z_{ij} \leq f_{ij} \leq \bar{f}_{ij} \leq \bar{f}_{ij}z_{ij}, z_{ij} \in $
+      - Each regular $(i,j)$ is associated with multiplicative scaling factor, $\alpha_{ij}$
+        - that defines the relationship between $p_i$ and $p_j$ when the regulator is active, i.e. $\alpha_{ij}p_i = p_j$
+        - this factor is constrained by operating limits as $\underline{\alpha}_{ij} = 0 \leq \alpha_{ij} \leq \bar{\alpha}_{ij} = 1$
+        - as for valves , the pressures at the junctions connected by a regulator are decoupled when the regulator is inactive
+          - modeled by:
+            a. $f_{ij}(p_i - p_j) \geq 0, \forall(i,j) \in  \mathcal{W}$
+            b. $\underline{\alpha}_{ij}p_i \leq p_j + (1-z_{ij})\underline{\alpha}_{ij}\bar{p}_i, \forall(i,j) \in \mathcal{W}$
+            c. $p_j \leq \bar{\alpha}_{ij}p_i + (1-z_{ij})\bar{p}_j, \forall(i,j) \in \mathcal{W}$
+          - a. ensures that each mass flow is in the same direction as the pressure loss
+          - b. and c. ensure the pressure at node $j$ resides within the scaled bounds of $p_i$ when the control valve is open
+
+
+***** maximal load delivery formulation
+- which seeks to determine a feasible operating point for a damaged gas pipeline network that maximizes the delivery of prioritized load
+/three variants of the problem are presented in order of successive reformulations and relaxations that, though they increase problem complexity, decrease nonconvexity and hence computational difficulty/
+1. extend the nonconvex feasiblity constraints of MINCP-F to formulate the initial MLD problem
+2. introduce an exact mixed-integer nonconvex quadratic reformulation of this MLD problem
+3. introduce a mixed-integer convex quadratic relaxation reformualation of the MLD problem
+/also present mixed-integer quadratic reformulations for a broader set of gas pipeline network components and introduce convex relaxation techniques for components that were not explicitly considered/
+
+****** mixed-integer nonconvex formulation
+- a damaged gas network requires the exclusion of components from the model
+  - implies an imbalance in satisfying all demands of the original system
+  - the set of excluded components comprises both damaged and connected components
+    - e.g. a damaged junction $i \in \mathcal{N}$ implies nonoperational status of all node-connecting components $\delta^+_i \cup \delta^-_i$
+      /tilde-based notation to define set of components that are still functional/
+      - e.g. $\tilde{P} \subseteq P$ denotes the set of still operational pipes
+- receipts and deliveries are treated as dispatchable
+  - implying that the previous constant supplies and demands, $\bar{s}_k, k \in \mathcal{R}_i$, and $\bar{d}_k$, $k \in \mathcal{D}_i$ for $i \in \mathcal{N}$ becomes variable bounded as:
+    a. $0 \leq s_k \leq \bar{s}_k, \forall k \in \mathcal{R}_i, \forall i \in \tilde{\mathcal{N}}$
+    b. $0 \leq d_k \leq \bar{d}_k, \forall k \in \mathcal{D}_i, \forall i \in \tilde{\mathcal{N}}$
+       - where $\bar{s}_k$ and $\bar{d}_k$ denote original supply and demands
+         - under variable loads, previous mass conservation become
+
+           $\sum\limits_{(i,j)\in \tilde{\delta}^+_i}} f_{ij} - \sum\limits_{(j,i)\in \tilde{\delta}^-_i} = \sum\limits_{k\in \mathcal{R}_i}s_k - \sum\limits_{k\in \mathcal{D}_i}d_k, \forall i \in \tilde{\mathcal{N}}$
+           - parameters $\beta_k \geq 0, k \in \mathcal{D}$ are introduced to denote load restoration priorities, if none available then values of one can be used instead
+           - Maximization of prioritized load delivered then implies the objective function:
+             $\eta(d) = \sum\limits_{i \in \tilde{\mathcal{N}}} \sum\limits_{k\in\mathcal{D}_i} \beta_k d_k$
+The mixed-integer nonconvex , nonlinear MLD problem formulation is then
+- _maximize_ objective function $\eta(d)$
+- _subject to_ supply and demand bounds, conservation of mass flow, and supplies and withdrawals of gas are not constrained to the nodal balance and mass conservation
+
+
+**** Pandapipes
+***** mathematical model formulation
+- for any piping grid, the laws of Kirchoff apply
+  1. Kirchoff's junction rule
+     - for any node/junction in a physical system or circuit
+       - the sum of current flowing into that node/junction is equal to the sum of currents flowing out of that node
+         $\sum\limits_{i=1}^n I_i = 0$
+         - where $n$ is total number of branches with currents flowing towards or away from the node
+         /viewed as an extension of the conservation of charge/
+       - since charge is the product of current and time the current has been flowing
+  2. Kirchoff's voltage law
+     - approximate the circuit with lumped elements
+       - so that time-varying magnetic fields are contained to each component and the field in the region exterior to the circuit is negligible.
+         - maxwell-faraday equation reveals:
+           $\Delta \times E = - \frac{\delta B}{\delta t} = 0$ in the exterior region
+
+- incoming and outcoming mass and energy flows of a node must balance out
+  - $m_b$ denotes the mass flow of a branch connected to the node
+  - $m_n$ denotes the mass flow that enters or leaves the system through the node itself
+  - $q_n$ is the heat flow entering or leaving a node
+  - $N_b$ is the number of branches connected
+  - subscripts $in$ and $out$ denote incoming and outgoing flows
+- a perfect mixture is assumed at each node
+  - the temperature of all outgoing flows equate to the node temperature
+    $\sum\limits_{b=1}^{N_b} m_b + m_n = \sum\limits_{b=1}^{N_b} v_b A_b \rho_b + m_n = 0$
+    $\sum\limits{b=1}^{N_b}q_n = \sum\limits_{b=1}^{N_b , in} m_b c_p T_b - \sum\limits_{b=1}^{N_b, out} m_b c_p T_n = 0$
+  - the pressure or temperature differences within a mesh must sum up to $0$ state below
+    $\sum\limits_{b=1}^{N_b} \Delta p_b = 0$
+    $\sum\limits_{b=1}^{N_b} \Delta T_b = 0$
+
+- to solve for the unknown variables of *node pressures and branch velocities*
+  - physical models are implemented for components in pandapipes
+    - components include three types
+      1. nodes
+      2. branches connecting two nodes
+      3. node elements, which are connected to single nodes and change their properties
+
+  - the following component models are implemented
+    1. junctions
+       - the node representations corresponding to the mass and energy flow balanced as formulated
+       - pressure and temperature ned to be preset as boundary conditions
+    2. external grids
+       - the reference node representation for the connections to other systems
+       - this node element fixes pressure or temperature for the connected junction to form above boundary conditions
+    3. sinks and sources
+       - node elements which insert a mass flow entering or leaving the connected junctions
+    4. pipes
+       - main branch components
+       - they connect two junctions
+    5. valves
+       - branch components
+         - that also disconnect the two connected junctions from each other
+    6. pumps
+       - branch components
+         - that introduce a pressure lift
+           - calculated according to a characteristic that sets the operating point in dependency of the calculated flow rate
+    7. circulation pumps
+       - useful for district heating grid calculations
+
+*** Pipes
+
+_Pipe Attributes_
+- $p$, pressure
+- $x$, length along a pipe
+- $f$, wall friction factor
+- $D$, inner pipe diameter
+- $\rho$, the fluid density
+- $v$, the fluid velocity
+- $Re$, the fluid Reynolds number
+- $k$, the pipe roughness
+
+
+**** $m$, Mass Flow Rate
+
+- *BlendPath* solves for _steady-state_ pressure profile
+  - the hydraulics within the pipeline network, and more specifically the pressures
+    - are determined by evaluating the momentum balance for a given pipe:
+      $\frac{dp}{dx}=\frac{f}{2D}\rho v |v| - \rho v \frac{dv}{dx}$
+      - where $p$ is the pressure
+      - $x$ is the length along a pipe
+      - $f$ is the wall friction factor
+      - $D$ is the pipe inner diameter
+      - $\rho$ is the fluid density
+      - $v$ is the fluid velocity
+      - *BlendPath* calculates the friction factor using the explicit Hofer approximation of the Colebrook-White formula:
+        $f=(-2\log_10[\frac{4.518}{Re}\log_10(\frac{Re}{7})+\frac{k}{3.71D}])^{-2}$
+        - where $Re$ is the fluid Reynolds number
+        - $k$ is the pipe roughness
+  - so the mass flow rate is constant in any singular pipe
+  $m = A (\frac{M_W}{ZRT}\frac{D}{fL})^{0.5} \sqrt{p^2_2 - p^2_1}$
+  - $A$ is pipe cross-sectional area
+  - $M_W$ is the fluid's molecular weight
+  - $R$ is the gas constant
+  - $T$ is the temperature
+  - $L$ is the pipe length
+  - $p_2$ $p_1$ are the absolute pressures at the pipe inlet and outlet
+  - $Z$ is the gas compressibility, calculated using the average fluid properties in the pipe
+    - $Z$ is calculated using average fluid properties in the pipe as:
+      $Z_{avg} = \frac{P_{avg}M_W}{RT_{avg}\rho_{avg}}$
+      - where the average temperature, pressure, and density are calculated as:
+        $p_{avg}=\frac{2}{3}(p_1+p_2 - \frac{p_1p_2}{p_1 + p_2})$
+        $T_{avg} = \frac{T_1 + T_2} {2}$
+        $\rho_{avg} = \rho (p_{avg},T_{avg})$
+        - where $T_1$ and $T_2$ are the fluid temperatures at the pipe inlet and outlet
+        /the density calculation depends on which equation of state is applied/
+        - Papay EOS or Redlich-Kwong EOS
+
+
+
+- *GasModels* implements a _steady-state_ model of gas flowed based on the Weymouth formulation that uses 1-D hydrodynamic equations for natural gas flow in a pipe
+  - Given the assumption of steady flow, the conservation of momentum equation for flow of gas in a pipe:
+    $p\frac{\partial p}{\partial x} = -\frac{\lambda a^2 \phi|\phi}{2D}$
+    - $p$ is pressure
+    - $\lambda$ is a non-dimensional friction factor
+    - $\phi$ is mass flux
+    - $D$ is the diameter of the pipe
+      $a^2 = \frac{ZRT}{m}$
+      - $Z$ is gas compressibility factor
+      - $R$ is the universal gas constant
+      - $m$ is the molar mass of the gas
+      - $T$ is the gas temperature
+    - mass conservation reduces to:
+      $\frac{\partial \phi}{\partial x} = 0$
+      - we assume pipe area does not change with $x$
+      - we assume gas pressure and gas density satisfy the equation of state, i.e. $p = a^2p$
+  - Given that $p\frac{\partial p}{\partial x} = \frac{1}{2} \frac{\partial p^2}{\partial x}$ and $\phi$ is a constant throughout the pipe
+    - the conservation of momentum equation is is integrated from the start of the pipe at $x = 0$ to the end of pipe at $x = L$
+      - where $L$ is the length of the pipe
+    - the equation for flux across the pipe is:
+      $p^2(L) -p^2(0) = \frac{-\lambda L a^2 \phi|\phi|}{D}$
+  - We express the mass flux through the pipe in terms of *mass flow*, $f$
+    - where $f=\phi A$
+      - $A=\frac{\pi D^2}{4}$ is the cross-sectional area of the pipe
+      - thus, *the equation for mass flow through a pipe* is:
+        $p^2(L) -p^{-2}(0) = \frac{-\lambda L a^2 f|f|}{DA^2}$
+  - We non-dimensionalize the units to create a better numerically conditioned problem
+    - we use a typical pressure $p_0$ and a typical mass flow $f_0$
+      - and normalize the equations
+        $p^{-2}(L)-p^{-2}(0) = -\bar{f}|\bar{f}|(\frac{\lambda L}{D})(\frac{f^2_0 a^2}{A^2p^2_0})$
+        - where $\bar{f}=\frac{f}{f_0}$ and $\bar{p}=\frac{p}{p_0}$ are dimensionless mass flow pressure, respectively
+          - and are both of order one
+        - we define resistance, $w$, as the constant
+          $w = (\frac{\lambda L}{D})(\frac{f^2_0 a^2}{A^2 p^2_0})$
+  - Finally, in most data sets, nodal injections and withdrawals are defined in terms of volumetric flow, $q$, at a standard temperature and pressure (STP) conditions
+    - Given this data, we non-dimensionalize based on $q$
+      - at STP conditions , the mass flow is derived as:
+        $f=\frac{q}{\rho_s}$
+        - where $\rho_s$ is the gas density at STP conditions
+
+- *Pandapipes* implements a Newton-Raphson solver for steady-state anaylsis of fluid dynamics of all components with their hydraulic quantities are calculated
+  - i.e. the pressures for all nodes and the velocities for all branches
+  - they also provide calculations for the heat transfer through the network and from the network to external components or the environment
+
+  - the Newton-Raphson solver builds an structure containing a system matrix
+    - i.e. a system of equations in order to solve for pressure and velocity based on initial guesses and formulations for the derivatives
+
+    - the structure contains all the information for constructing the Jacobian matrix
+      - the term "Jacobian" is used for both the matrix of first partial derivatives of a vector-valued function and its determinant
+        - Given a set $y=f(x)$ of $n$ equations in $n$ variables $x_1,..., x_n$
+          $y= \left[ \begin{array}{cc} f_1(x) \\ f_2(x) \\ ... \\ f_n(x) \end{array} \right]$
+          or
+          $\left\{ \begin{array}{rcl} y_1 = f_n(x_1,...,x_n) \\ ... & ... \\ y_n = f_n(x_1,...,x_n) \end{arry}\right$
+          - the *Jacobian matrix*
+            $\mathbf{J}(x_1,...,x_n) = \left [ \begin{array}{ccc} \frac{\partial y_1}{\partial x_n} & \cdots & \frac{\partial y_1}{\partial x_n} \\ \vdots & \ddots & \vdots \\ \frac{\partial y_n}{\partial x_i} & \cdots & \frac{\partial y_n}{\partial x_n}  \end{array}\right]$
+            - the determinant of $\mathbf{J}$ is the jacobian determinant
+              $J = |\frac{\partial(y_1,...,y_n)}{\partial(x_1,...,x_n)}|$
+      - The Pandapipe internal table (structure) contains values like the load vectors and their derivatives
+        - only really active parts of the network are considered
+      - The residual and its derivatives with respect to the estimated values $(p,v,T)$ are calculated and stored in branch pandapipes internal table
+      - The system matrix is constructed
+        - all the derivatives are written into one large sparse matrix
+          - in which the row indices represent the node indices
+            - followed by the branch indices and the column indices represent the indices of the solution variables
+              - typicall they also belong to nodes and brancehs
+        - it contains all the derivatives
+        - the load (residual) vector is constructed by summarizing all the node-related residuals from the branch pandapipes internal table at all nodes
+          - e.g. incoming and outgoing mass flows
+        - and appending the residuals calculated for the branches to it
+      - The linearized system of equations for the hydraulic magnitudes
+        - the Jacobian matrix is multiplied with the vector with estimates' step outputting a load vector
+
+
+
+    - Newton-Raphson solver is implemented as followed:
+      1. initial guesses for $p$ and $v$ are inserted in the node and branch tables for each of the components
+         - initial guesses are derived from where all values are the same or derived from values in the tables
+           - i.e. nominal pressure level of a network
+         - or taken from structure if previous calculations have been stored
+      2. As long as the stopping criteria...
+         - are not reached
+           - usually maximum iterations as well as residual, pressure and velocity tolerances
+         - each component calculates the residual between given values
+           - such as the mass flow balance for junctions and the pressure difference for pipes
+         - and the calculated values based on the current guesses of $p$ and $v$
+           - also the derivatives of $p$ and $v$ are calculated
+
+      3. some boundary conditions have to be given:
+         1. the pressure value for at least one network node
+            - which is then the slack node
+         2. the mass flow that is extracted at every node by sinks or fed-in by sources
+         3. the environmental conditions,
+            - such as the height of each junction, the ambient pressure, the fluid temperature and other fluid properties
+         /similar to the heat transfer calculation/
+         - the transferred heat is calculated on the basis of the already calculated mass flow and the magnitudes that are solved for are just temperature values
+           - Here the node temperatures represent the mixed fluid temperatures
+           - And the branch temperatures represent the temperatures at internal nodes at the rear of the branches
+         - the mixed fluid temperature is calculated based on all incoming flows to the node
+           - internal node temperature depends on the previous node's temperature and the heat losses to the environment
+
+    - In pandapipes a procedure is used to find hydraulic unknown variables $p_n$ for nodes and $v_b$ for branches
+      1. start with initial guess
+         - derivatives of the node and branch equations for the unknown variables at the current guess are determined to find the next Newton step
+         - $\Delta v_b$, $\Delta p_{n_1}$ and $\Delta p_{n_2}$ denote the Newton step to be found
+           - for the branch velocities and respective pressures of the two nodes connected to each branch
+         - $\Delta p_b$ denotes the pressure drop along the branch
+         - $m_b$  denotes the mass flow through the branch
+
+    $\sum\limits_{b=1}^{N_b} \frac{\partial m_b}{\partial v_b} \cdot \Delta v_b = m_n$
+
+$\frac{\partial \Delta p_b}{\partial p_{n_1}} \cdot \Delta p_{n_1} + \frac{\partial \Delta p_b}{\partial p_{n_2}} \cdot \Delta p_{n_2} + \frac{\partial \Delta p_b}{\partial v_b} \cdot \Delta v_b = \Delta p_b$
+
+
+
+    - Node components implement a mass flow or power balance
+      - the mathematics behind the component models in pandapipes how they are setup into a system of nonlinear equations
+        - presented equations correspond to the pipe component model but also are applicable to other branch components considering respective characteristics
+          - e.g. valves have a length of 0, which means the Darcy friction term is neglected and only a lumped pressure is introduced
+          - for an incompressible medium, the pressure variation along a pipe section with length $dl$ can be described as:
+            $dp = -\frac{\rho \cdot v^2}{2}\cdot (\frac{\lambda}{d}\cdot dl + \gamma) + \rho \cdot g \cdot dh$
+            - pressure difference  described with the terms on the RHS of the equation
+              1. pressure loss due to friction is proportional to the Darcy friction factor $\lambda$
+                 - it also depends on the pipe diameter $d$
+              2. a lumped pressure loss can be expressed using the pressure loss coefficient $\zeta$
+                 - this pressure loss is introduced
+                   - e.g. by bends or components which are not represented by a component model
+                 - the pressure losses due to both friction and lumped components are proportional to the dynamic pressure $\frac{\rho-v^2}{2}$ where $\rho$ is the fluid density and $v$ is the flow velocity
+              3. pressure difference is introduced by a given height difference $\Deltah$ between connected junctions is given by the last term
+                 - the difference depends on the fluid density and the gravitational acceleration $g$
+          - in the case of a compressible media, the density of the medium is expressed by using the ideal gas law and a reference state
+            $\frac{p}{\rho \cdot T} = \frac{pN}{\rho N \cdot T_N}$
+            $\rightarrow \rho = \rho_N \cdot \frac{p \cdot T_N}{p_N \cdot T}$
+            - the reference state, noted with index $N$, corresponds to the known gas normal properties
+              - to add real gas behavior, it is modified by a compressibility factor
+          - For the reference state, a velocity can be found with the help of relation for the mass flow, $m$, inside the pipe
+            - the system velocity can be formulated as a function of the velocity of the reference state $v_N$
+              $m = \rho \cdot A \cdot v = \rho_N \cdot A \cdot v_N$
+              $v = \frac{p_N \cdot T \cdot v_N}{p \cdot T_N}$
+              $\frac{dp}{dl} = - \lambda\frac{\rho_N \cdot v^2_N}{2 \cdot d} \cdot \frac{p_N}{p} \cdot \frac{T}{T_N}$
+              - capures the continouos velocity and pressure distributions along a pipe
+
+
+
+
+
+
+
+
+*** Compressors
+
+**** $m$, Mass Flow Rate
+
+**** $\{\underline{\alpha},\bar{\alpha}\}$ Compression Ratio
+- time-dependent compression ratio between intake and outlet pressure
+
+
+**** Directionality
+
+
+
+
+
+
+
+* EUROPE Gas Flow
+
+** Germany GasLib

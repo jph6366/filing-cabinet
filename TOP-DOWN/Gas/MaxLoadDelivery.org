@@ -1,0 +1,29 @@
+#+title: Max Load Delivery
+
+* Maximal load delivery (MLD) problem
+
+_task_: determine feasible steady-state operating points for joint gas-power networks while ensuring the maximal delivery of gas and power loads simultaneously
+
+*the MLD problem maximizes the amount of nongeneration gas load and active power laod simultaneously*
+- nongeneration gas load: gas demand uncommitted to electric power generators)
+
+Objective term relating to the amount of nongeneration gas load be defined by:
+
+$\eta_G (d) := (\sum\limits_{i \in D^{'}}\beta_i d_i) (\sum\limits_{i\in D^{'}}\beta_i \bar{d}_i)^{-1}$
+- where $\mathcal{D}^{'}$ is the set of the delivery points in the gas network not connected to interdependent generators in the power network
+  - $\beta_i \in \mathbb{R}_+$ is a predefined restoration priority for delivery $i \in \mathcal{D}^{'}, d_i$
+    - $d_i$ is the variable mass flow of gas delivered at $i \in \mathcal{D}^{'}$ and $\bar{d_i}$ is the maximum deliverable gas load at $i \in \mathcal{D}^{'}$
+
+Objective term relating to the amount of active power load can be defined by
+
+$\eta P(z^d) := (\sum\limits_{i\in \mathcal{L}} \beta_i z^d_i |\mathbb{R}(S^d_i)|)(\sum\limits_{i\in \mathcal{L}} \beta_i |\mathbb{R}(S^d_i)|)^{-1}$
+
+- $\mathcal{L}$ is the set of loads in the power network
+- $\beta_i \in \mathbb{R}_+$ is the load restoration priority for load $i \in \mathcal{L}$
+- $z_i \in |0,1|$ is a variable that scales the absolute maximum amount of active power load
+  - $|\mathbb{R}(S^d_i)|$ , at load $i \in \mathcal{L}$
+
+** Natural gas maximal load delivery for multi-contingency anaylsis
+
+
+** Convex relaxations of maximal load delivery for multi-contingency anaylsis of joint electric power and natural gas transmission networks
