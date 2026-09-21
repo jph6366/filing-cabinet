@@ -1020,3 +1020,32 @@ Hitachi Energy Velocity Suite
   - 2 seats
 - additional modules and data licensing
   - they should budge ?
+** 9-15-2026
+
+GDS monthly meeting
+
+- travis W. presenting large loads
+- billy making maps for data center suitability
+- marie stepped in for the spatial intellgience portfolio
+  - also taking the transmission (gulf coast)
+    - transmission routing
+- victor favorability on data cetner and large loads (w/ travis)
+- jianyu, geoai and spatial intelligence, noise modeling
+- maya is leaving :(
+- Gabe left a braindump recording w/ Galen
+  - i like this notion and would like to employ this in my work
+_expanded use of GDS tools in the wild_
+
+
+supply chain modeling
+- dabbled in
+
+develop on travis's routing tool
+
+_geospatial analysis of artisinal mines in the DRC_
+- Siddarth
+  - informal supply chain network challenger
+    - Desk aspect
+      - accessible and actionable adata -> nodes & edges -> graphical analysis
+
+/critical mineral supply chain issue!/

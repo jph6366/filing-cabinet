@@ -2,6 +2,103 @@
 
 * reV Contributions
 
+** revgas land use module
+
+*** summary
+We actually have to an initial land use map for this quarterly deliverable.
+
+We won't need any development time on the reV land use modules and we can reuse a lot of the existing
+exclusions for solar, but we want to have some gas-specific exclusions ready.
+
+*** implementation
+
+projects && /oe/fy27/natural_gas/
+
+- gather solar exclusions and gas modeling land use assumptions
+- code prototype
+- report on land use in GDS gas modeling document
+
+  - look at the refrence case
+    - Example reference land access case:
+
+/kfs2/projects/rev/projects/seto/fy25/standard_scenarios/rev/aggregation/01_reference
+- throw out the solar specific ones
+  - upv pv dpv
+    - replace with gas specific core layers
+
+
+_To capture the uncertainty associated with siting criteria, we used a scenario-based approach_
+- Open Access (Open) is the least restrictive scenario. It applies only physical obstacles and
+excludes development on legally or administrated protected lands.
+- Reference Access (Reference) is a moderate scenario. It applies existing ordinances and
+regulations, known preclusions, and current industry practices for siting.
+- Limited Access (Limited) is the most restrictive scenario. It applies a combination of the
+most restrictive setbacks, environmental constraints, and national defense concerns.
+
+**** review wind and solar rev land use
+  - 'fy27'/
+    - /'landuse'
+      - reV aggregation
+        - "Category" methods takes every pixel value and counts every pixel in a supply curve grid cell
+        - when running a data layer
+          - each layer makes a json dict
+          - we do partial exclusions
+        - "Sum" adding up the pixels (binary level) then multiple amount of land by pixel
+        - "Mean" averaging pixels
+      - 'excl_dict'
+        - exclude values of #
+          - see the puerto rico resilience reV for UPV
+        - include weights
+          - 0: 1 exclude all values
+          - 1: 0.5 exclude all values by 1/2
+        - limit to extent , try not to do this one
+        - use_As_Weights: 1
+          - exclude whatever the percentage of inclusion is...
+        - include range or exclude range
+          - [0,N]
+
+        - value lookup in the HDF5 dataset attributes
+          - ds.attrs.keys()
+            - attrs["profile"]
+              - could use to write to raster
+
+        /CAREFUL PULLING ARRAYS out HDF5/
+        - band dimension is included
+
+
+    - rio.open("fielpath.tif", "w", **profile)
+
+    - execution controls
+      - might take 4 walltime might not
+
+    - area filter kerenl:
+    - min area
+
+    - `gen_fpath` is used through the resource dataset for the techmaps
+      =
+**** soil liquefaction 90m
+**** non-attainment areas 90m
+
+#+begin_src emamux :session 0:0.0
+projects && cd oe/fy27/natural_gas/rev/landuse/ && curl -L -o gNATSGO_CONUS.zip "https://nrcs.app.box.com/v/soils/folder/233393842838"
+#+end_src
+
+*** comments
+- favorability criteria for
+
+- focus idea of land exclusion
+  - where you cant build something
+
+
+- annual technical reports
+  - see siting constraints and considerations
+    -  make sure to differentiate between land use and siting constraints
+
+- we dont set setbacks for open access
+
+- detailed local information compass
+  - specific setbacks for counties
+
 
 ** revgas rapid prototyping gas modeling
 
@@ -46,12 +143,42 @@ Also to incoporate GasModels.jl code which implements a steady-state model of ga
        - Control Method
        - Pipeline Optimization
 
+
+
+
 i.e. to illustrate the topology of the network only
 - 4-node network
-   /network contains two compressors and gas is being withdrawn at nodes 2–4. The pressure at the slack node, 1, is fixed to 500 psi and gas is withdrawn at the withdrawal nodes in a time-periodic manner/
+   /network contains two compressors and gas is being withdrawn at nodes 2–4. The pressure at the slack node, 1, is fixed to 500 si and gas is withdrawn at the withdrawal nodes in a time-periodic manner/
 - 25-node network
   /a tree with five compressors and 24 pipelines/
 
+  *mass flow rate extrema*
+  - this is first code goal!
+    - Thnking we should have a functional procedure for getting mass flow rate given a pipeline segments(s)/selection of elements.
+      - save on complexity of joining entire pipeline datasets and join on selected segment(s) w/ pipeline datasets containg age, project names, proposed capcity & horsepower, length, etc.
+
+    1. lets stick with velsuite and write a function to join a segment on eia planned projects and ogim and gem pipelines
+
+/determine what the imputation step looks like if neeeded for cleanliness/completeness/
+- this step has to do with pipe segementation and some interest in determining where we apply nodal relationships between natural gas network elements
+
+
+*aligning excel spec sheet with code and record formulation, assumptions, and statements on modeling and estimating values*
+- finish documenting flow rates for blendpath, gasmodels, and pandapipes
+  - notes
+  - spec sheet
+  - code
+  - paper
+- reading brooks liteature and high performance python
+
+
+*EXTRA:* graph debug tools
+- branch-nodal incidence matrix
+- branch-loop incidence matrix
+- computer representation of network graph
+- Node-nodes representation
+- Connection tables
+- etc.
 
 
 *** comments
@@ -81,6 +208,16 @@ Characterize an appropriate sized subnetwork to imply the flow rate with least a
 
 - molecule tracing (how far mass goes)
 
+**** reviewing GasModels.jl w/ Burcin
+
+*blendpath* - find pressure vector to balance network
+-
+
+
+*gasmodels* - find feasible operating point (given component states) and maximize prioritized load delivery on a damaged network
+-
+
+*pandapipes* - find pressures + branch velocities (+ temperatures) that balance the network
 
 
 **** Interstate Natural Gas Pipeline Efficiency
