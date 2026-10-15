@@ -2,6 +2,267 @@
 
 * reV Contributions
 
+** fix tmux bugs for revruns
+** GDS disk space alert
+*** summary
+
+Travis wants me to take charge of removing the persona attachments to experiments and revruns
+- that have gone cold in storage
+- or are filled w/ bloated files
+- or maybe there is a smell from the stinky file organization (less prio)
+
+- figure out how to identify the files that need garbage collection
+  - reV garbage collection and GUI
+    - identify directories that needs permissions to open
+      - then followup with a change to the permissions
+
+
+- shift data from 'eagle' projects
+- we can move alot of data to 'shared-projects'
+  - 'esp-rev' group
+
+- social accesiblity initiative to enable
+  - message thru teams?
+
+
+where do we want this script?
+- we store in data management repo
+
+*** implementation
+
+*WEBHOOK URL*
+https://defaulta0f29d7e28cd4f5484427885aee7c08.0.environment.api.gov.powerplatform.microsoft.us:443/powerautomate/automations/direct/workflows/b677bdcbb02f4f6da849fd52cab458d6/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=6eBp1tCvj6rl1P3qlGeCmjCUhiJ2gIIXRblBAmk62VI
+
+
+
+initally we need to add a bash alias for store for every to call
+1. _write the function in bash_
+
+   a. I need to learn a little bash stuff so lets take a zettlekasten
+   b. it will recurse given current `pwd` or inputted a fileppath
+
+
+`lfs quota`
+
+
+#+begin_src bash
+# Function to quickly identify paths with incorrect group associations or closed permissions
+audit_group_lustre() {
+    # Get current working directory
+    local target_dir
+    target_dir=$(pwd)
+
+    # --- SAFETY CHECK: Guard against critical system paths ---
+    case "$target_dir" in
+        /|/home|/home/*|/etc|/etc/*|/usr|/usr/*|/var|/var/*|/tmp|/tmp/*)
+            echo "ERROR: This scan cannot be run in system or home roots."
+            echo "       Target directory: $target_dir"
+            return 1
+            ;;
+    esac
+
+    # Ensure we are actually on a Lustre filesystem
+    if ! lfs getstripe -d . &>/dev/null; then
+        echo "WARNING: This directory is not on a Lustre filesystem (e.g., Kestrel /scratch or /projects)."
+        echo "         Falling back to standard find, which may be slow..."
+        find . \( -type d -a ! -perm -g+rx \) -o \( -type f -a ! -perm -g+rw \) 2>/dev/null | head -n 50
+        return 0
+    fi
+
+    # Identify the primary active group of the user (or target shared project group)
+    local target_gid
+    target_gid=$(id -g)
+    local target_group
+    target_group=$(id -gn)
+
+    echo "Scanning: $target_dir"
+    echo "Verifying group ownership matches your primary group: $target_group (GID: $target_gid)"
+    echo "----------------------------------------------------------------------"
+    echo "Paths NOT owned by group '$target_group' (using rapid metadata lookup):"
+    echo "----------------------------------------------------------------------"
+
+    # CRITICAL LUSTRE OPTIMIZATION:
+    # Use native 'lfs find' with the '! --gid' operator.
+    # This queries the MDS directly without stat-ing every individual file block.
+    lfs find . ! --gid "$target_gid" 2>/dev/null | head -n 50
+
+    echo "----------------------------------------------------------------------"
+    echo "Note: Output is capped at the first 50 entries to protect MDS performance."
+    echo "If files are owned by another group, your collaborators cannot read/write them."
+}
+
+# Alias for our shared environment
+alias audit_group='audit_group_lustre'
+#+end_src
+
+
+
+*** brave new diskspace
+
+**** all-hands ondeck init
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 08:33 upv_ncdb_historical_2010_generation_2010.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 08:33 upv_ncdb_historical_2010_generation_2011.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 08:33 upv_ncdb_historical_2010_generation_2012.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 08:33 upv_ncdb_historical_2010_generation_2013.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 08:33 upv_ncdb_historical_2010_generation_2014.h5
+-rw-rw-r-- 1 jhardee crerp 116G Jul  2 08:41 upv_ncdb_historical_2010_multi_year.h5
+
+
+
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 07:21 upv_ncdb_historical_2000_generation_2000.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 07:21 upv_ncdb_historical_2000_generation_2001.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 07:21 upv_ncdb_historical_2000_generation_2002.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 07:21 upv_ncdb_historical_2000_generation_2003.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 07:21 upv_ncdb_historical_2000_generation_2004.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 07:21 upv_ncdb_historical_2000_generation_2005.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 07:21 upv_ncdb_historical_2000_generation_2006.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 07:21 upv_ncdb_historical_2000_generation_2007.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 07:21 upv_ncdb_historical_2000_generation_2008.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 07:21 upv_ncdb_historical_2000_generation_2009.h5
+-rw-rw-r-- 1 jhardee crerp 231G Jul  2 07:36 upv_ncdb_historical_2000_multi_year.h5
+
+
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2020_generation_2020.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2020_generation_2021.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2020_generation_2022.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2020_generation_2023.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2020_generation_2024.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2020_generation_2025.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2020_generation_2026.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2020_generation_2027.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2020_generation_2028.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2020_generation_2029.h5
+-rw-rw-r-- 1 jhardee crerp 231G Jul  2 09:17 upv_ncdb_2020_multi_year.h5
+
+
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:03 upv_ncdb_2050_generation_2050.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:03 upv_ncdb_2050_generation_2051.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:04 upv_ncdb_2050_generation_2052.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:04 upv_ncdb_2050_generation_2053.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:04 upv_ncdb_2050_generation_2054.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:04 upv_ncdb_2050_generation_2055.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:04 upv_ncdb_2050_generation_2056.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:04 upv_ncdb_2050_generation_2057.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:04 upv_ncdb_2050_generation_2058.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:04 upv_ncdb_2050_generation_2059.h5
+-rw-rw-r-- 1 jhardee crerp 231G Jul  2 09:20 upv_ncdb_2050_multi_year.h5
+
+
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:02 upv_ncdb_2040_generation_2040.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:02 upv_ncdb_2040_generation_2041.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:03 upv_ncdb_2040_generation_2042.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:03 upv_ncdb_2040_generation_2043.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:03 upv_ncdb_2040_generation_2044.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:03 upv_ncdb_2040_generation_2045.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:03 upv_ncdb_2040_generation_2046.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:04 upv_ncdb_2040_generation_2047.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:04 upv_ncdb_2040_generation_2048.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:03 upv_ncdb_2040_generation_2049.h5
+-rw-rw-r-- 1 jhardee crerp 231G Jul  2 09:20 upv_ncdb_2040_multi_year.h5
+
+
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2030_generation_2030.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:01 upv_ncdb_2030_generation_2031.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2030_generation_2032.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2030_generation_2033.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:01 upv_ncdb_2030_generation_2034.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:01 upv_ncdb_2030_generation_2035.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:01 upv_ncdb_2030_generation_2036.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:01 upv_ncdb_2030_generation_2037.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:02 upv_ncdb_2030_generation_2038.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:02 upv_ncdb_2030_generation_2039.h5
+-rw-rw-r-- 1 jhardee crerp 231G Jul  2 09:18 upv_ncdb_2030_multi_year.h5
+
+
+24 x 57 = 1368G
+
+
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_historical_2010_generation_2010.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_historical_2010_generation_2011.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_historical_2010_generation_2012.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_historical_2010_generation_2013.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_historical_2010_generation_2014.h5
+-rw-rw-r-- 1 jhardee crerp  13G Jul  7 12:23 osw_ncdb_historical_2010_multi_year.h5
+
+
+12.5G
+
+
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:06 osw_ncdb_historical_2000_generation_2000.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:06 osw_ncdb_historical_2000_generation_2001.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:06 osw_ncdb_historical_2000_generation_2002.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:06 osw_ncdb_historical_2000_generation_2003.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:06 osw_ncdb_historical_2000_generation_2004.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:06 osw_ncdb_historical_2000_generation_2005.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:06 osw_ncdb_historical_2000_generation_2006.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:06 osw_ncdb_historical_2000_generation_2007.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:06 osw_ncdb_historical_2000_generation_2008.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:06 osw_ncdb_historical_2000_generation_2009.h5
+-rw-rw-r-- 1 jhardee crerp  25G Jul  7 10:08 osw_ncdb_historical_2000_multi_year.h5
+
+25G
+
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 15:00 osw_ncdb_2050_generation_2050.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 15:01 osw_ncdb_2050_generation_2051.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 15:01 osw_ncdb_2050_generation_2052.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 15:01 osw_ncdb_2050_generation_2053.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 15:01 osw_ncdb_2050_generation_2054.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 15:01 osw_ncdb_2050_generation_2055.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 15:01 osw_ncdb_2050_generation_2056.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 15:01 osw_ncdb_2050_generation_2057.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 15:01 osw_ncdb_2050_generation_2058.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 15:01 osw_ncdb_2050_generation_2059.h5
+-rw-rw---- 1 jhardee crerp  25G Jul  7 15:03 osw_ncdb_2050_multi_year.h5
+
+25G
+
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 14:50 osw_ncdb_2040_generation_2040.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 14:50 osw_ncdb_2040_generation_2041.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 14:50 osw_ncdb_2040_generation_2042.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 14:50 osw_ncdb_2040_generation_2043.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 14:50 osw_ncdb_2040_generation_2044.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 14:50 osw_ncdb_2040_generation_2045.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 14:50 osw_ncdb_2040_generation_2046.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 14:50 osw_ncdb_2040_generation_2047.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 14:51 osw_ncdb_2040_generation_2048.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 14:51 osw_ncdb_2040_generation_2049.h5
+-rw-rw---- 1 jhardee crerp  25G Jul  7 14:53 osw_ncdb_2040_multi_year.h5
+
+25G
+
+
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_2030_generation_2030.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_2030_generation_2031.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_2030_generation_2032.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_2030_generation_2033.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_2030_generation_2034.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_2030_generation_2035.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_2030_generation_2036.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_2030_generation_2037.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_2030_generation_2038.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_2030_generation_2039.h5
+-rw-rw-r-- 1 jhardee crerp  25G Jul  7 12:24 osw_ncdb_2030_multi_year.h5
+
+
+25G
+
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:02 osw_ncdb_2020_generation_2020.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:02 osw_ncdb_2020_generation_2021.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:02 osw_ncdb_2020_generation_2022.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:02 osw_ncdb_2020_generation_2023.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:02 osw_ncdb_2020_generation_2024.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:02 osw_ncdb_2020_generation_2025.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:08 osw_ncdb_2020_generation_2026.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:03 osw_ncdb_2020_generation_2027.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:03 osw_ncdb_2020_generation_2028.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:03 osw_ncdb_2020_generation_2029.h5
+-rw-rw-r-- 1 jhardee crerp  25G Jul  7 10:10 osw_ncdb_2020_multi_year.h5
+
+
+25 x 5 + 12.5 = 137.5G
+
+
+
 ** revgas land use module
 
 *** summary
@@ -9,6 +270,25 @@ We actually have to an initial land use map for this quarterly deliverable.
 
 We won't need any development time on the reV land use modules and we can reuse a lot of the existing
 exclusions for solar, but we want to have some gas-specific exclusions ready.
+
+**** follwup
+
+check with sushimeta's work
+- see how where compass fills in the gaps
+
+travis is happy with soil bearing
+- continue on that
+
+See if we can fill missing areas in soil classesfication based
+- compensate for political boundaries
+- check the excluded generators
+
+  /initial nominal look/
+  - is there a lower bias
+    - sampling error or aggregating across some original join
+
+- if we exclude a bunch of existing plants
+
 
 *** implementation
 
@@ -25,6 +305,19 @@ projects && /oe/fy27/natural_gas/
 - throw out the solar specific ones
   - upv pv dpv
     - replace with gas specific core layers
+
+/projects/rev/projects/weto/fy26/compass_setbacks
+
+*leave a download script for every download*
+*debug exclusions overlayed with the gas power plants*
+ - determine whehter an area is invariant due to conditions (caliufornia)
+
+*revruns/Reformatter(Exclusions)/*
+
+ salloc -A rev --time=1:00 -p debug
+
+/REFORMATTER will take a longer time because it has build the numpy matrix/
+
 
 
 _To capture the uncertainty associated with siting criteria, we used a scenario-based approach_
@@ -76,14 +369,245 @@ most restrictive setbacks, environmental constraints, and national defense conce
 
     - `gen_fpath` is used through the resource dataset for the techmaps
       =
-**** soil liquefaction 90m
-**** non-attainment areas 90m
+**** soil liquefaction
+
+**** soil bearing capacity
 
 #+begin_src emamux :session 0:0.0
-projects && cd oe/fy27/natural_gas/rev/landuse/ && curl -L -o gNATSGO_CONUS.zip "https://nrcs.app.box.com/v/soils/folder/233393842838"
+ curl --url $'https://public.boxcloud.com/d/1/
+b1\u0021VBhOvInKHRelJ4wOBgN_v0yMY_PjDhVK7UMbU5EdS3zQ8pfflQSOqVs8ctA0Br57bpFv-yJwOhj
+p5uVnSmpmOq77KZxrbc4fDlIc2TGKmcqarhQvfn-h32mFzeotI_FgDHXt_PT5njHE_v8GudpoC55izRF7Pe
+Gfk5VZ6PjX1XYLwWxPgao3fQP_K81F0jCTahupQ9Aqbt7J6MoqILc2E-Z9sPQlMaxzNXqRpgU9LefhezgmC
+Ww08Z_FVInY0PnWH24BfWtwAYKJ6zWXmIkskAhxB7ZP8ABhVRKSh7VadkhD6tbZYfnIzzBtYgYwJaxnIWgo
+rfv510Xme7UGEbuEfkfzBLfxRxH3tv63PGCVTWKTo_vykfecoxrOdiS9w7CEUyNkyPcHQRA8jZqxAigYFS3
+FkAsa6gY26bt4CMbQES4gXU1kCo7HtMsW--nsN65_-h6Ewq1S88sbT5N0SAHmJ6WUiuBFnG753T-D4ilsc0
+suC3F2z4_V9loK99lx2i_rZ71fEbKIkID8lKOkmjAF94Lv-j5wlC_HjZGMr6F56Ofl8OWFNGow6KKSYLCgu
+8Lg6akUs6hr13UqLjtJeUikyPmHN-houBnAxKovpCdvMMq3Ey26s3w2-edBe0wu-B7F3AL_xvV-gPT9evr6
+qAAE48Hnl5XEsW4hHtcvwSKj_RSikNmTSpkDjnAH3XgKqHIbtf1pyQl43d1VEuP25oN-ne4gCZJS3ZaL_4E
+V9kH9FpNC1mB4PmPJSJ85PbXbwP2rW7vCoV6g0bApmnB2LyxNKezYjiBXOZ-jxaTH78TCj-0luA6B4nodFK
+bbQ8q8NxICUEO_34TNt1rQFJCuZIGI6f0gLgXF4yCk4gFv4okBLokoynuVh-Qea6Y1m0HuLCS_meJAehOVK
+CgHTeY45aIpaYwD5PsXpFbgQeKIWo4Ia2ACbTQf-KK8Lxj8vTfB2FayMvSn8BcMCgGZZpspJ8Dhmu1_Bh5K
+Vr_JC9koVKulO78LPEwerJVaWLbmyRdr97vUxfcTwsheldAGxOmpYGPu8mv6SdBRJB8otonn3VX2E2rGqyO
+BdmZNPVLDhDmYJVWESsYQZDuRfLz34BSR_oDi2ShVvJT8ow2rKtXIPQPTEL313YMQkuu9ulmHewDG_6o_Ro
+fNaHAXl-LPURp-QzkB3NGlKwCGWdCLrebvd3AFPc8O3IgKHu0pHRWOP59sWao27IukySC_C02opJWqzV-eM
+XJPDXS7avU_3P1c3h9Z4_Mlkwh-fR9vtQMuJocjEnDtgdb9fQZKjcPMIvuRY9pQq1PJleTMKVb_DZxZybtd
+NpTgA_-qkyBtXF5Bzot-gPpQHov_sLZkRXMjD63XvGal-AblP8QIRPU1rjuDyLHS0ayx_iYR9AWfOJ0W8Aq
+k-OOrAahBui24y6DDh0GvGrkN/download' --output gNATSGO_CONUS.7z
 #+end_src
 
+
+
+
+_gNATSGO_
+soil_slippage_potential
+soil_taxonomy_edition
+fl_soil_leaching_potential
+fl_soil_runoff_potential
+soil_moisture_status
+hillslope_profile
+Component Slope Shape Surface Morphometry
+soil_survey_area_status
+
+_chtexture_
+- outputted distinct .txt file
+
+- determining the soil bearing capacity using descriptiveness and texture class
+
+
+*unique texture classes in chtexture*
+#+begin_src python
+[                   nan,           'Loamy sand',           'Sandy clay',
+           'Sandy loam',      'Loamy fine sand',                 'Clay',
+                 'Silt',                 'Loam',    'Loamy coarse sand',
+            'Fine sand', 'Loamy very fine sand',    'Coarse sandy loam',
+                 'Sand',          'Coarse sand',      'Fine sandy loam',
+      'Silty clay loam',            'Clay loam',      'Sandy clay loam',
+            'Silt loam',       'Very fine sand', 'Very fine sandy loam',
+           'Silty clay']
+
+
+ [    'Highly decomposed plant material',
+                                     nan,
+                            'Paragravel',
+                              'Variable',
+                                'Gravel',
+                                 'Water',
+                                  'Peat',
+                            'Flagstones',
+                                   'Ice',
+                              'Material',
+                               'Bedrock',
+                                'Stones',
+                           'Paracobbles',
+                               'Cinders',
+                              'Cemented',
+                          'Parachanners',
+                               'Cobbles',
+    'Slightly decomposed plant material',
+                'Coarse gypsum material',
+                                  'Muck',
+                    'Diatomaceous earth',
+                           'Petrocalcic',
+                     'Weathered bedrock',
+                             'Indurated',
+                          'Paraboulders',
+                              'Channers',
+                   'Unweathered bedrock',
+                             'Pumiceous',
+                            'Mucky peat',
+                  'Gypsiferous material',
+  'Moderately decomposed plant material',
+                       'Sand and gravel',
+                   'Fragmental material',
+                               'Duripan',
+                             'Artifacts',
+                                  'Marl',
+                     'Coprogenous earth',
+                                'Shells',
+                              'Boulders',
+    'Consolidated permafrost (ice rich)',
+                  'Fine gypsum material']
+ Length: 41, dtype: s
+#+end_src
+
+_chtexturegrp_
+
+*unique texture classes in chtexturegrp*
+#+begin_src python
+array(['SL', 'GR', 'GRV', 'WB', 'CNV', 'FL', 'STV', 'CN', 'ST', 'STX',
+       'VFS', 'SR', 'CNX', 'GRX', 'MK', 'SR SIL SG', 'SR GRX', 'FLV',
+       'SR SL CL', 'GRC', 'ASHY', 'MR', 'COP', 'S FS', 'BYX', 'CBX',
+       'ARTV', 'PCNX', 'GYP', 'COS SL', 'SR VFSL SICL', 'HO', 'PF',
+       'MEDL', 'CB', 'SR GRV', 'SIL MPT', 'SI FS MUCK', 'MUCK FSL', 'PCN',
+       'LS SICL', 'SCL SCL', 'SCL', 'CL', 'CBV', 'PGRX', 'PGR', 'GRM',
+       'GRF', 'SR GR', 'SR LS FSL', 'PGRV', 'CEM', 'BYV', 'BY', 'SICL PG',
+       'GRART', 'GRXART', 'WD', 'CNART', 'SHF', 'SHFX', 'SHFV',
+       'SR SIL GR', 'L SIL SICL', 'SR L LFS', 'FS SI', 'SR FSL LFS', 'PT',
+       'SHV', 'SIL C', 'S CL', 'SR FS FSL', 'CL SL', 'SR FSL SL',
+       'S FS LS L', 'HYDR', 'SR CL GRV', 'SR SIC LFS', 'SR S SC',
+       'FSL L SIC', 'SR LS L SL', 'SR SL GRV', 'SR LFS SICL', 'PCNV',
+       'PCBX', 'FLX', 'SP', 'SR LFS GRV', 'S GR', 'SR L SIC', 'GRVART',
+       'FSL L', 'SR C CL', 'SR CB', 'SR S SI', 'SPM FSL', 'MS', 'L FSL',
+       'SL LS', 'COSL FSL', 'SL SCL', 'PCB', 'SR LS GR', 'SR COS G',
+       'G S', 'ART', 'SHL', 'STXART', 'CRV', 'SR LS SICL', 'SR S L',
+       'SIC C', 'LFS GR', 'GR CB', 'CRX', 'PCBV', 'SR COS SIL', 'PFLV',
+       'L SIL SCL', 'SR SICL L SIL', 'ARTX', 'SR COS GR', 'SR LFS SCL',
+       'SIC', 'UWB', 'FS', 'MPT', 'CPF', 'SR SI VFSL', 'DIA', 'COS',
+       'SPM', 'SR FSL CL', 'SR FSL SICL', 'SR SIL C', 'SL GR', 'ICE',
+       'SR FS CBX', 'SIL MPM', 'SH', 'SR L LS', 'SR LS COS', 'VFS SICL',
+       'SCL LS', 'SICL SIL', 'VFS SIL', 'CBART', 'FS FS', 'CR',
+       'SR SICL GR', 'SR SICL SIC', 'l', 'SR WB FSL', 'SR VFSL S',
+       'SR S GRV', 'SR SCL S', 'uwb', 'SR ST', 'SR LVFS C', 'START', 'DE',
+       'COSL', 'PSTX', 'G CB', 'L', 'HM', 'LFS FSL', 'G', 'S CIND',
+       'FSL SIL', 'SPM MK', 'SI HPM', 'FS SICL', 'CNVART', 'G LS',
+       'SR LFS S', 'SR FS L', 'SR S SICL', 'PFLX', 'S SI', 'VFS GYP',
+       'FS SICL SIC', 'SR FS VFS', 'FSL SICL', 'LS', 'FRAG', 'BR', 'SIL',
+       'SR FS C', 'CBVART', 'SR FS GR', 'LS GR', 'COS S LS', 'SIL LVFS',
+       'SR S G', 'PST', 'SR LS S', 'HB', 'LCOS FSL', 'SR SICL SIL',
+       'SR VFS GRV', 's', 'FS GR', 'SR SCL C', 'SR LVFS SIL',
+       'SR SIL GRX', 'SG GR', 'FS SIL', 'VFS S', 'SR SCL CL', 'SR S VFSL',
+       'SR L GRV', 'SIL CL', 'S', 'SR CL SL', 'SR SIC SIL', 'SR FS SICL',
+       'CIND', 'SR VFSL CL', 'SR SL L', 'S SIL', 'SIL SICL SR',
+       'COSL CEM', 'S LS SL', 'PBYX', 'SR SCL FS', 'vfsl', 'L S',
+       'SR VFSL C', 'FSL MAT', 'LFS SIL', 'SR SIL CBX', 'FS S', 'SCL SC',
+       'SR LFS LS', 'FB', 'VFSL BR', 'SIL BR', 'L SIL', 'C', 'SG', 'PFL',
+       'HPM', 'SR SICL SL', 'FS FSL MUCK', 'SIL HPM', 'CL FSL', 'LS L',
+       'SR S LFS', 'CBXART', 'SL SICL', 'SR VFSL SIC', 'SR L GR',
+       'CB ST BY', 'LS CN', 'SR FS SCL', 'SR LFS COS', 'PEAT', 'VAR',
+       'IND', 'SR C SIL', 'S LS', 'FS LVFS SI', 'SR CBV', 'SR SIL VFSL',
+       'SR SIL CL', 'CL SR', 'SL CL', 'SR SIL COS', 'SR S FSL',
+       'SR S GRX', 'fs', 'SR S LS', 'S G', 'CB ST', 'SR COSL GR', 'CBA',
+       'SL SCL CL', 'SR SIC GR', 'SR SL GRX', 'CL PG', 'SI', 'FSL',
+       'SR FSL S', 'SR LFS SIL', 'SR SL SICL', 'SL SIL', 'MARL',
+       'SR SIL LFS', 'SIC SIL', 'LS SIL', 'VFSL SIL', 'FSL L SIL',
+       'SR SL SCL', 'SR S GR', 'LFS LFS', 'L FL', 'L GRV', 'SR S SIL',
+       'LS MPT', 'sl', 'SR SL SC', 'FINE GYPSUM MATERIAL', 'VFSL SICL',
+       'VFSL MAT', 'SL MAT', 'SR FSL WB', 'SR SL S', 'COS GR', 'BR BR BR',
+       'SR FSL L', 'MPM', 'SR SCL SIL', 'SR SICL FSL', 'SL L', 'GR S',
+       'LS S', 'SR L FSL', 'SICL SR', 'C SICL', 'DUR', 'COSL CL',
+       'WB L SIL', 'SL CEM', 'SIL MARL', 'SR SG', 'L MK', 'SR SIL LS',
+       'SHX', 'SR FS CL', 'SR L VFS', 'SR SL C', 'SR FSL SIC', 'SY',
+       'WB FSL', 'CL BR', 'SR COSL L', 'SR CBX', 'SR S FS', 'CL GR', 'SC',
+       'LVFS', 'LFS', 'SR LS C', 'SR SIL SICL', 'FS LFS', 'W', 'VFSL CL',
+       'SR LS L', 'SR SIL S', 'SR LS SIL', 'FSL HPM', 'GS', 'LS FSL',
+       'FSL CB', 'VFSL SIC', 'SR LS CL', 'SR SIL SL', 'SR FSL SIL',
+       'SR COS LS', 'SR VFS C', 'SICL SIC', 'MPT LVFS', 'SR SL LCOS',
+       'SR FS VFSL', 'C GR', 'SL VAR', 'SR CNV', 'GR GRV', 'PC',
+       'SR VFS LFS', 'FSL IND', 'SR SIL MPT', 'VFSL', nan, 'SR CL C',
+       'SR VFSL SIL', 'SR L CL', 'SR SIL FSL', 'C BR', 'FS VFS SIL SI',
+       'SR VFS SICL', 'MPM SIL', 'MUCK L SIL', 'SL SIL CL SICL', 'CE',
+       'SIL SICL', 'COSL SL', 'SR L S', 'L SIC', 'SR SICL C', 'SR L SL',
+       'L SIL CL SICL', 'SCL CL', 'SICL MUCK', 'SR FSL FS', 'LS SCL',
+       'SI MAT', 'SIL MAT', 'RB', 'SR SICL LFS', 'SR LFS FS', 'SIC BR',
+       'CL CN', 'C SIC', 'CL G', 'SR VFSL L', 'SR CL SIC', 'SR SL SIL',
+       'LS SL', 'SR SIL FS', 'SR SI S', 'SR LS SL', 'SR CL S', 'S S',
+       'SR SIC C', 'FS VFSL', 'SR FSL C', 'SR LS SCL', 'SR S SCL',
+       'SCL VAR', 'SR SL GR', 'SL CN', 'SR STX', 'PBY', 'S G SIL', 'MUCK',
+       'SICL', 'LCOS', 'SR L C', 'SR FS SIL', 'SR FS SI', 'SR FS S',
+       'MPM FSL', 'SIL MUCK', 'S LFS', 'COS SCL', 'L CL', 'SR LFS GR',
+       'SR S SL', 'SR C LS', 'SR SL SIC', 'WB UWB', 'VFS SI',
+       'SL SI FS MUCK', 'L ST', 'SR LFS L', 'W GR', 'CL SICL', 'SR L WB',
+       'CL VAR', 'COSL GR', 'FSL VFSL L', 'SR C GR', 'SR L SICL',
+       'SR LFS CL', 'L SICL', 'FS LS', 'MAT', 'SR VFSL LFS', 'SR SIL VFS',
+       'FSL CL', 'SR S CL', 'SR CL VFSL', 'FSL MUCK', 'PSTV',
+       'VFSL LVFS FS', 'FS SL', 'FS PF', 'COARSE GYPSUM MATERIAL',
+       'S GR CB', 'SR S C', 'SICL VAR', 'SR FSL LS', 'PUM', 'L BR',
+       'SR LFS SL', 'SR SICL VFSL', 'SR COS SL', 'SR LS VFSL', 'LS HPM',
+       'PG', 'FS L', 'SR C SICL', 'sil', 'ST BY', 'SR SIC SICL',
+       'SR LFS FSL', 'C VAR', 'L VAR', 'SIC CN', 'SR CL FSL', 'COS FS',
+       'SR L SCL'], dtype=object)
+
+#+end_src
+
+
+*Victor worked on SSURGO /ntps/fy26/underground_tranmissions/*
+
+*use FASTX to visulaize massive gNATSGO file*
+
+
+
+
+
+
+
+
+
+
+
+**** non-attainment areas 90m
+
+- characterize it because it doesnt actual have all plants excluded from the areas
+/write a lookup for non attainment zone/
+
+
+- the template is path to a raster
+  - if a file doesn't exist we need a template raster
+
+
+
+**** hydraulic boundary
+- required design pressure
+  - based on turbine technology
+
+**** seismic activity
+eia natural gas power plant...
+- point 2 raster association
+  - characterize with seismic (PGA) raster value
+
+
+
+**** ground acceleration
+
 *** comments
+
+*focus on idiomatic, readability, and documentation of research*
+
+
+*find exsiting exclusions in templates folder*
+- check that our template matches the dimensions for prior year
+  - /layers/ for categories of exclusions organized by geospatial location
+  -
+
 - favorability criteria for
 
 - focus idea of land exclusion
@@ -98,6 +622,22 @@ projects && cd oe/fy27/natural_gas/rev/landuse/ && curl -L -o gNATSGO_CONUS.zip 
 
 - detailed local information compass
   - specific setbacks for counties
+
+
+
+/land use is sorta abstract/
+
+
+- catch these top known land trends
+
+_2 represntative approaches_
+
+  1. look online and find literature
+     - validate the exclusionary phenomenom
+
+/if alot of plants are in the exclusion zones then rethink the literature/
+- characterize these plants with land use
+  - e.g.
 
 
 ** revgas rapid prototyping gas modeling

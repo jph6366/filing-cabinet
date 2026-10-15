@@ -1049,3 +1049,66 @@ _geospatial analysis of artisinal mines in the DRC_
       - accessible and actionable adata -> nodes & edges -> graphical analysis
 
 /critical mineral supply chain issue!/
+
+** 9-21-2026
+
+Paul working on existing issues with reV
+- update to pandas 3.0
+- moving to new python 3.14
+  ... wrapping things up as much as possible
+
+
+EOY report to include as much progress as possible ~ Travis
+
+
+_Current Projects_
+- reV standard scenarios are done ~ marie
+
+- Victor land-based wind runs
+  - noise optimizations
+  - needs to comparisons between bespoke and exclusions
+
+  - restrictive exclusios from compass
+    - drastically reducing supply curve points
+      - large difference between prior runs
+        - 40k to 9k points
+        - 1600m to water body
+
+
+*BEST SOLUTION TO DEBUGGING EXCLUSIONARY RESULTS*
+- Try to imagine if there are real scenarios that would happen in the real world
+- overlay and see if existing active sites in exclusion areas
+  - as a comparison
+
+
+
+_natural gas_
+
+- particularly worred about
+
+** 10-5-2026
+
+Does emissions affect the plant size?
+- state-level specific
+- 2030 level projections
+
+
+_we are waiting to hear back for U.S. PHMSA and US pipeline network_
+- getting data from NAERM
+  - Burcin has been through this ordeal
+- strict and complicated project
+  - requires high level of approval
+
+
+gas modeling
+- reasonable subroutine to handle one location at a time
+
+
+update from the FINITO capacities for
+- for AEO outlooks
+
+not as concerned with present day rules
+- whats represented in long-standing rule
+- long-term trends
+
+- existing potential vs. overall potential

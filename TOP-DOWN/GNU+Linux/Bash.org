@@ -1,0 +1,79 @@
+* Bourne Again SHell
+
+** GNU Bash
+- Bash is GNU's project
+- sh-compatible
+- incorporates Korn shell and C shell features
+- IEEE POSIX SHELL AND TOOLS OF IEEE POSIX STANDARDS 10003.1
+
+*** what is bash
+Bash is the shell or Command Language Interpreter, for GNU operating system
+- the name is a pun on Stephen Bourne
+  - author of the direct ancestor of the current unix shell
+    - appeared in 7th ed. of Bell Labs Research version of Unix
+
+*** what is shell
+- a macro processor that executes commands
+  _macro processor_: functionality where text and symbols are expanded to create larger expressions
+
+-
+
+
+
+** Bash Commands
+
+*** bc
+arbitrary-precision arithmetic language
+
+*** cut
+
+*** paste
+
+*** cat
+
+*** groups
+print group memberships for each USERNAME or current process
+
+*** grep
+print lines that match patterns
+
+*** wc
+wordcount
+
+*** history
+Many programs read from the user a line at a time
+- GNU history library keeps track of those lines
+
+e.g.
+`history | grep jlb | grep 592`
+
+*** sed
+
+`sed `` sn.csv` same as `cat sn.csv`
+
+_deleting lines (with file unchanged)_
+
+`sed 'd' sn.csv`
+
+/delete first line/
+`sed '1d' sn.csv`
+
+        _regex will match a string that contains either no characters or only white space characters_
+        `sed '/^\s*$/d' factorial.py`
+
+        _regex `^#` matches comment lines, so we connect `^\s*$` with an 'or' to `^#`, we insert a `|`_
+        `sed '/^\s*$\|^#/d' factorial.py`
+
+        _print only the commented lines?_
+        `sed '/^#/p' factorial.py`
+
+_create a javascript file from lat lon coordinates_
+`sed `s/^/new google.maps.LatLng(/' latlon > latlon2`
+`sed 's/$/)/' latlon2 > latlon3`
+**** in-place flag `-i`
+
+**** fixing errors in multiple files
+
+`grep -i [Rr]acoon *`
+`sed -i 's/racoon/raccoon/g' 1.[35]*`
+`sed -i 's/Racoon/Raccoon/g' 1.[35]*`

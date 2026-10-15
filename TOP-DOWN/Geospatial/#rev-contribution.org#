@@ -1,0 +1,2194 @@
+#+title: Rev Contribution
+
+* reV Contributions
+
+** fix tmux bugs for revruns
+** GDS disk space alert
+*** summary
+
+Travis wants me to take charge of removing the persona attachments to experiments and revruns
+- that have gone cold in storage
+- or are filled w/ bloated files
+- or maybe there is a smell from the stinky file organization (less prio)
+
+- figure out how to identify the files that need garbage collection
+  - reV garbage collection and GUI
+    - identify directories that needs permissions to open
+      - then followup with a change to the permissions
+
+
+- shift data from 'eagle' projects
+- we can move alot of data to 'shared-projects'
+  - 'esp-rev' group
+
+- social accesiblity initiative to enable
+  - message thru teams?
+
+
+where do we want this script?
+- we store in data management repo
+
+*** implementation
+
+*WEBHOOK URL*
+https://defaulta0f29d7e28cd4f5484427885aee7c08.0.environment.api.gov.powerplatform.microsoft.us:443/powerautomate/automations/direct/workflows/b677bdcbb02f4f6da849fd52cab458d6/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=6eBp1tCvj6rl1P3qlGeCmjCUhiJ2gIIXRblBAmk62VI
+
+
+
+initally we need to add a bash alias for store for every to call
+1. _write the function in bash_
+
+   a. I need to learn a little bash stuff so lets take a zettlekasten
+   b. it will recurse given current `pwd` or inputted a fileppath
+
+
+`lfs quota`
+
+
+#+begin_src bash
+# Function to quickly identify paths with incorrect group associations or closed permissions
+audit_group_lustre() {
+    # Get current working directory
+    local target_dir
+    target_dir=$(pwd)
+
+    # --- SAFETY CHECK: Guard against critical system paths ---
+    case "$target_dir" in
+        /|/home|/home/*|/etc|/etc/*|/usr|/usr/*|/var|/var/*|/tmp|/tmp/*)
+            echo "ERROR: This scan cannot be run in system or home roots."
+            echo "       Target directory: $target_dir"
+            return 1
+            ;;
+    esac
+
+    # Ensure we are actually on a Lustre filesystem
+    if ! lfs getstripe -d . &>/dev/null; then
+        echo "WARNING: This directory is not on a Lustre filesystem (e.g., Kestrel /scratch or /projects)."
+        echo "         Falling back to standard find, which may be slow..."
+        find . \( -type d -a ! -perm -g+rx \) -o \( -type f -a ! -perm -g+rw \) 2>/dev/null | head -n 50
+        return 0
+    fi
+
+    # Identify the primary active group of the user (or target shared project group)
+    local target_gid
+    target_gid=$(id -g)
+    local target_group
+    target_group=$(id -gn)
+
+    echo "Scanning: $target_dir"
+    echo "Verifying group ownership matches your primary group: $target_group (GID: $target_gid)"
+    echo "----------------------------------------------------------------------"
+    echo "Paths NOT owned by group '$target_group' (using rapid metadata lookup):"
+    echo "----------------------------------------------------------------------"
+
+    # CRITICAL LUSTRE OPTIMIZATION:
+    # Use native 'lfs find' with the '! --gid' operator.
+    # This queries the MDS directly without stat-ing every individual file block.
+    lfs find . ! --gid "$target_gid" 2>/dev/null | head -n 50
+
+    echo "----------------------------------------------------------------------"
+    echo "Note: Output is capped at the first 50 entries to protect MDS performance."
+    echo "If files are owned by another group, your collaborators cannot read/write them."
+}
+
+# Alias for our shared environment
+alias audit_group='audit_group_lustre'
+#+end_src
+
+
+
+*** brave new diskspace
+
+**** all-hands ondeck init
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 08:33 upv_ncdb_historical_2010_generation_2010.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 08:33 upv_ncdb_historical_2010_generation_2011.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 08:33 upv_ncdb_historical_2010_generation_2012.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 08:33 upv_ncdb_historical_2010_generation_2013.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 08:33 upv_ncdb_historical_2010_generation_2014.h5
+-rw-rw-r-- 1 jhardee crerp 116G Jul  2 08:41 upv_ncdb_historical_2010_multi_year.h5
+
+
+
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 07:21 upv_ncdb_historical_2000_generation_2000.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 07:21 upv_ncdb_historical_2000_generation_2001.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 07:21 upv_ncdb_historical_2000_generation_2002.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 07:21 upv_ncdb_historical_2000_generation_2003.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 07:21 upv_ncdb_historical_2000_generation_2004.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 07:21 upv_ncdb_historical_2000_generation_2005.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 07:21 upv_ncdb_historical_2000_generation_2006.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 07:21 upv_ncdb_historical_2000_generation_2007.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 07:21 upv_ncdb_historical_2000_generation_2008.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 07:21 upv_ncdb_historical_2000_generation_2009.h5
+-rw-rw-r-- 1 jhardee crerp 231G Jul  2 07:36 upv_ncdb_historical_2000_multi_year.h5
+
+
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2020_generation_2020.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2020_generation_2021.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2020_generation_2022.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2020_generation_2023.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2020_generation_2024.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2020_generation_2025.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2020_generation_2026.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2020_generation_2027.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2020_generation_2028.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2020_generation_2029.h5
+-rw-rw-r-- 1 jhardee crerp 231G Jul  2 09:17 upv_ncdb_2020_multi_year.h5
+
+
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:03 upv_ncdb_2050_generation_2050.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:03 upv_ncdb_2050_generation_2051.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:04 upv_ncdb_2050_generation_2052.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:04 upv_ncdb_2050_generation_2053.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:04 upv_ncdb_2050_generation_2054.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:04 upv_ncdb_2050_generation_2055.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:04 upv_ncdb_2050_generation_2056.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:04 upv_ncdb_2050_generation_2057.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:04 upv_ncdb_2050_generation_2058.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:04 upv_ncdb_2050_generation_2059.h5
+-rw-rw-r-- 1 jhardee crerp 231G Jul  2 09:20 upv_ncdb_2050_multi_year.h5
+
+
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:02 upv_ncdb_2040_generation_2040.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:02 upv_ncdb_2040_generation_2041.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:03 upv_ncdb_2040_generation_2042.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:03 upv_ncdb_2040_generation_2043.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:03 upv_ncdb_2040_generation_2044.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:03 upv_ncdb_2040_generation_2045.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:03 upv_ncdb_2040_generation_2046.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:04 upv_ncdb_2040_generation_2047.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:04 upv_ncdb_2040_generation_2048.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:03 upv_ncdb_2040_generation_2049.h5
+-rw-rw-r-- 1 jhardee crerp 231G Jul  2 09:20 upv_ncdb_2040_multi_year.h5
+
+
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2030_generation_2030.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:01 upv_ncdb_2030_generation_2031.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2030_generation_2032.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:00 upv_ncdb_2030_generation_2033.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:01 upv_ncdb_2030_generation_2034.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:01 upv_ncdb_2030_generation_2035.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:01 upv_ncdb_2030_generation_2036.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:01 upv_ncdb_2030_generation_2037.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:02 upv_ncdb_2030_generation_2038.h5
+-rw-rw-r-- 1 jhardee crerp  24G Jul  2 09:02 upv_ncdb_2030_generation_2039.h5
+-rw-rw-r-- 1 jhardee crerp 231G Jul  2 09:18 upv_ncdb_2030_multi_year.h5
+
+
+24 x 57 = 1368G
+
+
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_historical_2010_generation_2010.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_historical_2010_generation_2011.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_historical_2010_generation_2012.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_historical_2010_generation_2013.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_historical_2010_generation_2014.h5
+-rw-rw-r-- 1 jhardee crerp  13G Jul  7 12:23 osw_ncdb_historical_2010_multi_year.h5
+
+
+12.5G
+
+
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:06 osw_ncdb_historical_2000_generation_2000.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:06 osw_ncdb_historical_2000_generation_2001.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:06 osw_ncdb_historical_2000_generation_2002.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:06 osw_ncdb_historical_2000_generation_2003.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:06 osw_ncdb_historical_2000_generation_2004.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:06 osw_ncdb_historical_2000_generation_2005.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:06 osw_ncdb_historical_2000_generation_2006.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:06 osw_ncdb_historical_2000_generation_2007.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:06 osw_ncdb_historical_2000_generation_2008.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:06 osw_ncdb_historical_2000_generation_2009.h5
+-rw-rw-r-- 1 jhardee crerp  25G Jul  7 10:08 osw_ncdb_historical_2000_multi_year.h5
+
+25G
+
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 15:00 osw_ncdb_2050_generation_2050.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 15:01 osw_ncdb_2050_generation_2051.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 15:01 osw_ncdb_2050_generation_2052.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 15:01 osw_ncdb_2050_generation_2053.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 15:01 osw_ncdb_2050_generation_2054.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 15:01 osw_ncdb_2050_generation_2055.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 15:01 osw_ncdb_2050_generation_2056.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 15:01 osw_ncdb_2050_generation_2057.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 15:01 osw_ncdb_2050_generation_2058.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 15:01 osw_ncdb_2050_generation_2059.h5
+-rw-rw---- 1 jhardee crerp  25G Jul  7 15:03 osw_ncdb_2050_multi_year.h5
+
+25G
+
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 14:50 osw_ncdb_2040_generation_2040.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 14:50 osw_ncdb_2040_generation_2041.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 14:50 osw_ncdb_2040_generation_2042.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 14:50 osw_ncdb_2040_generation_2043.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 14:50 osw_ncdb_2040_generation_2044.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 14:50 osw_ncdb_2040_generation_2045.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 14:50 osw_ncdb_2040_generation_2046.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 14:50 osw_ncdb_2040_generation_2047.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 14:51 osw_ncdb_2040_generation_2048.h5
+-rw-rw---- 1 jhardee crerp 2.5G Jul  7 14:51 osw_ncdb_2040_generation_2049.h5
+-rw-rw---- 1 jhardee crerp  25G Jul  7 14:53 osw_ncdb_2040_multi_year.h5
+
+25G
+
+
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_2030_generation_2030.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_2030_generation_2031.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_2030_generation_2032.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_2030_generation_2033.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_2030_generation_2034.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_2030_generation_2035.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_2030_generation_2036.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_2030_generation_2037.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_2030_generation_2038.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 12:22 osw_ncdb_2030_generation_2039.h5
+-rw-rw-r-- 1 jhardee crerp  25G Jul  7 12:24 osw_ncdb_2030_multi_year.h5
+
+
+25G
+
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:02 osw_ncdb_2020_generation_2020.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:02 osw_ncdb_2020_generation_2021.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:02 osw_ncdb_2020_generation_2022.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:02 osw_ncdb_2020_generation_2023.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:02 osw_ncdb_2020_generation_2024.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:02 osw_ncdb_2020_generation_2025.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:08 osw_ncdb_2020_generation_2026.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:03 osw_ncdb_2020_generation_2027.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:03 osw_ncdb_2020_generation_2028.h5
+-rw-rw-r-- 1 jhardee crerp 2.5G Jul  7 10:03 osw_ncdb_2020_generation_2029.h5
+-rw-rw-r-- 1 jhardee crerp  25G Jul  7 10:10 osw_ncdb_2020_multi_year.h5
+
+
+25 x 5 + 12.5 = 137.5G
+
+
+
+** revgas land use module
+
+*** summary
+We actually have to an initial land use map for this quarterly deliverable.
+
+We won't need any development time on the reV land use modules and we can reuse a lot of the existing
+exclusions for solar, but we want to have some gas-specific exclusions ready.
+
+**** follwup
+
+check with sushimeta's work
+- see how where compass fills in the gaps
+
+travis is happy with soil bearing
+- continue on that
+
+See if we can fill missing areas in soil classesfication based
+- compensate for political boundaries
+- check the excluded generators
+
+  /initial nominal look/
+  - is there a lower bias
+    - sampling error or aggregating across some original join
+
+- if we exclude a bunch of existing plants
+
+  
+*** implementation
+
+projects && /oe/fy27/natural_gas/
+
+- gather solar exclusions and gas modeling land use assumptions
+- code prototype
+- report on land use in GDS gas modeling document
+
+  - look at the refrence case
+    - Example reference land access case:
+
+/kfs2/projects/rev/projects/seto/fy25/standard_scenarios/rev/aggregation/01_reference
+- throw out the solar specific ones
+  - upv pv dpv
+    - replace with gas specific core layers
+
+/projects/rev/projects/weto/fy26/compass_setbacks
+
+*leave a download script for every download*
+*debug exclusions overlayed with the gas power plants*
+ - determine whehter an area is invariant due to conditions (caliufornia)
+
+*revruns/Reformatter(Exclusions)/*
+
+ salloc -A rev --time=1:00 -p debug
+
+/REFORMATTER will take a longer time because it has build the numpy matrix/
+
+
+
+_To capture the uncertainty associated with siting criteria, we used a scenario-based approach_
+- Open Access (Open) is the least restrictive scenario. It applies only physical obstacles and
+excludes development on legally or administrated protected lands.
+- Reference Access (Reference) is a moderate scenario. It applies existing ordinances and
+regulations, known preclusions, and current industry practices for siting.
+- Limited Access (Limited) is the most restrictive scenario. It applies a combination of the
+most restrictive setbacks, environmental constraints, and national defense concerns.
+
+**** review wind and solar rev land use
+  - 'fy27'/
+    - /'landuse'
+      - reV aggregation
+        - "Category" methods takes every pixel value and counts every pixel in a supply curve grid cell
+        - when running a data layer
+          - each layer makes a json dict
+          - we do partial exclusions
+        - "Sum" adding up the pixels (binary level) then multiple amount of land by pixel
+        - "Mean" averaging pixels
+      - 'excl_dict'
+        - exclude values of #
+          - see the puerto rico resilience reV for UPV
+        - include weights
+          - 0: 1 exclude all values
+          - 1: 0.5 exclude all values by 1/2
+        - limit to extent , try not to do this one
+        - use_As_Weights: 1
+          - exclude whatever the percentage of inclusion is...
+        - include range or exclude range
+          - [0,N]
+
+        - value lookup in the HDF5 dataset attributes
+          - ds.attrs.keys()
+            - attrs["profile"]
+              - could use to write to raster
+
+        /CAREFUL PULLING ARRAYS out HDF5/
+        - band dimension is included
+
+
+    - rio.open("fielpath.tif", "w", **profile)
+
+    - execution controls
+      - might take 4 walltime might not
+
+    - area filter kerenl:
+    - min area
+
+    - `gen_fpath` is used through the resource dataset for the techmaps
+      =
+**** soil liquefaction
+
+**** soil bearing capacity
+
+#+begin_src emamux :session 0:0.0
+ curl --url $'https://public.boxcloud.com/d/1/
+b1\u0021VBhOvInKHRelJ4wOBgN_v0yMY_PjDhVK7UMbU5EdS3zQ8pfflQSOqVs8ctA0Br57bpFv-yJwOhj
+p5uVnSmpmOq77KZxrbc4fDlIc2TGKmcqarhQvfn-h32mFzeotI_FgDHXt_PT5njHE_v8GudpoC55izRF7Pe
+Gfk5VZ6PjX1XYLwWxPgao3fQP_K81F0jCTahupQ9Aqbt7J6MoqILc2E-Z9sPQlMaxzNXqRpgU9LefhezgmC
+Ww08Z_FVInY0PnWH24BfWtwAYKJ6zWXmIkskAhxB7ZP8ABhVRKSh7VadkhD6tbZYfnIzzBtYgYwJaxnIWgo
+rfv510Xme7UGEbuEfkfzBLfxRxH3tv63PGCVTWKTo_vykfecoxrOdiS9w7CEUyNkyPcHQRA8jZqxAigYFS3
+FkAsa6gY26bt4CMbQES4gXU1kCo7HtMsW--nsN65_-h6Ewq1S88sbT5N0SAHmJ6WUiuBFnG753T-D4ilsc0
+suC3F2z4_V9loK99lx2i_rZ71fEbKIkID8lKOkmjAF94Lv-j5wlC_HjZGMr6F56Ofl8OWFNGow6KKSYLCgu
+8Lg6akUs6hr13UqLjtJeUikyPmHN-houBnAxKovpCdvMMq3Ey26s3w2-edBe0wu-B7F3AL_xvV-gPT9evr6
+qAAE48Hnl5XEsW4hHtcvwSKj_RSikNmTSpkDjnAH3XgKqHIbtf1pyQl43d1VEuP25oN-ne4gCZJS3ZaL_4E
+V9kH9FpNC1mB4PmPJSJ85PbXbwP2rW7vCoV6g0bApmnB2LyxNKezYjiBXOZ-jxaTH78TCj-0luA6B4nodFK
+bbQ8q8NxICUEO_34TNt1rQFJCuZIGI6f0gLgXF4yCk4gFv4okBLokoynuVh-Qea6Y1m0HuLCS_meJAehOVK
+CgHTeY45aIpaYwD5PsXpFbgQeKIWo4Ia2ACbTQf-KK8Lxj8vTfB2FayMvSn8BcMCgGZZpspJ8Dhmu1_Bh5K
+Vr_JC9koVKulO78LPEwerJVaWLbmyRdr97vUxfcTwsheldAGxOmpYGPu8mv6SdBRJB8otonn3VX2E2rGqyO
+BdmZNPVLDhDmYJVWESsYQZDuRfLz34BSR_oDi2ShVvJT8ow2rKtXIPQPTEL313YMQkuu9ulmHewDG_6o_Ro
+fNaHAXl-LPURp-QzkB3NGlKwCGWdCLrebvd3AFPc8O3IgKHu0pHRWOP59sWao27IukySC_C02opJWqzV-eM
+XJPDXS7avU_3P1c3h9Z4_Mlkwh-fR9vtQMuJocjEnDtgdb9fQZKjcPMIvuRY9pQq1PJleTMKVb_DZxZybtd
+NpTgA_-qkyBtXF5Bzot-gPpQHov_sLZkRXMjD63XvGal-AblP8QIRPU1rjuDyLHS0ayx_iYR9AWfOJ0W8Aq
+k-OOrAahBui24y6DDh0GvGrkN/download' --output gNATSGO_CONUS.7z
+#+end_src
+
+
+
+
+_gNATSGO_
+soil_slippage_potential
+soil_taxonomy_edition
+fl_soil_leaching_potential
+fl_soil_runoff_potential
+soil_moisture_status
+hillslope_profile
+Component Slope Shape Surface Morphometry
+soil_survey_area_status
+
+_chtexture_
+- outputted distinct .txt file
+
+- determining the soil bearing capacity using descriptiveness and texture class
+
+
+*unique texture classes in chtexture*
+#+begin_src python
+[                   nan,           'Loamy sand',           'Sandy clay',
+           'Sandy loam',      'Loamy fine sand',                 'Clay',
+                 'Silt',                 'Loam',    'Loamy coarse sand',
+            'Fine sand', 'Loamy very fine sand',    'Coarse sandy loam',
+                 'Sand',          'Coarse sand',      'Fine sandy loam',
+      'Silty clay loam',            'Clay loam',      'Sandy clay loam',
+            'Silt loam',       'Very fine sand', 'Very fine sandy loam',
+           'Silty clay']
+
+
+ [    'Highly decomposed plant material',
+                                     nan,
+                            'Paragravel',
+                              'Variable',
+                                'Gravel',
+                                 'Water',
+                                  'Peat',
+                            'Flagstones',
+                                   'Ice',
+                              'Material',
+                               'Bedrock',
+                                'Stones',
+                           'Paracobbles',
+                               'Cinders',
+                              'Cemented',
+                          'Parachanners',
+                               'Cobbles',
+    'Slightly decomposed plant material',
+                'Coarse gypsum material',
+                                  'Muck',
+                    'Diatomaceous earth',
+                           'Petrocalcic',
+                     'Weathered bedrock',
+                             'Indurated',
+                          'Paraboulders',
+                              'Channers',
+                   'Unweathered bedrock',
+                             'Pumiceous',
+                            'Mucky peat',
+                  'Gypsiferous material',
+  'Moderately decomposed plant material',
+                       'Sand and gravel',
+                   'Fragmental material',
+                               'Duripan',
+                             'Artifacts',
+                                  'Marl',
+                     'Coprogenous earth',
+                                'Shells',
+                              'Boulders',
+    'Consolidated permafrost (ice rich)',
+                  'Fine gypsum material']
+ Length: 41, dtype: s
+#+end_src
+
+_chtexturegrp_
+
+*unique texture classes in chtexturegrp*
+#+begin_src python
+array(['SL', 'GR', 'GRV', 'WB', 'CNV', 'FL', 'STV', 'CN', 'ST', 'STX',
+       'VFS', 'SR', 'CNX', 'GRX', 'MK', 'SR SIL SG', 'SR GRX', 'FLV',
+       'SR SL CL', 'GRC', 'ASHY', 'MR', 'COP', 'S FS', 'BYX', 'CBX',
+       'ARTV', 'PCNX', 'GYP', 'COS SL', 'SR VFSL SICL', 'HO', 'PF',
+       'MEDL', 'CB', 'SR GRV', 'SIL MPT', 'SI FS MUCK', 'MUCK FSL', 'PCN',
+       'LS SICL', 'SCL SCL', 'SCL', 'CL', 'CBV', 'PGRX', 'PGR', 'GRM',
+       'GRF', 'SR GR', 'SR LS FSL', 'PGRV', 'CEM', 'BYV', 'BY', 'SICL PG',
+       'GRART', 'GRXART', 'WD', 'CNART', 'SHF', 'SHFX', 'SHFV',
+       'SR SIL GR', 'L SIL SICL', 'SR L LFS', 'FS SI', 'SR FSL LFS', 'PT',
+       'SHV', 'SIL C', 'S CL', 'SR FS FSL', 'CL SL', 'SR FSL SL',
+       'S FS LS L', 'HYDR', 'SR CL GRV', 'SR SIC LFS', 'SR S SC',
+       'FSL L SIC', 'SR LS L SL', 'SR SL GRV', 'SR LFS SICL', 'PCNV',
+       'PCBX', 'FLX', 'SP', 'SR LFS GRV', 'S GR', 'SR L SIC', 'GRVART',
+       'FSL L', 'SR C CL', 'SR CB', 'SR S SI', 'SPM FSL', 'MS', 'L FSL',
+       'SL LS', 'COSL FSL', 'SL SCL', 'PCB', 'SR LS GR', 'SR COS G',
+       'G S', 'ART', 'SHL', 'STXART', 'CRV', 'SR LS SICL', 'SR S L',
+       'SIC C', 'LFS GR', 'GR CB', 'CRX', 'PCBV', 'SR COS SIL', 'PFLV',
+       'L SIL SCL', 'SR SICL L SIL', 'ARTX', 'SR COS GR', 'SR LFS SCL',
+       'SIC', 'UWB', 'FS', 'MPT', 'CPF', 'SR SI VFSL', 'DIA', 'COS',
+       'SPM', 'SR FSL CL', 'SR FSL SICL', 'SR SIL C', 'SL GR', 'ICE',
+       'SR FS CBX', 'SIL MPM', 'SH', 'SR L LS', 'SR LS COS', 'VFS SICL',
+       'SCL LS', 'SICL SIL', 'VFS SIL', 'CBART', 'FS FS', 'CR',
+       'SR SICL GR', 'SR SICL SIC', 'l', 'SR WB FSL', 'SR VFSL S',
+       'SR S GRV', 'SR SCL S', 'uwb', 'SR ST', 'SR LVFS C', 'START', 'DE',
+       'COSL', 'PSTX', 'G CB', 'L', 'HM', 'LFS FSL', 'G', 'S CIND',
+       'FSL SIL', 'SPM MK', 'SI HPM', 'FS SICL', 'CNVART', 'G LS',
+       'SR LFS S', 'SR FS L', 'SR S SICL', 'PFLX', 'S SI', 'VFS GYP',
+       'FS SICL SIC', 'SR FS VFS', 'FSL SICL', 'LS', 'FRAG', 'BR', 'SIL',
+       'SR FS C', 'CBVART', 'SR FS GR', 'LS GR', 'COS S LS', 'SIL LVFS',
+       'SR S G', 'PST', 'SR LS S', 'HB', 'LCOS FSL', 'SR SICL SIL',
+       'SR VFS GRV', 's', 'FS GR', 'SR SCL C', 'SR LVFS SIL',
+       'SR SIL GRX', 'SG GR', 'FS SIL', 'VFS S', 'SR SCL CL', 'SR S VFSL',
+       'SR L GRV', 'SIL CL', 'S', 'SR CL SL', 'SR SIC SIL', 'SR FS SICL',
+       'CIND', 'SR VFSL CL', 'SR SL L', 'S SIL', 'SIL SICL SR',
+       'COSL CEM', 'S LS SL', 'PBYX', 'SR SCL FS', 'vfsl', 'L S',
+       'SR VFSL C', 'FSL MAT', 'LFS SIL', 'SR SIL CBX', 'FS S', 'SCL SC',
+       'SR LFS LS', 'FB', 'VFSL BR', 'SIL BR', 'L SIL', 'C', 'SG', 'PFL',
+       'HPM', 'SR SICL SL', 'FS FSL MUCK', 'SIL HPM', 'CL FSL', 'LS L',
+       'SR S LFS', 'CBXART', 'SL SICL', 'SR VFSL SIC', 'SR L GR',
+       'CB ST BY', 'LS CN', 'SR FS SCL', 'SR LFS COS', 'PEAT', 'VAR',
+       'IND', 'SR C SIL', 'S LS', 'FS LVFS SI', 'SR CBV', 'SR SIL VFSL',
+       'SR SIL CL', 'CL SR', 'SL CL', 'SR SIL COS', 'SR S FSL',
+       'SR S GRX', 'fs', 'SR S LS', 'S G', 'CB ST', 'SR COSL GR', 'CBA',
+       'SL SCL CL', 'SR SIC GR', 'SR SL GRX', 'CL PG', 'SI', 'FSL',
+       'SR FSL S', 'SR LFS SIL', 'SR SL SICL', 'SL SIL', 'MARL',
+       'SR SIL LFS', 'SIC SIL', 'LS SIL', 'VFSL SIL', 'FSL L SIL',
+       'SR SL SCL', 'SR S GR', 'LFS LFS', 'L FL', 'L GRV', 'SR S SIL',
+       'LS MPT', 'sl', 'SR SL SC', 'FINE GYPSUM MATERIAL', 'VFSL SICL',
+       'VFSL MAT', 'SL MAT', 'SR FSL WB', 'SR SL S', 'COS GR', 'BR BR BR',
+       'SR FSL L', 'MPM', 'SR SCL SIL', 'SR SICL FSL', 'SL L', 'GR S',
+       'LS S', 'SR L FSL', 'SICL SR', 'C SICL', 'DUR', 'COSL CL',
+       'WB L SIL', 'SL CEM', 'SIL MARL', 'SR SG', 'L MK', 'SR SIL LS',
+       'SHX', 'SR FS CL', 'SR L VFS', 'SR SL C', 'SR FSL SIC', 'SY',
+       'WB FSL', 'CL BR', 'SR COSL L', 'SR CBX', 'SR S FS', 'CL GR', 'SC',
+       'LVFS', 'LFS', 'SR LS C', 'SR SIL SICL', 'FS LFS', 'W', 'VFSL CL',
+       'SR LS L', 'SR SIL S', 'SR LS SIL', 'FSL HPM', 'GS', 'LS FSL',
+       'FSL CB', 'VFSL SIC', 'SR LS CL', 'SR SIL SL', 'SR FSL SIL',
+       'SR COS LS', 'SR VFS C', 'SICL SIC', 'MPT LVFS', 'SR SL LCOS',
+       'SR FS VFSL', 'C GR', 'SL VAR', 'SR CNV', 'GR GRV', 'PC',
+       'SR VFS LFS', 'FSL IND', 'SR SIL MPT', 'VFSL', nan, 'SR CL C',
+       'SR VFSL SIL', 'SR L CL', 'SR SIL FSL', 'C BR', 'FS VFS SIL SI',
+       'SR VFS SICL', 'MPM SIL', 'MUCK L SIL', 'SL SIL CL SICL', 'CE',
+       'SIL SICL', 'COSL SL', 'SR L S', 'L SIC', 'SR SICL C', 'SR L SL',
+       'L SIL CL SICL', 'SCL CL', 'SICL MUCK', 'SR FSL FS', 'LS SCL',
+       'SI MAT', 'SIL MAT', 'RB', 'SR SICL LFS', 'SR LFS FS', 'SIC BR',
+       'CL CN', 'C SIC', 'CL G', 'SR VFSL L', 'SR CL SIC', 'SR SL SIL',
+       'LS SL', 'SR SIL FS', 'SR SI S', 'SR LS SL', 'SR CL S', 'S S',
+       'SR SIC C', 'FS VFSL', 'SR FSL C', 'SR LS SCL', 'SR S SCL',
+       'SCL VAR', 'SR SL GR', 'SL CN', 'SR STX', 'PBY', 'S G SIL', 'MUCK',
+       'SICL', 'LCOS', 'SR L C', 'SR FS SIL', 'SR FS SI', 'SR FS S',
+       'MPM FSL', 'SIL MUCK', 'S LFS', 'COS SCL', 'L CL', 'SR LFS GR',
+       'SR S SL', 'SR C LS', 'SR SL SIC', 'WB UWB', 'VFS SI',
+       'SL SI FS MUCK', 'L ST', 'SR LFS L', 'W GR', 'CL SICL', 'SR L WB',
+       'CL VAR', 'COSL GR', 'FSL VFSL L', 'SR C GR', 'SR L SICL',
+       'SR LFS CL', 'L SICL', 'FS LS', 'MAT', 'SR VFSL LFS', 'SR SIL VFS',
+       'FSL CL', 'SR S CL', 'SR CL VFSL', 'FSL MUCK', 'PSTV',
+       'VFSL LVFS FS', 'FS SL', 'FS PF', 'COARSE GYPSUM MATERIAL',
+       'S GR CB', 'SR S C', 'SICL VAR', 'SR FSL LS', 'PUM', 'L BR',
+       'SR LFS SL', 'SR SICL VFSL', 'SR COS SL', 'SR LS VFSL', 'LS HPM',
+       'PG', 'FS L', 'SR C SICL', 'sil', 'ST BY', 'SR SIC SICL',
+       'SR LFS FSL', 'C VAR', 'L VAR', 'SIC CN', 'SR CL FSL', 'COS FS',
+       'SR L SCL'], dtype=object)
+
+#+end_src
+
+
+*Victor worked on SSURGO /ntps/fy26/underground_tranmissions/*
+
+*use FASTX to visulaize massive gNATSGO file*
+
+
+
+
+
+
+
+
+
+
+
+**** non-attainment areas 90m
+
+- characterize it because it doesnt actual have all plants excluded from the areas
+/write a lookup for non attainment zone/
+
+
+- the template is path to a raster
+  - if a file doesn't exist we need a template raster
+
+
+
+**** hydraulic boundary
+- required design pressure
+  - based on turbine technology
+
+**** seismic activity
+eia natural gas power plant...
+- point 2 raster association
+  - characterize with seismic (PGA) raster value
+
+
+
+**** ground acceleration
+
+*** comments
+
+*focus on idiomatic, readability, and documentation of research*
+
+
+*find exsiting exclusions in templates folder*
+- check that our template matches the dimensions for prior year
+  - /layers/ for categories of exclusions organized by geospatial location
+  -
+
+- favorability criteria for
+
+- focus idea of land exclusion
+  - where you cant build something
+
+
+- annual technical reports
+  - see siting constraints and considerations
+    -  make sure to differentiate between land use and siting constraints
+
+- we dont set setbacks for open access
+
+- detailed local information compass
+  - specific setbacks for counties
+
+
+
+/land use is sorta abstract/
+
+
+- catch these top known land trends
+
+_2 represntative approaches_
+
+  1. look online and find literature
+     - validate the exclusionary phenomenom
+
+/if alot of plants are in the exclusion zones then rethink the literature/
+- characterize these plants with land use
+  - e.g.
+
+
+** revgas rapid prototyping gas modeling
+
+*** summary
+we are trying to imply max potential using daily implied flow, supply, demand, and deliverability of natural gas in order to determine a suitable site for site gas-fired generation plant for maximal load delivery during peak consumption days
+
+Knowing this is our goal we would like to maximize gas flow rate in the deliverability phase before moving to capacity phase. We require assumptions for hydraulic efficiency of the pipeline and the efficiency of the compressor stations components
+
+Also to incoporate GasModels.jl code which implements a steady-state model of gas flow based on Weymouth and uses 1-D hydrodynamic equations for natural gas flow in a pipe. Which requires our given CONUS data to be transferred to Matgas Format:
+- junctions
+- pipes
+- compressors
+  - just horsepower
+- short pipes
+- resistors
+- loss resistors
+- regulators
+- valves
+- transfers
+- receipts
+  - are power plants
+- deliveries
+  - disaggregated EIA estimates
+- storage
+- network parameters
+
+*** implementation
+
+1. Overture Maps for counting buiilding(s) for classifying our level of consequnce for a given area
+   - Class location offers insight into federal regulations on pipeline design and classification for general requirements
+
+2. Now to imply flow rates for a given network or even a segment(s) using PUDL tables
+   - We use the monthly gas storage and monthly generator attributes
+     - calculate a network-level ratio for each month
+     - disaggregate down to weekly and daily
+
+        *This will become some PUDL refactors*
+        *Working in Pure julia for GasModels*
+       - ok we got a julia project going
+   - We need a representative network, I'm going see if we can capture like the minimal-sized network?
+     - Williams-Transco (NC to NY)
+       - Control Method
+       - Pipeline Optimization
+
+
+
+
+i.e. to illustrate the topology of the network only
+- 4-node network
+   /network contains two compressors and gas is being withdrawn at nodes 2–4. The pressure at the slack node, 1, is fixed to 500 si and gas is withdrawn at the withdrawal nodes in a time-periodic manner/
+- 25-node network
+  /a tree with five compressors and 24 pipelines/
+
+  *mass flow rate extrema*
+  - this is first code goal!
+    - Thnking we should have a functional procedure for getting mass flow rate given a pipeline segments(s)/selection of elements.
+      - save on complexity of joining entire pipeline datasets and join on selected segment(s) w/ pipeline datasets containg age, project names, proposed capcity & horsepower, length, etc.
+
+    1. lets stick with velsuite and write a function to join a segment on eia planned projects and ogim and gem pipelines
+
+/determine what the imputation step looks like if neeeded for cleanliness/completeness/
+- this step has to do with pipe segementation and some interest in determining where we apply nodal relationships between natural gas network elements
+
+
+*aligning excel spec sheet with code and record formulation, assumptions, and statements on modeling and estimating values*
+- finish documenting flow rates for blendpath, gasmodels, and pandapipes
+  - notes
+  - spec sheet
+  - code
+  - paper
+- reading brooks liteature and high performance python
+
+
+*EXTRA:* graph debug tools
+- branch-nodal incidence matrix
+- branch-loop incidence matrix
+- computer representation of network graph
+- Node-nodes representation
+- Connection tables
+- etc.
+
+
+*** comments
+
+what you write is eventually going to be recycled into reV and what is unique to reV-external steps.
+
+WERE on max delvierabiliy right now
+- next thread is translating deliverability to capacity
+
+AVAILABLE land use
+- next biggest research areas (HCAs)
+
+relationship of a max deliverability for a max plant capacity
+- max flow rate
+
+regulations on their capacities (HOLD OFF on this)
+
+
+grug forward and note future directions
+
+push data forward to help assist our advisory team to unload more value
+- get it working first and clean it up
+
+Characterize an appropriate sized subnetwork to imply the flow rate with least amount of influence
+- flow is restricted to size of network
+- help reduce computation time
+
+- molecule tracing (how far mass goes)
+
+**** reviewing GasModels.jl w/ Burcin
+
+*blendpath* - find pressure vector to balance network
+-
+
+
+*gasmodels* - find feasible operating point (given component states) and maximize prioritized load delivery on a damaged network
+-
+
+*pandapipes* - find pressures + branch velocities (+ temperatures) that balance the network
+
+
+**** Interstate Natural Gas Pipeline Efficiency
+
+https://ingaa.org/wp-content/uploads/2010/10/10929.pdf
+
+*Pipeline System Design*
+- The initial design normally is based on peak day contractual
+commitments plus an accommodation for future demand that can be reliably forecast
+
+*J-Curves* - compares the delivered cost of fuel to the cost of pipe
+- To determine the optimum combination of pipeline diameter and horsepower requirements
+
+*Optimal Compressor Spacing*
+- To determine optimal compressor spacing the trade off between delivered transportations cost for natural gas v.s. pipe mileage
+
+*Transportation Efficiency of the pipeline system* - $\eta_{sys}$
+- a combined product of the pipeline hydraulic efficiency $\eta_{pipeline}$
+  - which measures losses between compressor units and the compressor unit efficiency $\eta_{stations}$
+    - which includes both driver efficiency and compressor efficiency
+- higher pressure loss equates to more actual work
+  - which lowers the transportation efficiency
+- compressor stations boost the pressure of gas to compensate for pressure losses along the line
+  /pressure loss is related to friction, the length, and diameter of the pipe and the individual pressure losses due to obstructions such as bends, valves, or flow meters/
+  - When designing its system, a pipeline company tries to optimize hydraulic efficiency
+    - through pipeline routing, diameter and operating pressure selections, and unit efficiency
+      - through its compressor unit selections
+        - (including the engines, turbines, or electric motors that power the compressors).
+
+
+*Compressor Selection*
+- After determining the desired ratio between pipeline specifications and horsepower requirements
+  - one can select compresor units that best meet its load profile and operating needs
+    1. forecasted operating conditions
+    2. unit's air emissions compliance
+    3. installation costs
+    4. projected operating costs
+    5. projected maintenance costs
+    6. unit's compatibiility with fleet of compressors
+    7. overall efficiency of the compressor unit
+       - combination of thermal efficiency of the prime mover and compression efficiency of the compressors themselves
+    8. reliability of compressor unit components
+    9. expertise of pipeline personnel with equipment
+
+- Installation of one or more large units per compressor station versus several smaller units affects pipeline efficiency
+  - to address variable market area customer demands, sometimes select smaller compressor units can be switched on and off to meet throughput and pressure needs
+_Assuming the same configuration and location, two smaller compressor units will have a higher cost per horsepower compared to larger unit due to economies of scale_
+- one fully-loaded, big unit uses fuel more efficiently and cost less than 2 small units
+- in contrast, one fully-loaded small unit will be more fuel efficient and offer more flexibility than partially-loaded big unit
+- similarly, operating mulitple small compressors achieves better fuel efficiency than a single large compressor
+  - if the pipeline operates at less than max throughput (typically for a given a location)
+
+*Pipeline Operations*
+- Pipeline companies employ a number of techniques and procedures to maximize system efficiency
+  - while satisfying the level of required customer flexibility and fulfilling contractual commitments
+    1. flow simulation software for transient and real time modeling
+       - for operations that rely on higher linepack
+    2. shortening the outage time of high efficiency equipement
+    3. seek approval for increase in MAOP through PHMSA
+       - therefore reducing compressor fuel usage
+
+
+
+
+*Conclusion*
+/The greatest opportunity for maximizing both the economic and transportation efficiencies of a pipeline system is during the initial design and construction stage, when the optimum combination of pipe size, compression, and compressor unit components is chosen to meet projected demand/
+
+
+
+
+** revgas duckdb
+
+** revgas excel spreadsheet extractor for raw, unprocessed data
+** revgas refactor pudl.py
+
+*** summary
+
+PUDL.py is a wrapper to PUDL's Zenodo archives which are cached and also available via S3 catalog.
+- We would like to provide a thin wrapper to PUDL data
+  - and also document interfaces and transform data to fit desired natural gas component
+We are incorporating pandapipes and developing an acceptable way to model the pipeline flow network inside the network module so we want align idioms across these libraries.
+There is also the reV idioms across the typical reV workflows (e.g. generation -> aggregation -> supply curve -> rep-profiles)
+We also are communicating across defining gas components as well as electricy generation components
+- these have overlapping terms like `transmission`.
+
+
+*** implementation
+
+1. consult the best option for requesting remote storage
+2. offer critical inputs relevant spec sheet
+   0. supply
+   a. production
+   b. deliverability
+   c. generation
+   d. demand
+3.
+
+*** success criteria
+
+
+*** comments
+
+*linting* !
+
+
+
+** revgas refactor network module
+
+** reView cleanup dependencies issues
+
+*** summary
+loosen or strict dependencies? or offer `uv` for a easily accessible and separable env without configuration
+
+*** implementation
+
+- note outdated python project practices
+- offer loose set of dependencies as requirements-dev.txt
+- dependabot automatic version updates
+
+** revgas pipeline map visualization
+
+
+*** summary
+
+- pipeline network
+
+- click on a point and highlight a subgraph
+
+- reachability metric given a point
+  - theoretical
+
+- hide-show layers of offtake nodes
+
+
+*** implementation
+
+_plotly dash python_
+
+
+1. visualize pipline network via dash component
+   - use existing code in reView and cart for reference implementation
+   - replace sample component with sample geoparquet, and trial & error
+
+        /validating travis's code for successful runs/
+        - read
+        - build_network
+
+   _mapbox basemap_
+   _dash_deckgl_ & _pydeck_
+
+
+1. add interactive feature for hover/select event
+
+   - the tooltip upon hovering a feature displays pertinent information for idenitification
+
+   - characterize the subgraph via `revgas/network/graph.py` using networkit
+   /waiting on valid data otherwise we need to refactor travis's code/
+   - travis shares his zipped data folder so we got valid data now and we run graph.py
+
+     *fixed multiprocessing bug with updated `connect_to_nodes()`*
+
+   - trying out `identify_subgraph` manually
+
+2. add more symbology for different nodal representation and relationships to the network
+
+   - added compressor stations, processing plants, and power plants
+     - use these to characterize subgraph upon selection
+
+3. reorganize code or write tests
+
+   - refactor code to isolate abstract
+     - 100 or 300 loc
+     - clean code and idiomatic code/comments
+
+   - write test for visualizing layers
+     - including selection for update_map callback
+   - write test for tooltip
+   - write test for selection event
+   - write test for validating Graph class?
+     - possibly need a base test first
+4. add pyproject DX for easy-to-use dashboard
+   - update README
+   - optional dependencies
+   - test setup/installation instructions
+
+
+_optional_
+- aggregation layers
+  - (deck.gl) contour, grid, heatmap, a5, h3, s2
+  - state, county, balancing authority
+  - company, operator,
+
+_added_
+- heatmap layer
+  - color maps, and slight mods for smooth callback
+
+*** success criteria
+
+*** comments
+
+** revgas dash application CONUS/EUROPE refactor
+
+*** summary
+
+Travis has refactored to a MVC for the revgas dash app.
+We have the original US setup but we want the EU visualization setup as well.
+Just add a modification to the existing code to allow for the EU to be toggled on and off.
+
+_rabbit hole_ /but actually might be better design/
+
+- make a draft in `trame`
+  - offers cross platform distribution
+  - HPC
+  - funded maintenance
+  - we can send testimonials for marketing
+
+- continue in `trame-flow` to design revgas graph nodes
+  - enable visualization of network/graph parquet
+
+
+
+_too complex_ (geoarrow better support for javascript rather than python)
+- utilize geoarrow in deck.gl to make layer visualization less cumbersome
+  - we can store geometry in Parquet files as GeoArrow encoding
+    - instead of WKB
+
+
+*** implementation
+
+1. identify the code that needs to be modified and the code to be created
+   - europe`page`
+     - Model View Callback
+   - map `component`
+
+2. refactor MVVM and scigridgas and revgas controllers
+
+
+*** success criteria
+
+visualize the SciGridGas Network and implement code cleanly into the MVC structure
+
+*** comments
+
+note that `dash` is stateless
+
+
+
+
+** fix brute-force multiprocessing with geopandas
+
+*** summary
+
+the `connect_to_nodes` class method has a nested _init_worker() function that pools processes for parallelized processing of connecting lines in a network to create a undirected graph. The immediate conflict is that it only works on Linux and MacOS presumably so windows can't spawn threads the same way also we need to some applied computation measurement to understand whether multiprocessing is necessary and if it even is a speedup?
+
+
+*** implementation
+
+1. quantify the entire network based on number of pipeline segments and nodes
+   - compute a combinatorial of connections that would take bounds for time and space
+len of `velsuite` pipeline data: 40883
+""      ""      processing plants: 667
+""      `eia`      storage: 32
+
+                Texas    US
+`build_network`  ~200s    ~450s
+
+
+- single-threaded ~20% faster on Windows
+- test on HPC for linux
+
+System Manufacturer:           Dell Inc.
+System Model:                  Latitude 7450
+System Type:                   x64-based PC
+Processor(s):                  1 Processor(s) Installed.
+                               [01]: Intel64 Family 6 Model 170 Stepping 4 GenuineInte
+l ~1700 Mhz
+Total Physical Memory:         32,213 MB
+Available Physical Memory:     17,639 MB
+Virtual Memory: Max Size:      37,077 MB
+Virtual Memory: Available:     17,713 MB
+Virtual Memory: In Use:        19,364 MB
+
+Result: Multiprocessing was 12.50s FASTER than single-threaded on Kestrel HPC Linux
+Speedup ratio: 1.47x
+
+*** success criteria
+
+- definitely will need a visual check by travis
+  - but I assume nodes that look like they should be connected (because of the trivial distance to a pipeline)
+
+
+*** comments
+
+** modeling natural gas research contributions
+
+- MAOP Reconfirmation
+
+  https://ingaa.org/wp-content/uploads/2018/08/35005.PDF
+
+
+** rev: running downscaled climate models
+
+*** summary
+This project is demonstrating using downscaled climate models in reV. These outputs were downscaled using WRF and are part of a larger effort with Grant Buster who uses adversarial neural networks to downscale these GCMs (Su3rcc). It's a fairly straightforward set of runs, but will require us to make sure we're matching Grant's run designs and account for any bias correction steps or other oddities that might come up with this new WRF dataset
+
+We are running reV for both the Sup3rcc and WRF downscaled resource data. this will include UPV LBW and OSW. this run will use a bias-corrected 18-model CMIP-based dataset as its resource
+
+_dynamical downscaling_ is an approach to obtaining fine-scale weather and climate information
+- simulations often degraded by biases in the large-scale forcing itself
+/bias-corrected data has an mean climate and interannual variance/
+
+
+Shared Socioeconomic Pathways
+- 2 sets for climate scenarios
+  - emissions scenario
+  - SSps
+
+
+
+
+
+*** implementation
+
+SAME RESOURCES AND SAME YEARS AS ORIGINALS
+
+
+1. document work thus far by travis and grant
+
+   _model notes!_
+        `/datasets/NCDB/ncdb_wrf_conus/v1.0.0_preliminary`
+   - WRF-downscaled resource data
+   - to be updated with CMIP6 global dataset ?
+
+   `/projects/alcaps/rev`
+   - Grants rev configs for the sup3rcc runs
+     - start with FY24 then FY25 runs after matching all of original configs
+       - except for the resource data
+
+     _review!_
+     - Sup3rCC, super resolution for renewable energy resource data with climate change impacts
+       - 4km hourly wind, solar, temperature, humidity, and pressure fields for the contiguous U.S.
+         - under various climate change scenarios
+     /Sup3rCC is downscaled Global Climate Model data/
+   - performed using a generative ML approach called sup3r
+
+           _double review!_
+     - sup3r, super resolutioun for renewable energy resource data
+       - generative model learns from patterns and generates high detail temp, humiditiy, wind speed, solar irradiance, etc.
+     - produces synthetic high-res spatiotemporal energy resource data from low-res inputs
+       - includes historical and future weather years
+         - historical years represent the historical climate, not actual weather we experienced
+   /you cannot use sup3rcc data to study historical weather events/
+
+
+1. We should replace the new `RESOURCE_DIR` with v2.0.0 and other new versioned datasets
+   - NOTE: may need to aggregate h5 files for each year if not already done
+     - ask paul for operation
+
+- lines 138-141
+  - should only apply to != lbw
+
+- read in original csv
+  - explore supply curve py
+
+2. run with test project points .csv
+
+
+`rrlogs` `rev status`
+- logs/stdout/jobid
+- shows steps and status on pipeline
+
+**** _FY24 LBW_
+
+
+    annual_energy-2007       Dataset {52965}
+    ... 2013
+    annual_energy-means      Dataset {52965}
+
+    annual_gross_energy-2007 Dataset {52965}
+    ... 2013
+
+    annual_gross_energy-means Dataset {52965}
+    annual_wake_loss_internal_kWh-2007 Dataset {52965}
+    ... 2013
+    annual_wake_loss_internal_kWh-means Dataset {52965}
+    annual_wake_loss_internal_percent-2007 Dataset {52965}
+    ... 2013
+
+    annual_wake_loss_internal_percent-means Dataset {52965}
+    annual_wake_loss_total_percent-2007 Dataset {52965}
+    ... 2013
+
+    annual_wake_loss_total_percent-means Dataset {52965}
+    capital_cost-2007        Dataset {52965}
+    ... 2013
+
+    capital_cost-means       Dataset {52965}
+    cf_mean-2007             Dataset {52965}
+    ... 2013
+
+    cf_mean-means            Dataset {52965}
+    cf_profile-2007          Dataset {8760, 52965}
+    ... 2013
+
+    fixed_charge_rate-2007   Dataset {52965}
+    ... 2013
+
+    fixed_charge_rate-means  Dataset {52965}
+    fixed_operating_cost-2007 Dataset {52965}
+    ... 2013
+
+    fixed_operating_cost-means Dataset {52965}
+    lcoe_fcr-2007            Dataset {52965}
+    ... 2013
+
+    lcoe_fcr-means           Dataset {52965}
+    meta                     Dataset {52965}
+    system_capacity          Dataset {52965}
+    system_capacity-2007     Dataset {52965}
+    ... 2013
+
+    system_capacity-means    Dataset {52965}
+    time_index               Dataset {8760}
+    time_index-2007          Dataset {8760}
+    ... 2013
+
+    variable_operating_cost-2007 Dataset {52965}
+    ... 2013
+
+    variable_operating_cost-means Dataset {52965}
+    wake_loss_internal_kW-2007 Dataset {8760, 52965}
+    ... 2013
+
+    wake_loss_internal_percent-2007 Dataset {8760, 52965}
+    winddirection-2007       Dataset {8760, 52965}
+    ... 2013
+
+    ws_mean                  Dataset {52965}
+
+
+**** _FY24 OSW_
+
+- config_gen.json
+
+  {
+    "log_directory": "./logs",
+    "execution_control": {
+        "allocation": "wetosa",
+        "memory_utilization_limit": 0.6,
+        "option": "kestrel",
+        "sites_per_worker": 100,
+        "walltime": 4,
+        "memory": 240,
+        "qos": "high"
+    },
+    "log_level": "INFO",
+    "analysis_years": [
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013
+    ],
+    "technology": "windpower",
+    "output_request": [
+        "cf_profile",
+        "ws_mean",
+        "system_capacity",
+        "wake_losses",
+        "annual_gross_energy",
+        "annual_energy"
+    ],
+    "project_points": "/projects/rev/projects/weto/fy24/standard_scenarios/osw/data/tab
+les/site_data.csv",
+    "site_data": "/projects/rev/projects/weto/fy24/standard_scenarios/osw/data/tables/s
+ite_data.csv",
+    "sam_files": {
+        "WC_fixed": "./sam_configs/12MW_fixed.json",
+        "Gulf_fixed": "./sam_configs/12MW_fixed.json",
+        "MA_fixed": "./sam_configs/12MW_fixed.json",
+        "SA_fixed": "./sam_configs/12MW_fixed.json",
+        "NA_fixed": "./sam_configs/12MW_fixed.json",
+        "GL_fixed": "./sam_configs/12MW_fixed.json",
+        "WC_floating": "./sam_configs/12MW_floating.json",
+        "Gulf_floating": "./sam_configs/12MW_floating.json",
+        "SA_floating": "./sam_configs/12MW_floating.json",
+        "MA_floating": "./sam_configs/12MW_floating.json",
+        "NA_floating": "./sam_configs/12MW_floating.json",
+        "GL_floating": "./sam_configs/12MW_floating.json"
+    },
+    "resource_file": "/datasets/WIND/conus/v1.0.0/wtk_conus_{}.h5"
+  }
+
+**** _FY24 UPV_
+ac-1998                  Dataset {8760, 522497}
+...
+ac-2023                  Dataset {8760, 522497}
+base_capital_cost        Dataset {522497}
+base_fixed_operating_cost Dataset {522497}
+base_variable_operating_cost Dataset {522497}
+capital_cost             Dataset {522497}
+capital_cost_multiplier  Dataset {522497}
+cf_mean-1998             Dataset {522497}
+...
+cf_mean-2023             Dataset {522497}
+
+cf_mean-means            Dataset {522497}
+cf_mean-stdev            Dataset {522497}
+cf_mean_ac-1998          Dataset {522497}
+...
+cf_mean_ac-2023          Dataset {522497}
+
+cf_mean_ac-means         Dataset {522497}
+cf_mean_ac-stdev         Dataset {522497}
+cf_profile-1998          Dataset {8760, 522497}
+...
+cf_profile-2023          Dataset {8760, 522497}
+
+cf_profile_ac-1998       Dataset {8760, 522497}
+...
+cf_profile_ac-2023       Dataset {8760, 522497}
+
+clipped_power-1998       Dataset {8760, 522497}
+...
+clipped_power-2023       Dataset {8760, 522497}
+dc-1998                  Dataset {8760, 522497}
+...
+dc-2023                  Dataset {8760, 522497}
+dc_ac_ratio              Dataset {522497}
+fixed_charge_rate        Dataset {522497}
+fixed_operating_cost     Dataset {522497}
+ghi_mean-1998            Dataset {522497}
+...
+ghi_mean-2023            Dataset {522497}
+ghi_mean-means           Dataset {522497}
+ghi_mean-stdev           Dataset {522497}
+lcoe_fcr-1998            Dataset {522497}
+...
+lcoe_fcr-2023            Dataset {522497}
+lcoe_fcr-means           Dataset {522497}
+lcoe_fcr-stdev           Dataset {522497}
+meta                     Dataset {522497}
+system_capacity          Dataset {522497}
+system_capacity_ac       Dataset {522497}
+time_index-1998          Dataset {8760}
+...
+time_index-2023          Dataset {8760}
+variable_operating_cost  Dataset {522497}
+
+
+
+**** FY24 DPV
+
+
+
+
+**** setup.py
+
+setups runs and build input data for downscaled gcm rev runs
+- techmap didn't work as intended so it is created manually here.
+- old supply curves were input into rep-profiles bc of post-process script used
+
+LBW:
+- no need for project points
+- exclude invalid supply-curve points
+OSW:
+UPV:
+- exclude invalid supply-curve points
+DPV:
+- ?
+
+`rev.supply_curve.tech_mapping import TechMapping`
+
+
+
+*** success criteria
+
+- check for bias correction in existing data
+- new data set run
+  - mirror grants runs in FY24
+- exact same turbine placements
+  - what does the new data show
+
+*** comments
+
+/all revruns are nonstandard but we sticking to standards/
+- for representative profiles
+  - then ReEDS writes a research report
+- potential gridsize issues mismatching other data
+
+_working with h5py_
+- HDF5 shape
+- scale factor / offset
+
+
+NOTES FROM Grant
+- rev-sup3rcc generation inputs is all i need
+/ALCAPS/
+- lbw and osw upv references folders
+- scenario folders naming convention
+  - energy_scenarioname_year
+  - 6 directories for each scenario
+    - 10 year output files
+
+- validate output generation
+- reView
+- look at maps to see if patterns are reasonable
+  - check out spatial and temporal patterns
+
+_when you finish each of a tech_
+- give grant a headsup for pair programming and analysis
+
+double check w/ jame-o
+ - bias correction?
+
+
+ _post-process-supply-curvew_
+ - before running this double check with gabe
+
+script module
+"script": "./config_scriptjson5"
+
+log-level for debugging
+
+**rev bash**
+- rev pipeline -c config_pipeline.json
+
+rex.utilities.exceptions.ResourceRuntimeError: At lea
+st 2 irradiance variables (dni, dhi, or ghi) are need
+ed to run SAM!
+
+
+dpv is not run on every site scenario,
+- /projects/alcaps/rev/dpv
+
+  add a new techmap in config when generating new project points
+  - caused by mismatch of dimensions in resource data
+  - for supply curve error
+
+
+
+** revgas data spec sheet
+
+*** summary
+
+the natural gas modeling team in reV needs a specification sheet of our existing indicators for the deliverability of gas, and perhaps other oil and gas potential signals. In this spec sheet we shall identify the most relevant and significant, also listing various available datsets
+
+*** implementation
+
+1. prototype list of data dictionaries and their relevant data columns
+2. provide writeups on usecases for varying indicators and variables
+3. Develop template for specification sheet in excel
+4. Develop data standards for assets in gold and silver assets, bronze for investigation and raw assets
+5. Fill in page 1 with assets that use silver assets to construct wide and complete tables suitable for analysts to perform analysis on
+6. Fill page 2 with assets that are building blocks for downstream wide tables and analyses
+7. Fill page 3 with assets in investigation or that extract directly from spreadsheets and databases
+
+*** success criteria
+
+- excel sheet
+  - revgas spec sheet versioning
+
+- provide specifications
+  - PUDL
+    - EIA
+    - FERC
+    - ATB
+  - raw EIA
+    - eia912
+    -
+  - raw ATB
+  - GEMS
+  - GSAM
+  - NEMS
+  - NGMM
+  - FINITO
+  - BlendPath
+  - SAInt
+  - INGAA
+  - HITACHI VELOCITY
+  - WOODS MACKENZIE LENS
+
+- include concepts
+  - oil & gas reserve data
+  - gas-generated profiles
+  - generation ramp rates
+  - atmospheric & environmental effects
+  - transmission interconnection
+  - plant ownership
+  - turbine technologies
+  - financing costs, capital costs, operating costs,
+  - construction & equipment acquisition period
+  - land use constraints
+  - nature
+  - artificial
+  - regulatory
+  - outage/maintenance downtime
+  - estimate for deployment time
+    - time to acquire turbine, materials, permits, finances, etc.
+  - gas pipeline data
+  - gas pipeline flow data
+  - gas pipeline compressor data
+  - geospatial modeling of pipeline routes
+  - gas pipeline capacity constraints & deliverability
+  - natural gas prices
+  - gas delivery and energy conversion formulae
+  - fuel offtake locations and magnitude
+  - transport length
+  - linepack
+  - compressors
+  - roughness
+  - loss coefficient
+
+
+** custom reV errors/exceptions
+
+***  story
+
+implement custom rev exceptions to replace base exceptions
+
+_unused exceptions_
+- SlurmWarning
+- SAMExecutionWarning
+- ExtrapolationWarning
+- NearestNeighborError
+- JSONError
+
+**** documented exceptions
+_SAM_
+
+/SAM.py/
+- SAMExecutionError
+  - __get_base_handler_ - get base SAM resource handler
+    - raises error if module not found
+  - _execute_ - call PySAM execute method
+    - raises error if execution fails for some reason
+  - _collect_outputs_ - collect SAM output_request -> convert time-series outputs to UTC -> save outputs to self.outputs
+    - raises error if bad request from PySAM object
+- SAMInputWarning
+  - __make_res_kwargs_ - make Resource.preloadSam args and kwargs
+    - raise warning if downscaling is request for any resource handler that is not NSRDB
+  - _assign_inputs_ - assign a flat dict of inputs to the PySAM object
+    - raise warning for inputs that are not set because they are not found in PySAM object
+
+- SAMInputError
+  - ___set_item___ - set a PySAM input data attribute
+    - raises error if attribute not found
+    - catches error from `setattr(getattr(self.pysam, group), key, value)`
+- ResourceError
+  - _ensure_res_len_ - ensure time_index has a constant time-step and only covers 365 days (no leap days)
+    - raises error if time_index does not have a consistent time-step
+
+/econ.py/
+- SAMExecutionError
+  - _parse_sys_cap_ - find the system capacity variable in either inputs or dataframe
+    - raises error uf system capacity or turbine capacity is not included in the site-specific inputs in order to calculate annual energy yield for LCOE
+- KeyError
+  - __get_cf_profiles_ - get the multi-site capacity factor time series profiles
+    - raises error if cf_profile values are not found
+  - __parse_lcoe_inputs_ - parse for non-site-specific LCOE inputs
+    - raises error if cf_mean values are not found for LCOE calculation
+/windbos.py/
+- SAMInputError
+/defaults.py/
+- NotImplementedError
+/generation.py/
+- InputError
+  - multiple vals for `temperature` for site
+  - "" `potential_MW` ""
+  - found nan vals for site {} in vars {}
+- SAMExecutionError
+- NotImplementedError
+- ValueError
+  - lat/lon exception
+/version_checker.py/
+- PySAMVersionError
+- PySAMVersionWarning
+
+_bespoke_
+
+/bespoke.py/
+- ValueError
+  - Unknown dataset name
+- TypeError
+  - min_spacing must be numeric
+- KeyError
+  - user requested "lcoe_fcr" but did not input "fixed_charge_rate" in SAM system config
+  - could not find LCOE kwargs in outputs; plant_optimizer, original_sam_sys_inputs, or meta
+- ModuleNotFoundError
+- RuntimeError
+  - failed while running SAM windpower timeseries analysis
+  - failed while running turbine placement optimizer
+  - SC gid xxx failed
+- FileNotFoundError
+  - exclusions file not found
+- FileInputError
+  - techmap dataset not found in exclusions file
+- OSError
+/pack_turbs.py/
+- WhileLoopPackingError
+/place_turbines.py/
+- ValueError
+  - will not eval string which contains xxx
+- WhileLoopPackingError
+
+_config_
+
+/base_config.py/
+- ConfigError
+  - _init_config_ - initialize and load config from file
+    - raises error if config file does not exist or cannot be parsed
+- IOError
+  - _init_config_ - initialize and load config from file
+    - raises error when config file path cannot be read
+
+/project_points.py/
+- ConfigError
+  - _parse_ - parse project points from file or object
+    - raises error when project points file type is not recognized
+  - _from_range_ - create project points from a range of gids
+    - raises error if sites argument has invalid form
+- ValueError
+  - _parse_tech_ - parse the technology from the project points config
+    - raises error if more than one unique technology is found in project points
+- TypeError
+  - _parse_ - parse project points from file or object
+    - raises error when project points input type is not recognized
+- KeyError
+  - _sam_config_obj_ - get the SAM config object for a given gid
+    - raises error if gid not found in SAM config mapping
+- RuntimeError
+  - _split_ - split project points into sub-chunks
+    - raises error when project points cannot be split into the requested number of chunks
+
+/execution.py/
+- ConfigError
+  - _parse_execution_control_ - parse execution control from config
+    - raises error if required execution control parameters are missing or invalid
+
+_econ_
+
+/econ.py/
+- Exception
+  - _run_single_worker_ - run a single econ worker for a set of sites
+    - raises base exception if `econ_fun` fails during SAM econ execution
+- ExecutionError
+  - _parse_output_request_ - parse and validate user output requests
+    - raises error if none of the user output requests are recognized
+  - _get_data_shape_ - get the output data shape from SAM config
+    - raises error if non-scalar site_data input key is passed as an output_request
+- ValueError
+  - _parse_output_request_ - parse and validate user output requests
+    - raises error if econ outputs requested span incompatible SAM modules
+- Exception
+  - _run_ - run econ analysis for all sites
+    - raises base exception if analysis sites from project points are not found in cf file
+    - raises base exception if SmartParallelJob execution fails
+
+/cli_econ.py/
+- IOError
+  - _parse_cf_files_ - parse capacity factor files for econ
+    - raises error if a cf file does not exist on disk
+- ConfigError
+  - _parse_cf_files_ - parse capacity factor files for econ
+    - raises error if the number of cf files does not match the number of analysis years
+    - raises error if a requested analysis year cannot be found in the cf files
+
+/economies_of_scale.py/
+- TypeError
+  - _preflight_ - run preflight checks on input data
+    - raises error if data input is not a dict or DataFrame
+- KeyError
+  - _preflight_ - run preflight checks on input data
+    - raises error if variables required for an equation are missing from input data
+  - _get_prioritized_keys_ - get keys from input dict by priority order
+    - raises error if none of the requested keys are found in the input dict
+- ValueError
+  - _preflight_ - run preflight checks on input data
+    - raises error if equation string evaluates to an invalid value
+
+_generation_
+
+/base.py/
+- Exception
+  - _out.setter_ - set site output results
+    - raises base exception if site results are non-sequential
+- TypeError
+  - _out.setter_ - set site output results
+    - raises error if output type is unrecognized
+  - _output_request_type_check_ - validate the output_request argument type
+    - raises error if output_request is not str, list, or tuple
+- ValueError
+  - _handle_leap_ti_ - handle leap year time index by dropping Feb 29
+    - raises error if time index length is not a multiple of 365
+  - _site_index_ - get or set the current site index
+    - raises error if output_index is negative (site index already set)
+  - _patch_wave_gen_pysam_5_ - patch wave generation output for PySAM 5
+    - raises error if non-zero values are found at the end of the generation array
+- Exception
+  - _parse_site_data_ - parse site-specific SAM input data from csv or DataFrame
+    - raises base exception if site data input is not a .csv or DataFrame
+- KeyError
+  - _parse_site_data_ - parse site-specific SAM input data from csv or DataFrame
+    - raises error if gid column is missing from site data
+  - _get_pc_ - get the points control object for a given technology
+    - raises error if the technology string is not recognized
+- ExecutionError
+  - _get_data_shape_from_sam_config_ - get output data shape from SAM config
+    - raises error if a non-scalar SAM input key is passed as an output_request
+  - _get_data_shape_from_pysam_ - get output data shape from PySAM object
+    - raises error if the requested dataset is not found in the PySAM object
+
+/cli_gen.py/
+- ConfigError
+  - _parse_res_files_ - parse resource files from generation config
+    - raises error if resource_file is not a recognized type
+    - raises error if resource file count does not match the number of analysis years
+
+/generation.py/
+- KeyError
+  - ___init___ - initialize the generation object
+    - raises error if the technology string is not in OPTIONS dict
+- ProjectPointsValueError
+  - _meta_ - get the resource meta data for analysis sites
+    - raises error if the max site gid exceeds the resource meta data length
+- ConfigError
+  - _handle_lifetime_index_ - handle lifetime index for multi-year modeling
+    - raises error if multiple analysis_periods are found in the config
+    - raises error if invalid output arrays are requested alongside lifetime modeling
+- Exception
+  - _run_single_worker_ - run a single generation worker for a set of sites
+    - raises base exception if `cls.OPTIONS[tech].reV_run` fails
+  - _run_ - run generation for all sites with parallel execution
+    - raises base exception if generation execution fails
+- InputError
+  - _parse_gid_map_ - parse optional gid map to remap resource gids to supply curve gids
+    - raises error if the gid_map file cannot be parsed
+
+_handlers_
+
+/exclusions.py/
+- TypeError
+  - ___init___ - initialize exclusions handler
+    - raises error if h5_file is not str, list, or tuple
+- MultiFileExclusionError
+  - _preflight_multi_file_ - run preflight checks for multi-file exclusions
+    - raises error if a layer shape does not match lat/lon shapes
+    - raises error if multi-file exclusions do not have matching coordinate profiles
+- HandlerKeyError
+  - _get_latitude_ - get latitude array from h5 file
+    - raises error if latitude dataset is missing from h5 file
+  - _get_longitude_ - get longitude array from h5 file
+    - raises error if longitude dataset is missing from h5 file
+  - _get_layer_ - get a single exclusion layer from h5 file
+    - raises error if requested layer is not in available layers
+
+/multi_year.py/
+- ConfigError
+  - _source_files_ (MultiYearGroup) - get list of source files for multi-year aggregation
+    - raises error if source_files is not a list, tuple, or "PIPELINE"
+    - raises error if neither source_files nor source_dir+source_prefix are provided
+- CollectionRuntimeError
+  - _source_files_ (MultiYearGroup) - get list of source files for multi-year aggregation
+    - raises error if source_pattern glob results in non-h5 files
+  - _parse_source_files_pattern_ - parse source files from a glob pattern
+    - raises error if non-h5 files are found in the pattern results
+- FileNotFoundError
+  - _source_files_ (MultiYearGroup) - get list of source files for multi-year aggregation
+    - raises error if no source files are found matching the pattern
+- TypeError
+  - _parse_source_files_pattern_ - parse source files from a glob pattern
+    - raises error if source_files type is not recognized
+- HandlerRuntimeError
+  - _copy_dset_ - copy a dataset across source files into multi-year output
+    - raises error if meta data lengths differ across source files
+  - _compute_means_ - compute multi-year means for a dataset
+    - raises error if dataset shapes do not match across source files
+  - _compute_stdev_ - compute multi-year standard deviation for a dataset
+    - raises error if dataset shapes do not match across source files
+- CollectionValueError
+  - _is_profile_ - check if dataset is a time-series profile
+    - raises error if requested dataset is not found in the source file
+- CollectionWarning
+  - _copy_dset_ - copy a dataset across source files into multi-year output
+    - warns if coordinates do not match between collection files
+  - _my_collect_groups_ - collect all groups into a single multi-year HDF5 file
+    - warns when an existing multi-year output file is found and removed (clobber)
+
+/transmission.py/
+- HandlerKeyError
+  - ___getitem___ - get feature data by gid
+    - raises error if the feature gid is invalid
+  - _features_from_table_ - build features dict from a transmission table
+    - raises error if feature type is not recognized
+  - _substation_capacity_ - get capacity available at a substation
+    - raises error if capacities are not found for the substation
+- ValueError
+  - _features_from_table_ - build features dict from a transmission table
+    - raises error if features dict input is not valid
+- RuntimeError
+  - _check_feature_dependencies_ - check that parent features exist for substations
+    - raises error if parent features depend on missing transmission lines
+  - _connect_ - connect a supply curve point to a transmission feature
+    - raises error if needed capacity exceeds available capacity
+- HandlerRuntimeError
+  - _available_capacity_ - get available capacity at a transmission feature
+    - raises error if available capacity cannot be parsed from the feature data
+- NotImplementedError
+  - _POIFeatures.cost_ - compute connection cost for POI features
+    - raises error because cost computation is not supported for POI features
+  - _POIFeatures._calc_cost_ - internal cost calculation for POI features
+    - raises error because POI cost calculation is not implemented
+
+_losses_
+
+/power_curve.py/
+- reVLossesValueError
+  - _PowerCurve._validate_wind_speed_ - validate wind speed input array
+    - raises error if wind speed contains negative values
+  - _PowerCurve._validate_generation_ - validate generation output array
+    - raises error if there are no positive generation values in the power curve
+    - raises error if non-zero generation values exist above the cutoff wind speed
+  - _PowerCurveLosses._validate_wind_resource_ - validate wind resource input
+    - raises error if wind resource contains negative values
+  - _PowerCurveLosses._validate_weights_ - validate bin weights for wind resource
+    - raises error if weights size does not match wind resource size
+  - _PowerCurveLossesInput._validate_required_keys_exist_ - validate required keys in loss spec
+    - raises error if required keys are missing from the loss specification
+  - _PowerCurveLossesInput._validate_transformation_ - validate transformation name
+    - raises error if transformation name is not in TRANSFORMATIONS dict
+  - _PowerCurveLossesInput._validate_percentage_ - validate loss percentage value
+    - raises error if percentage is not in the range [0, 100]
+  - _PowerCurveWindResource.wind_resource_for_site_ - get wind resource for a single site
+    - raises error if pressure units cannot be determined from dataset
+  - _AbstractPowerCurveTransformation._validate_non_zero_generation_ - validate transformed power curve
+    - raises error if the calculated power curve is invalid (all zeros or negative)
+  - _AbstractPowerCurveTransformation._validate_same_cutoff_ - validate cutoff wind speeds match
+    - raises error if cutoff wind speeds of original and transformed curves don't match
+  - _PowerCurveLossesMixin.wind_resource_from_input_ - get wind resource from user input
+    - raises error if wind_resource_model_choice is incompatible with input type
+- NotImplementedError
+  - _AbstractPowerCurveTransformation.apply_ - apply the power curve transformation
+    - raises error when subclass has not set _transformed_generation
+
+/utils.py/
+- reVLossesValueError
+  - _validate_arrays_not_empty_ - validate that input data arrays are not empty
+    - raises error if an input data array is empty
+
+/scheduled.py/
+- reVLossesValueError
+  - _Outage._validate_required_keys_exist_ - validate required keys in outage spec
+    - raises error if required keys are missing from the outage specification
+  - _Outage._validate_count_ - validate outage count value
+    - raises error if count is not an integer or is less than 1
+  - _Outage._validate_and_convert_to_full_name_months_ - validate and normalize month names
+    - raises error if no recognized month names are provided
+  - _Outage._validate_duration_ - validate outage duration value
+    - raises error if duration is not an integer or is outside the valid range
+  - _Outage._validate_percentage_ - validate outage loss percentage
+    - raises error if percentage is not in the range (0, 100]
+
+_nrwal_
+
+/nrwal.py/
+- KeyError
+  - _parse_site_data_ - parse and validate site data input
+    - raises error if required columns (gid, config) are missing from site_data
+- OffshoreWindInputError
+  - _preflight_checks_ - run preflight validation checks
+    - raises error if config ids in site_data are missing from the NRWAL config input
+    - raises error if site_meta_cols are not found in site_data
+  - _get_input_data_ - get input data arrays for NRWAL analysis
+    - raises error if required NRWAL input variables are not found in gen outputs or meta
+- DataShapeError
+  - _get_input_data_ - get input data arrays for NRWAL analysis
+    - raises error if data shape is not 1D or 2D
+  - _save_nrwal_out_ - save NRWAL output arrays to the output file
+    - raises error if a 1D output is found to be 2D but not all-NaN
+    - raises error if NRWAL output shape cannot be understood
+- TypeError
+  - _value_to_array_ - convert a NRWAL output value to a numpy array
+    - raises error if a NRWAL key returns a value of an unrecognized type
+
+_qa_qc_
+
+/qa_qc.py/
+- TypeError
+  - _QaQcModule.__init____ - initialize the QA/QC module handler
+    - raises error if config input is not a dict
+- PipelineError
+  - _QaQcModule.fpath_ - get the file path for the module output
+    - raises error if fpath cannot be parsed from previous pipeline jobs
+
+_rep_profiles_
+
+/rep_profiles.py/
+- FileInputError
+  - _RepProfilesBase._parse_rev_summary_ - parse the reV summary CSV file
+    - raises error if the reV summary file cannot be parsed
+- TypeError
+  - _RepProfilesBase._parse_rev_summary_ - parse the reV summary CSV file
+    - raises error if rev_summary input is not a valid dtype (str path or DataFrame)
+- KeyError
+  - _RepProfilesBase._check_req_cols_ - check that required columns exist in the summary table
+    - raises error if required column labels are not found in the rev_summary table
+  - _RepProfilesBase._check_rev_gen_ - check that the gen file has required datasets
+    - raises error if cf_dset is not in the gen file datasets
+    - raises error if time_index is not in the gen file datasets
+- DataShapeError
+  - _RegionRepProfile._run_rep_methods_ - run representative profile methods for a region
+    - raises error if the weights column length doesn't match the profiles shape
+- ValueError
+  - _RepProfiles.__init____ - initialize representative profiles
+    - raises error if reg_cols is None
+
+_supply_curves_
+
+/aggregation.py/
+- RuntimeError
+  - _run_serial_ / _run_parallel_ - run supply curve aggregation
+    - raises error if aggregation fails for a supply curve point
+- SupplyCurveInputError
+  - _check_files_ - check that required input files exist
+    - raises error if required exclusions or resource files are not found
+- FileInputError
+  - _check_files_ - check that required input files exist
+    - raises error if techmap dataset is not found in the exclusions file
+- FileNotFoundError
+  - _check_files_ - check that required input files exist
+    - raises error if the exclusions h5 file does not exist
+- EmptySupplyCurvePointError
+  - _run_single_ - run aggregation for a single supply curve point
+    - raises error if no valid resource pixels are found within the supply curve cell
+
+/sc_aggregation.py/
+- FileInputError
+  - _check_excl_files_ - check exclusion file inputs
+    - raises error if the techmap dataset is not found in the exclusions file
+- TypeError
+  - _parse_sc_points_ - parse supply curve points
+    - raises error if sc_points input type is not recognized
+- KeyError
+  - _parse_cf_dset_ - parse capacity factor dataset name
+    - raises error if cf_dset is not found in the resource file
+- ValueError
+  - _check_res_file_ - check resource file is valid
+    - raises error if resource file does not contain required datasets
+- EmptySupplyCurvePointError
+  - _run_single_ - run aggregation for a single supply curve point
+    - raises error if supply curve point has no valid resource data
+
+/supply_curve.py/
+- KeyError
+  - _parse_sc_points_ - parse supply curve points from input
+    - raises error if required columns are missing from the supply curve table
+- RuntimeError
+  - _run_ - run supply curve transmission mapping
+    - raises error if supply curve execution fails
+- SupplyCurveInputError
+  - _check_sc_table_ - validate the supply curve table
+    - raises error if required columns are missing or invalid in the supply curve table
+- SupplyCurveError
+  - _full_sort_ - sort supply curve by LCOE with transmission costs
+    - raises error if supply curve sorting fails unexpectedly
+
+/competitive_wind_farms.py/
+- RuntimeError
+  - _remove_noncompetitive_wind_farms_ - remove wind farms that are not cost-competitive
+    - raises error if the competitive wind farm removal process fails
+- ValueError
+  - _parse_wind_dirs_ - parse wind direction data for competitive analysis
+    - raises error if wind direction input is invalid
+
+/points.py/
+- IndexError
+  - _SupplyCurvePoint.__init___ - initialize a supply curve point
+    - raises error if the supply curve gid is out of range
+- SupplyCurveInputError
+  - _SupplyCurvePoint._parse_resources_ - parse resource data for the point
+    - raises error if required resource inputs are missing or invalid
+- EmptySupplyCurvePointError
+  - _SupplyCurvePoint._check_excl_ - check exclusion data for the point
+    - raises error if no valid (non-excluded) pixels remain in the supply curve cell
+- ValueError
+  - _SupplyCurvePoint._parse_lat_lon_ - parse lat/lon for the supply curve point
+    - raises error if latitude or longitude cannot be determined
+- DataShapeError
+  - _SupplyCurvePoint._parse_data_shape_ - parse expected output data shape
+    - raises error if resource and exclusion data shapes do not match
+- FileInputError
+  - _SupplyCurvePoint._parse_techmap_ - parse technology mapping from exclusions file
+    - raises error if techmap dataset is not found in the exclusions file
+- TypeError
+  - _SupplyCurvePoint._parse_input_ - parse a generic input for the supply curve point
+    - raises error if input type is not recognized
+
+/exclusions.py/
+- ValueError
+  - _LayerMask._parse_inclusion_weights_ - parse inclusion weights for a layer
+    - raises error if inclusion weight values are invalid
+- ExclusionLayerError
+  - _LayerMask.__init___ - initialize a layer mask
+    - raises error if the layer configuration is invalid
+- KeyError
+  - _ExclusionMask._get_layer_ - get a layer from the exclusions file
+    - raises error if a requested layer is not found in the exclusions h5 file
+- SupplyCurveInputError
+  - _ExclusionMaskFromDict._parse_layer_ - parse a single exclusion layer from dict
+    - raises error if layer specification dict is invalid
+
+/tech_mapping.py/
+- FileInputError
+  - _map_to_supply_curve_ - map resource pixels to supply curve points
+    - raises error if techmap dataset is not found in the exclusions file
+
+_utilities_
+
+/curtailment.py/
+- KeyError
+  - _Curtailment._parse_ - parse curtailment parameters from config
+    - raises error if required curtailment parameter keys are missing from the config
+
+
+*** implementation
+
+1. Browse the different modules and note base exceptions and/or scenarios where an exception may be acceptable and valuable to users downstream
+   - identify existing uses of custom exceptions and base exceptions
+2. Replace/Modify exceptions one module at a time.
+
+*** testing
+
+revruns using sample `project_points`
+
+
+*** foresight
+
+
+*** certificate of origin
+
+When AI tools contribute to development, proper attribution helps track the evolving role of AI in the development process. Contributions should include an Assisted-by tag in the following format:
+
+Assisted-by: AGENT_NAME:MODEL_VERSION [TOOL1] [TOOL2]
+
+Where:
+- AGENT_NAME is the name of the AI tool or framework
+- MODEL_VERSION is the specific model version used
+- [TOOL1] [TOOL2] are optional specialized analysis tools used (e.g., coccinelle, sparse, smatch, clang-tidy)
+- Basic development tools (git, editors) should not be listed
+
+*This contribution:*
+
+Assisted-by: Claude:claude-sonnet-4-6 [grep] [glob]
+
+*** comments
+- “User code can raise built-in exceptions. This can be used to test an exception handler or to report an error condition “just like” the situation in which the interpreter raises the same exception; but beware that there is nothing to prevent user code from raising an inappropriate error.”
+- “ It’s recommended to only subclass one exception type at a time to avoid any possible conflicts between how the bases handle the args attribute, as well as due to possible memory layout incompatibilities.”
+
+  - Allows downstream users of reV to catch reV exceptions explicitly
+
+
+** reVgas dagster job for natural gas
+
+*** story
+
+We are only interested in a subset of datasets of the entire PUDL output.
+
+We can launch PUDL jobs with custom configured `etl.yaml` file, assuming all upstream dependencies are materalized correctly.
+
+*** implementation
+
+1. write and document a yaml detailing a list of jobs to run
+
+*** success criteria
+
+works on my machine, your machine, and kestrel
+
+*** comments
+
+
+
+
+** reVgas pudl data access routine
+
+*** story
+`revgas` repository initially for  prototyping a natural gas module in reV which will store documents, sample datasets, and sample code to help understand how we might approach this technology in reV, which is a fundamentally different modeling problem than for renewable energy technologies.
+
+The initiation of a prototype requires a complete pudl module to quickly retrieve all relevant gas related data
+
+*** implementation
+1. add environement variables
+   - pudl paths
+2. augment PUDL class to pull from local `pudl_output` mirroring the current method
+3. write code examples using the extent of gas-related PUDL data
+   - based on data's stage in pipeline we will offer zen pythonic interface
+   - built-in meta analysis and irregularity handling
+     - eia, aeo, ferc, etc.
+
+
+*** success criteria
+_pudl parquets_
+- eia yearly generators
+- eia 923
+- eia 860
+- eia 176
+- eia 191
+- __scd
+
+_duckdb_
+- ...
+
+*** comments
+
+
+** reVgas time-varying analyis example
+
+*** story
+PUDL pipeline infra and natural gas generation output data requires exploratory analysis to initially confirm irregularities that jeopardize the integrity of statistical inferences made from the output of public utility data that is ready for distribution.
+
+Exploring the patterns, outliers, and taking the completeness of time-series into account before performing any form of systematic learning or hypothesis tests.
+
+
+
+*** implementation
+
+1. lets extend the PUDL clasarjunis to use the local kestrel data
+
+- ESDA
+
+_spatial anaylsis_
+-
+
+_time-series analysis_
+- plot the time series data
+- plot ACF and PACF
+- apply transformation if needed for stationarity assumption
+
+_geostatistical analysis_
+- define elements of statistical learning in geospatial setting
+- describe the learning tasks that leverage properties of the underlying spatial domain
+- assess widely used methods for estimating generalization error of learning models, under covariate shift and spatial correlation
+
+
+
+*** success criteria
+
+geographically discrete estimate of xxx
+
+perform seasonal derating
+
+incorporate and document pudl's coincidental and peak generation
+
+
+
+*** comments
+
+
+
+** reVgas spatial analyis example
+
+*** story
+PUDL pipeline infra and natural gas generation output data requires exploratory analysis to initially confirm irregularities that jeopardize the integrity of statistical inferences made from the output of public utility data that is ready for distribution.
+
+Exploring the patterns, outliers, and taking the completeness of time-series into account before performing any form of systematic learning or hypothesis tests.
+
+
+
+*** implementation
+
+1. lets extend the PUDL class to use the local kestrel data
+
+- ESDA
+
+_spatial anaylsis_
+-
+
+_time-series analysis_
+- plot the time series data
+- plot ACF and PACF
+- apply transformation if needed for stationarity assumption
+
+_geostatistical analysis_
+- define elements of statistical learning in geospatial setting
+- describe the learning tasks that leverage properties of the underlying spatial domain
+- assess widely used methods for estimating generalization error of learning models, under covariate shift and spatial correlation
+
+
+
+*** success criteria
+
+geographically discrete estimate of xxx
+
+perform seasonal derating
+
+incorporate and document pudl's coincidental and peak generation
+
+
+
+*** comments
+
+
+
+
+
+
+
+** reVgas pudl geoparquet to qgis
+
+*** story
+
+given new resource datasets for natural gas the GDS team will need a geospatial workflow for further visualization using flagship GIS softwares like QGIS, GDAL, ArcGIS, etc.
+
+This calls for documenting a consistent routine for geospatial analysis, transforms, and visualizations. Requires a support for standard geospatial formats compatible with QGIS first and foremost, but ideally something easily extensible for vector analysis.
+
+
+*** implementation
+
+
+_GeoParquet_
+- will require a script to aggregate parquets into geoparquet
+  - anchor spatially using `yearly_plants` `yearly_generators`
+- DuckDB or PyArrow
+
+Web GIS will be best visualization
+
+
+
+*** success criteria
+
+*** comments
+
+** revgas texas aggregate generation example
