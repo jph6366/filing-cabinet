@@ -60,3 +60,20 @@
 ** TODO Claude CoWork
 *** TODO Financial Trading Agents
 SCHEDULED: <2026-05-14 Thu>
+
+
+
+
+
+** TODO Practicum Learning Theory & Cross-Validation Report
+SCHEDULED: <2026-10-19 Mon>
+** TODO Practicum MegaCorp Logistic Dataset Geostatistical Experiment
+SCHEDULED: <2026-10-19 Mon>
+
+** TODO DSC & AI Assistantship: Harnessing Agents
+SCHEDULED: <2026-10-19 Mon>
+
+** TODO NLR: Advancing the Exclusion layer for Natural Gas Power Plants
+SCHEDULED: <2026-10-19 Mon>
+
+** TODO NLR: Kestrel Data Management Utility
