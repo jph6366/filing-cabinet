@@ -1,5 +1,27 @@
 #+title: Gas Flow
 
+* Gas Flow
+
+** General Flow Equation
+
+steady flow of gas in a pipe is derived from Bernoulli's equation
+- since pressure decreases along the pipe in the direction of flow
+  - because of the loss of pressure head to overcome friction
+- the density of the gas also decreases
+/for steady flow the mass flow is constant along the pipe/
+- Given $A$, the pipe cross-sectional area, is constant then we have:
+$\rho_1 w_1 = \rho_2 w_2$
+- thus as the density decreases the velocity increases
+  - and the kinectic energy of the gas must increase
+
+_derivation of the general flow equation involves a number of simplifying assumptions_:
+1. steady flow
+   2. isothermal flow due to heat transfer with the surroundings through the pipe wall
+      3. negligible kinectic energy change in the pipe
+         4. constant compressibility of the gas over the length of the pipe
+            5. validity of the Darcy friction loss relationship across the pipe
+               6. constant friction coefficient along the pipe length
+
 
 * CONUS Gas Flow
 

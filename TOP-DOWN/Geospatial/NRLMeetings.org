@@ -1112,3 +1112,39 @@ not as concerned with present day rules
 - long-term trends
 
 - existing potential vs. overall potential
+=======
+
+
+
+** 9-21-2026
+
+
+_Azine helping on project management_
+- introudcing her to the prototype group and reV group
+
+
+- Travis pushing through the fiscal year
+  - reaching out for LANL
+  - NAERM model with Jeremey Keen
+  /we need to be careful/
+  - safety and territorial about their research
+  - worried about what were usingit for
+    - where are we embedding data downstream in the public facing NREL products
+
+
+- think about supply and demand scenarios
+  - once we get the model runnning
+
+
+prototype handle multiple points at once or handle one point at a time
+- then reV handles the coordination of multiple threads at a time
+
+
+9/30/2026
+
+A map representing natural gas plant siting exclusions
+
+
+also a map of pipeline deliverability...
+
+- speculation of the dynamics of this will look like
