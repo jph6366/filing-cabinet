@@ -16,11 +16,16 @@ Bash is the shell or Command Language Interpreter, for GNU operating system
 - a macro processor that executes commands
   _macro processor_: functionality where text and symbols are expanded to create larger expressions
 
--
+
+** Bash Scripts
 
 
 
 ** Bash Commands
+
+
+*** chmod
+
 
 *** bc
 arbitrary-precision arithmetic language
@@ -77,3 +82,36 @@ _create a javascript file from lat lon coordinates_
 `grep -i [Rr]acoon *`
 `sed -i 's/racoon/raccoon/g' 1.[35]*`
 `sed -i 's/Racoon/Raccoon/g' 1.[35]*`
+
+
+*** awk
+
+- awk scripts consist of one or more `pattern { action }` blocks
+
+  _predefined variables_
+  - *RS* record separator is a newline character
+  - *FS/OFS* field separator/output field separator
+  - *NR* currrent record number
+  - *NF* the number of fields (columns) in the currrent record
+
+_skip first line_
+`awk 'NR>1' sn.csv`
+
+_print lines 2 thru 4_
+`awk 'NR>1 && NR<5' sn.csv`
+
+_selecting fields_
+`awk '{print $1,$3}' FS=, sn.csv`
+
+
+_BEGIN and END_
+`awk 'BEGIN {FS=OFS=","} {print $1,$3}' sn.csv`
+
+_arithmetic_
+        _column sum_
+`awk 'NR>1 {s+=$3} END {print s}' FS=, sn.csv`
+        _cum sum_
+`awk 'NR>1 {s+=$3; print s}' FS=, sn.csv`
+
+        _average_
+`awk 'NR>1 {s+=$3; c+=1} END {print s/c}' FS=, sn.csv`

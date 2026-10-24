@@ -1112,3 +1112,66 @@ not as concerned with present day rules
 - long-term trends
 
 - existing potential vs. overall potential
+
+
+** 10-19-2026
+
+Met our quarterly deliverables.
+
+
+waiting to get the pipeline spec sheet
+- LAML ready-to-go
+- PHMSA dataset
+
+
+
+/deliverability only answers one part of the question/
+- infrastructure builds is demanded for larger gas plants
+
+
+_jackson_
+- filling in the gaps and fine-tuning current exclusion layers
+  - regionalized exclusions
+    - geographic location of foundation may provide bias
+    - county boundaries mask some data creating missing potential exclusions
+  - earth embeddings
+    - alphaearth embeddings...
+    - etc.
+
+
+_travis_
+- reviewing quarterly presentation w/ omar for the 1st time
+- incorporating regional rules for maximum capacity module
+- reviewing max load delivery network formulation w/ relaxed constraints
+
+
+*go step above the network, and relationship max gas flow and max gas plant capacity*
+
+_12-31-2026_
+- SAM prototype module completion
+
+_3-31-2027_
+- Beta SAM modules completion
+- model coupling framework
+
+_6-30-2027_
+- full reV integration
+
+_9-30-2027_
+- reV gas prototype
+
+
+*deliverability to capacity research question*
+
+gas module will include different types of plants
+- variables will change
+- define a rule
+  - plant priority
+- adding plant requires a secondary rule
+/some different objectives for the network formulation/
+- blind to the competition for gas
+
+
+_travis_
+- modeling gas demand using disaggregated AEO (FINITO)
+  - rEeDS may be downstream
