@@ -1,1 +1,24 @@
 #+title: Harnessing Agents
+
+
+•	Building Your Skill-stack To Harness Agentic AI Use Cases
+o	Overview Claude Code
+	Overlay anatomy with the general anatomy of harnesses
+	The guardrail architecture, which includes hallucination detection, completeness validators, pre-execution plan review, and human-in-the-loop gates
+o	Build your Skill-stack
+	Choose your either your own set of domain skills or pre-templated ones I'll provide
+•	E.g. Coding Skills, Medical Skills, Research Skills, Data Science Skills, etc.
+•	How To Observe And Score Agent Ability
+o	Each agent and each human is characterized by a function from expenditure to score
+	Expenditure will generally be treated as money, but it can also be interpreted as time or tokens
+o	Quantify the capabilities of AI systems in terms of human capabilities
+	Human-grounded metrics that compare agent and human expenditure require both expenditures to be measured in the same units
+o	Not everything needs an agent
+	How much of your control flow you hand to inference time, and what it costs you
+•	Increasing Your Observability And Building Metrics and Benchmarks (even when using Claude)
+o	Collecting data on your task completion and AI's task completion/responses
+	Protocols, Telemetry, Networking, Files, Storage, and Data Management
+o	Creating  And Modifying Benchmarks for Task-Completion Ability And Supervised Fine-tuning
+
+o	Distilling and Fine-tuning your own General-Purpose Models
+	Gradually Building Your Own Training/Fine-tuning Datasets For Building Your Own Models

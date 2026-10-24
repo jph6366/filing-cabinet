@@ -1,1 +1,3 @@
 #+title: Gds Star
+
+Evaluating small language models using an agent framework to execute complex geospatial data science workflows. Performance is evaluated on a benchmark built from the Axis Geospatial’s Geospatial Agent Benchmarks methodology to measure spatial reasoning, tool use, and code accuracy.
