@@ -25,7 +25,7 @@ https://github.com/JuliaGeo/GeoPackage.jl/issues/13
 
 * IN-PROGRESS
 
-[[https://github.com/JuiaGraphs/Graphs.jl/issues/447][JuliaGraphs/Graphs.jl#447 A reliable idiomatic wrapper for the C++ library `L...]]
+[[https://github.com/jph6366/gds-harness/pull/2][jph6366/gds-harness#2 gds-harness prototype closes #1]]
 
 * REVIEW
 
@@ -37,3 +37,9 @@ https://github.com/JuliaGeo/GeoPackage.jl/issues/13
 [[https://github.com/JuliaEarth/GeoIO.jl/pull/190][JuliaEarth/GeoIO.jl#190 squash GPKG write by jph6366]]
 
 [[https://github.com/JuliaEarth/GeoIO.jl/pull/193][JuliaEarth/GeoIO.jl#193 GeoPackage Writer by jph6366]]
+
+
+
+* DELETED
+
+[[https://github.com/JuiaGraphs/Graphs.jl/issues/447][JuliaGraphs/Graphs.jl#447 A reliable idiomatic wrapper for the C++ library `L...]]

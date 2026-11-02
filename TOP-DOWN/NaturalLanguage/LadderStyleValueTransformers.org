@@ -1,0 +1,83 @@
+#+title: Ladder Style Value Transformers
+
+* Bringing the critic back: Ladder-style value transformers for RL fine-tuning of language models
+
+
+https://github.com/gabe00122/valm
+
+~ Gabriel Keith
+
+** Overview
+
+- improves over the past few years is due to RL
+  - attributed to GRPO
+
+- can you make value-based RL in language model context
+  - what is GRPO missing?
+
+"Worked on Gridworld model with a CNN over tile embeddings + action embedding and a transformer backbone"
+- Language Models use token embedding and a transformer backbone
+  - without a distinct observation encoder
+
+
+_motivations_
+1. scale up training
+  e.g. gridworld PPO tiny to a 4B language model
+2. own the whole stack
+  e.g. inference and training of an LLM, e2e, from scratch in JAX
+3. Keeep the critic
+  e.g. value proximation ...
+
+_RL Goal_:
+- Wordle
+  - explore generating correctedly spelled 5-letter words
+/multi-turn environments are the reason we have critics/
+
+*no KL penalty*
+- usually done to direct your fine-tuning not too far away from the training distribution
+
+
+*** Framework
+
+*rollout & update*
+
+1. Generate
+        vectorized JAX loop generates tokens until a turn-end token
+2. Interact
+        copy tokens to the host, decode them, and pass them to the environment
+        Add the response tokens and turn rewards to that slot
+3. Collect
+        Push completed episodes to the episode pipeline
+4. Update
+        When the pipeline holds a full batch, pass it to the PPO update function
+5. Repeat
+        Return updated weights to the token generation loop
+
+*token generation*
+
+- Jagged KV cache
+        different prompt lengths require a specialized jax.lax.scatter over token indices
+- Cached prompts
+        prompts stay in their GPU slot throughout generation
+- Decode
+        roughly 8000 tokens/sec, no prefill
+
+
+*value warmup*
+
+the risk: fresh critic starts with unreliable values
+                training the lang model against it could hurt the model
+
+the warmup: train the critic while keeping the base model weights frozen
+
+
+/there is a reason value models are not reasonably used for transformer-based models/
+
+*GAE at 2 timescales*
+- within a turn
+- across turns
+/later TD errors contribute backwards through the episode/
+
+
+*LoRA*
+- train standard LoRA for the lang model using the actor loss
