@@ -1,0 +1,42 @@
+#+title: Ggml
+
+
+* GGML
+
+** Overview
+
+`ggml` is to be a simple, portable, and efficient tensor library for machine learning with minimal setup
+
+- plain C/C++
+- cross-platform - x86, RISC-V, ARM, LoongArch, PowerPC, s390x, and WebAssembly
+- SIMD-optimized kernels for x86, ARM, RISC-V
+- backend support - CPU, GPU, NPU, browser
+- 2-bit to 8-bit integer quantization, plus MXFP4 and NVFP4 microscaling formats
+- zero memory allocations during runtime
+
+/with a focus on Transformer inference/
+
+
+_ggml_context_: a "container" that holds objects such as tensors, graphs, and optionally data
+
+_ggml_cgraph_: represents a computational graph
+        - "order of computation" that will be transferred to the backend
+
+_ggml_backend_: represents an interface for executing computation graphs
+        - e.g. CPU, CUDA, Metal, Vulkan, RPC, etc.
+
+_ggml_backend_buffer_type_: represents a buffer type
+        - a "memory allocator" connected to each `ggml_backend`
+          - if you want to perform calculations on a GPU, you need to allocate memory on the GPU via `buffer_type`
+
+_ggml_backend_buffer_: represents a buffer allocated by `buffer_type`
+        - a buffer can hold the data of multiple tensors
+
+_ggml_gallocr_: represents a graph memory allocator
+        - used to allocate efficiently the tensors used in a computation graph
+
+_ggml_backend_sched_: a scheduler that enables concurrent use of multiple backends
+        - it can distribute computations across different hardware
+                - when dealing with large models or multiple GPUs
+        - the scheduler can automatically assign GPU-unsupported operations to the CPU
+                - ensuring optimal resource utilization and compatibility

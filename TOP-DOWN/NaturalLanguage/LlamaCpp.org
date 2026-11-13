@@ -1,0 +1,16 @@
+#+title: Llama Cpp
+
+* Llama.cpp
+
+** Overview
+
+- `llama.cpp` enables LLM (and VLM, also probably MLLM) inference
+  - plain c/c++ w/o dependencies
+  - apple silicon is a first-class citizen
+    - optimized via ARM, NEON, Accelerate, and Metal frameworks
+  - RVV, ZVFH, ZFH, ZICBOP, and ZIHINTPAUSE support for RISC-V architectures
+  - 1.5-bit, 2-bit, 3-bit, 4-bit, 5-bit, 6-bit, and 8-bit integer quantization for faster inference and reduce memory use
+  - Custom CUDA kernels for running LLMs on NVIDIA GPUs
+    - support AMD GPUs via HIP and Moore Threads
+  - Vulkan and SYCL backend support
+  - CPU+GPU hybrid inference to partially accelerate models larger than the total VRAM capacity
