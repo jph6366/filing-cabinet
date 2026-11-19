@@ -1,0 +1,32 @@
+#+title: Nltk
+
+
+
+* Natural Language Toolkit
+
+
+https://www.nltk.org/book/
+
+
+*** WordNet Lemmatizer
+
+`lemmatize()` is a permissive wrapper around `_morphy()`
+- returns shortest lemma found in *WordNet*
+        - or the input string unchanged if nothing is found
+
+#+begin_src python
+from nltk.stem import WordNetLemmatizer as wnl
+print(wnl().lemmatize('us','n'))
+# u
+ print(wnl().lemmatize('Anythinggoeszxcv'))
+# Anythinggoeszxcv
+
+print(wnl().lemmatize('dogs'))
+# dog
+print(wnl().lemmatize('abaci'))
+# abacus
+print(wnl().lemmatize('hardrock'))
+# hardrock
+print(wnl().morphy('catss'))
+None
+#+end_src

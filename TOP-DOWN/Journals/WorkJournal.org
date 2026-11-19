@@ -1,0 +1,56 @@
+#+title: Work Journal
+
+
+
+
+* Work Journal
+
+** 11/19/2026
+
+- starting a new practice and hosting a fresh org file for logging time
+  - note: a good practice may be to get a snapshot from `ActivityWatch`
+
+*megacorp practicum*
+
+- 0:00:00 ::
+
+- finish first suggested experiment run
+- radar charts for suitable attributes
+- decouple code and simplify procedure
+- write documentation github pages
+
+*gds harness project*
+
+- 0:00:31 ::
+
+- loop
+  - design
+
+- tools and actions
+  - tool use
+  - action system
+
+- context
+
+- research agent memory
+
+- evaluation framework
+  - develop geospatial agent benchmark evaluation
+    - axis spatial
+  - develop data science benchmark evaluation
+    - dabstep
+    - kramabench
+
+*rev disk management*
+
+- 0:00:00 ::
+
+- remove intermediate files for absentees
+- remove intermediate files from crerp/wrf_rev
+
+
+*one.el website*
+
+- 0:00:00 ::
+
+- enjoy programming
